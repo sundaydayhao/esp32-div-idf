@@ -1,5 +1,0 @@
--mlongcalls
--fno-builtin-memcpy
--fno-builtin-memset
--fno-builtin-bzero
-"-specs=C:/projects/ESP32-DIV-IDF-v2/build/specs/picolibc.specs"

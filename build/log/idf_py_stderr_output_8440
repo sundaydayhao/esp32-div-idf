@@ -1,9 +1,0 @@
-Command: cmake -G Ninja -B C:\projects\ESP32-DIV-IDF-v2\build -DPYTHON_DEPS_CHECKED=1 -DPYTHON=C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe -DESP_PLATFORM=1 -DCCACHE_ENABLE=True C:\projects\ESP32-DIV-IDF-v2
-CMake Error at C:/esp/v6.0.1/esp-idf/tools/cmake/project.cmake:493 (message):
-  Directory specified in EXTRA_COMPONENT_DIRS doesn't exist:
-  C:/projects/ESP32-DIV-IDF-v2/components/xpt2046
-Call Stack (most recent call first):
-  C:/esp/v6.0.1/esp-idf/tools/cmake/project.cmake:607 (__project_init)
-  CMakeLists.txt:22 (project)
-
-
