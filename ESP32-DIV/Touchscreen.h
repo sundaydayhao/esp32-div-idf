@@ -1,12 +1,10 @@
 #ifndef TOUCHSCREEN_H
 #define TOUCHSCREEN_H
 
-#include <SPI.h>
 #include "XPT2046_Touchscreen.h"
 #include "SettingsStore.h"
 #include "shared.h"
 
-extern SPIClass touchscreenSPI;
 extern XPT2046_Touchscreen ts;
 
 #ifndef TOUCH_X_MIN

@@ -814,6 +814,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/esp32_div/cmake_install.cmake")
 endif()
 

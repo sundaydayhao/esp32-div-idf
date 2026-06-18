@@ -1238,6 +1238,13 @@ C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/nimble_compat/CMakeFiles/list_install
 C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/nimble_compat/CMakeFiles/install.dir
 C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/nimble_compat/CMakeFiles/install/local.dir
 C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/nimble_compat/CMakeFiles/install/strip.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/__idf_eeprom_compat.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/edit_cache.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/rebuild_cache.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/list_install_components.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/install.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/install/local.dir
+C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/CMakeFiles/install/strip.dir
 C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir
 C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/esp32_div/CMakeFiles/edit_cache.dir
 C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/esp32_div/CMakeFiles/rebuild_cache.dir

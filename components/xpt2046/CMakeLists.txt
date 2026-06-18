@@ -4,7 +4,10 @@ idf_component_register(
     INCLUDE_DIRS
         "."
     REQUIRES
-        arduino
         driver
+        esp_driver_spi
         esp_timer
+        log
+    PRIV_REQUIRES
+        esp_driver_gpio
 )

@@ -25,12 +25,16 @@ idf_component_register(
         pcf8574
         xpt2046
         nimble_compat
+        eeprom_compat
         nvs_flash
         esp_event
         esp_system
         esp_timer
         esp_wifi
         esp_netif
+        esp_http_server
+        mdns
+        app_update
         esp_driver_ledc
         espressif__esp-dsp
 )

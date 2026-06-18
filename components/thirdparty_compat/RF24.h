@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <cstdint>
 
 #define RF24_PA_MAX 3

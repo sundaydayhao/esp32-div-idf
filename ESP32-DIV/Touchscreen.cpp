@@ -42,8 +42,7 @@ void setupTouchscreen() {
     return;
   }
 
-  SPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
-  ts.begin(SPI);
+  ts.begin();
   ts.setRotation(TOUCH_ROTATION);
 
   s_touchInitialized = true;

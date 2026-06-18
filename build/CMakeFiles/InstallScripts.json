@@ -177,6 +177,7 @@
 		"C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/pcf8574/cmake_install.cmake",
 		"C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/xpt2046/cmake_install.cmake",
 		"C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/nimble_compat/cmake_install.cmake",
+		"C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/eeprom_compat/cmake_install.cmake",
 		"C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/esp32_div/cmake_install.cmake",
 		"C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/main/cmake_install.cmake"
 	],

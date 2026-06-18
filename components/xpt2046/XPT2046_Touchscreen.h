@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <SPI.h>
+
+#include "driver/spi_master.h"
 
 struct TS_Point {
   int16_t x;
@@ -14,7 +15,7 @@ class XPT2046_Touchscreen {
  public:
   XPT2046_Touchscreen(uint8_t csPin, uint8_t irqPin = 255);
 
-  void begin(SPIClass& spi);
+  void begin();
   void setRotation(uint8_t rotation);
   bool touched();
   bool tirqTouched() const;
@@ -24,9 +25,11 @@ class XPT2046_Touchscreen {
 
  private:
   bool readRaw(uint16_t& x, uint16_t& y, uint16_t& z);
+  uint16_t transfer12(uint8_t cmd);
 
   uint8_t csPin_;
   uint8_t irqPin_;
   uint8_t rotation_;
-  SPIClass* spi_;
+  spi_host_device_t host_;
+  spi_device_handle_t device_;
 };

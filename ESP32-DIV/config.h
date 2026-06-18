@@ -2,21 +2,11 @@
 // config.h — merged from bleconfig.h, wificonfig.h, subconfig.h
 
 /* ───────────── Common includes ───────────── */
-#include <Arduino.h>
 #include <TFT_eSPI.h>
-#include <SPI.h>
-#include <Wire.h>
 #include <EEPROM.h>
-#include <Preferences.h>
-#include <WebServer.h>
-#include <DNSServer.h>
-#include <RCSwitch.h>
-#include <SD.h>
-#include <Update.h>
-#include <ESPmDNS.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include <WiFi.h>
+#include <RCSwitch.h>
 #include <esp_wifi.h>
 #include <esp_wifi_types.h>
 #include <esp_system.h>
