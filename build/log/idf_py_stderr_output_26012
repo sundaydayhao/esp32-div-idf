@@ -1,0 +1,47 @@
+Command: ninja all
+Loading defaults file C:/projects/ESP32-DIV-IDF-v2/sdkconfig.defaults...
+Configuration Report                                                           
++-----------------------------------------------------------------------------+
+|  Parser Version: 1                                                          |
+|  Verbosity: default                                                         |
+|  Defaults policy: sdkconfig                                                 |
+|  Status: Finished with notifications                                        |
+|                                                                             |
+| Miscellaneous                                                               |
+| +-------------------------------------------------------------------------+ |
+| | * BT_NIMBLE_MESH_PROVISIONER (defined at                                | |
+| | C:/esp/v6.0.1/esp-idf/components/bt/host/nimble/Kconfig.in:1421):       | |
+| | 'default 0' is not a valid bool value (only 'y' and 'n' are allowed).   | |
+| | Value is treated as 'n'.                                                | |
+| | * FATFS_PRINT_LLI (defined at                                           | |
+| | C:/esp/v6.0.1/esp-idf/components/fatfs/Kconfig:230): 'default 0' is not | |
+| | a valid bool value (only 'y' and 'n' are allowed). Value is treated as  | |
+| | 'n'.                                                                    | |
+| | * FATFS_PRINT_FLOAT (defined at                                         | |
+| | C:/esp/v6.0.1/esp-idf/components/fatfs/Kconfig:235): 'default 0' is not | |
+| | a valid bool value (only 'y' and 'n' are allowed). Value is treated as  | |
+| | 'n'.                                                                    | |
+| +-------------------------------------------------------------------------+ |
+| Default Value Mismatch                                                      |
+| +-------------------------------------------------------------------------+ |
+| | Using sdkconfig default values                                       |  | |
+| | Choice symbols with different default selection between sdkconfig    |  | |
+| | and Kconfig                                                          |  | |
+| | PARTITION_TABLE_TYPE: Kconfig default selection:                     |  | |
+| | PARTITION_TABLE_SINGLE_APP, sdkconfig default selection:             |  | |
+| | PARTITION_TABLE_CUSTOM                                               |  | |
+| +-------------------------------------------------------------------------+ |
+| Multiple Assignments                                                        |
+| +----------------------------------------------------+                      |
+| | Choice PARTITION_TABLE_TYPE:                       |                      |
+| |     PARTITION_TABLE_SINGLE_APP (default selection) |                      |
+| |     PARTITION_TABLE_CUSTOM (default selection)     |                      |
+| |     -> using PARTITION_TABLE_CUSTOM                |                      |
+| +----------------------------------------------------+                      |
+| Disabled Symbols/Choices With User-Set Value                                |
+| +-------------------------------------------------------------------------+ |
+| | * TFT_eSPI_ESPIDF (defined at                                           | |
+| | C:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/Kconfig:6) with        | |
+| | user-set value y from C:/projects/ESP32-DIV-IDF-v2/sdkconfig            | |
+| +-------------------------------------------------------------------------+ |
++-----------------------------------------------------------------------------+

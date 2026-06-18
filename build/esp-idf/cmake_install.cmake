@@ -789,37 +789,12 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/main/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/3.3.10-cn/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/TFT_eSPI/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/ArduinoJson/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/Adafruit_BusIO/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/Adafruit_PN532/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/arduinoFFT/cmake_install.cmake")
+  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/thirdparty_compat/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
@@ -834,32 +809,17 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/rcswitch/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/smartrc_cc1101/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/rf24/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/irremoteesp8266/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/nimble_compat/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/esp32_div/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/projects/ESP32-DIV-IDF-v2/build/esp-idf/main/cmake_install.cmake")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT

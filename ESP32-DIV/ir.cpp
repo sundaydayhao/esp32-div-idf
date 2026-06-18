@@ -3,10 +3,11 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 #include <IRutils.h>
-#include <ArduinoJson.h>
+#include <cJSON.h>
 #include <SD.h>
 #include <algorithm>
 #include <vector>
+#include <string>
 #include "KeyboardUI.h"
 #include "Touchscreen.h"
 #include "icon.h"
@@ -109,6 +110,7 @@ static bool s_irStatusStaticDrawn = false;
 static uint32_t s_irLastStatusDrawMs = 0;
 
 static constexpr uint16_t kMaxRawLen = 512;
+static constexpr uint16_t kRawTick = 50;
 
 static IRrecv s_recv(kRecvPin);
 static IRsend s_send(kSendPin);
@@ -2363,119 +2365,127 @@ static bool endsWith(const String& s, const char* suf) {
   return s.substring(sl - tl) == suf;
 }
 
-static bool parseProfilesJson(File& f, size_t docCapacity, String* errOut = nullptr) {
-
-  if (docCapacity < 512) docCapacity = 512;
-  DynamicJsonDocument doc(docCapacity);
-  DeserializationError err = deserializeJson(doc, f);
-  if (err) { if (errOut) *errOut = "JSON parse failed"; return false; }
-
-  JsonArray arr = doc["profiles"].as<JsonArray>();
-  if (!arr.isNull()) {
-    for (JsonVariant v : arr) {
-      JsonObject o = v.as<JsonObject>();
-      if (o.isNull()) continue;
-
-      const char* nm = o["name"] | "";
-      const char* pr = o["protocol"] | "";
-      const char* cat = o["category"] | "";
-      const char* br  = o["brand"] | "";
-      decode_type_t proto = decode_type_t::UNKNOWN;
-      if (!protoFromToken(String(pr), proto)) continue;
-
-      Profile p{};
-      p.name = String(nm);
-      if (!p.name.length()) p.name = String(pr);
-      p.category = String(cat);
-      p.brand = String(br);
-      if (!p.category.length()) p.category = inferCategoryFromName(p.name);
-      if (!p.brand.length()) p.brand = inferBrandFromName(p.name);
-      p.proto = proto;
-      p.bits = (uint16_t)(o["bits"] | ((proto == decode_type_t::SONY) ? 12 : 32));
-
-      JsonObject codes = o["codes"].as<JsonObject>();
-      if (!codes.isNull()) {
-        for (JsonPair kv : codes) {
-          String keyName = String(kv.key().c_str());
-          KeyId kid;
-          if (!keyFromToken(keyName, kid)) continue;
-
-          const char* valStr = kv.value().as<const char*>();
-          uint64_t code = 0;
-          bool ok = false;
-          if (valStr && strlen(valStr)) {
-            String s(valStr);
-            s.trim();
-            if (s.startsWith("0x") || s.startsWith("0X")) {
-              code = strtoull(s.c_str() + 2, nullptr, 16);
-              ok = true;
-            } else {
-              code = strtoull(s.c_str(), nullptr, 10);
-              ok = true;
-            }
-          } else if (kv.value().is<uint32_t>()) {
-            code = (uint64_t)kv.value().as<uint32_t>();
-            ok = true;
-          } else if (kv.value().is<uint16_t>()) {
-            code = (uint64_t)kv.value().as<uint16_t>();
-            ok = true;
-          } else if (kv.value().is<uint8_t>()) {
-            code = (uint64_t)kv.value().as<uint8_t>();
-            ok = true;
-          }
-          if (!ok) continue;
-
-          p.code[kid] = code;
-          p.has[kid] = true;
-        }
-      }
-
-      s_profiles.push_back(p);
-      if ((int)s_profiles.size() >= (int)kMaxProfiles) break;
-    }
-    return !s_profiles.empty();
+static bool cjsonGetString(cJSON* obj, const char* key, const char*& out) {
+  cJSON* item = cJSON_GetObjectItemCaseSensitive(obj, key);
+  if (!cJSON_IsString(item) || item->valuestring == nullptr) {
+    out = "";
+    return false;
   }
+  out = item->valuestring;
+  return true;
+}
 
-  JsonObject o = doc.as<JsonObject>();
-  if (!o.isNull() && (o.containsKey("name") || o.containsKey("protocol"))) {
-    const char* nm = o["name"] | "";
-    const char* pr = o["protocol"] | "";
-    const char* cat = o["category"] | "";
-    const char* br  = o["brand"] | "";
-    decode_type_t proto = decode_type_t::UNKNOWN;
-    if (!protoFromToken(String(pr), proto)) { if (errOut) *errOut = "Bad protocol"; return false; }
+static uint16_t cjsonGetBits(cJSON* obj, uint16_t fallback) {
+  cJSON* item = cJSON_GetObjectItemCaseSensitive(obj, "bits");
+  if (cJSON_IsNumber(item) && item->valuedouble >= 0.0) {
+    return (uint16_t)item->valuedouble;
+  }
+  return fallback;
+}
 
-    Profile p{};
-    p.name = String(nm);
-    if (!p.name.length()) p.name = String(pr);
-    p.category = String(cat);
-    p.brand = String(br);
-    if (!p.category.length()) p.category = inferCategoryFromName(p.name);
-    if (!p.brand.length()) p.brand = inferBrandFromName(p.name);
-    p.proto = proto;
-    p.bits = (uint16_t)(o["bits"] | ((proto == decode_type_t::SONY) ? 12 : 32));
-
-    JsonObject codes = o["codes"].as<JsonObject>();
-    if (!codes.isNull()) {
-      for (JsonPair kv : codes) {
-        String keyName = String(kv.key().c_str());
-        KeyId kid;
-        if (!keyFromToken(keyName, kid)) continue;
-        const char* valStr = kv.value().as<const char*>();
-        if (!valStr || !strlen(valStr)) continue;
-        String s(valStr);
-        s.trim();
-        uint64_t code = 0;
-        if (s.startsWith("0x") || s.startsWith("0X")) code = strtoull(s.c_str() + 2, nullptr, 16);
-        else code = strtoull(s.c_str(), nullptr, 10);
-        p.code[kid] = code;
-        p.has[kid] = true;
-      }
-    }
-    s_profiles.push_back(p);
+static bool cjsonParseCodeValue(cJSON* value, uint64_t& code) {
+  if (cJSON_IsNumber(value)) {
+    code = (uint64_t)value->valuedouble;
     return true;
   }
+  if (cJSON_IsString(value) && value->valuestring != nullptr) {
+    String s(value->valuestring);
+    s.trim();
+    if (!s.length()) {
+      return false;
+    }
+    if (s.startsWith("0x") || s.startsWith("0X")) {
+      code = strtoull(s.c_str() + 2, nullptr, 16);
+      return true;
+    }
+    code = strtoull(s.c_str(), nullptr, 10);
+    return true;
+  }
+  return false;
+}
 
+static bool cjsonFillProfileFromObject(cJSON* obj, Profile& p, String* errOut) {
+  const char* nm = "";
+  const char* pr = "";
+  const char* cat = "";
+  const char* br = "";
+  cjsonGetString(obj, "name", nm);
+  cjsonGetString(obj, "protocol", pr);
+  cjsonGetString(obj, "category", cat);
+  cjsonGetString(obj, "brand", br);
+
+  decode_type_t proto = decode_type_t::UNKNOWN;
+  if (!protoFromToken(String(pr), proto)) {
+    if (errOut) *errOut = "Bad protocol";
+    return false;
+  }
+
+  p = Profile{};
+  p.name = String(nm);
+  if (!p.name.length()) p.name = String(pr);
+  p.category = String(cat);
+  p.brand = String(br);
+  if (!p.category.length()) p.category = inferCategoryFromName(p.name);
+  if (!p.brand.length()) p.brand = inferBrandFromName(p.name);
+  p.proto = proto;
+  p.bits = cjsonGetBits(obj, (proto == decode_type_t::SONY) ? 12 : 32);
+
+  cJSON* codes = cJSON_GetObjectItemCaseSensitive(obj, "codes");
+  if (cJSON_IsObject(codes)) {
+    cJSON* kv = nullptr;
+    cJSON_ArrayForEach(kv, codes) {
+      if (kv->string == nullptr) continue;
+      KeyId kid;
+      if (!keyFromToken(String(kv->string), kid)) continue;
+      uint64_t code = 0;
+      if (!cjsonParseCodeValue(kv, code)) continue;
+      p.code[kid] = code;
+      p.has[kid] = true;
+    }
+  }
+
+  return true;
+}
+
+static bool parseProfilesJson(File& f, size_t docCapacity, String* errOut = nullptr) {
+  (void)docCapacity;
+  std::string json;
+  json.reserve(4096);
+  char buf[512];
+  while (true) {
+    size_t n = f.readBytes(buf, sizeof(buf));
+    if (n == 0) break;
+    json.append(buf, buf + n);
+  }
+
+  cJSON* root = cJSON_Parse(json.c_str());
+  if (!root) {
+    if (errOut) *errOut = "JSON parse failed";
+    return false;
+  }
+
+  bool ok = false;
+  cJSON* profiles = cJSON_GetObjectItemCaseSensitive(root, "profiles");
+  if (cJSON_IsArray(profiles)) {
+    cJSON* item = nullptr;
+    cJSON_ArrayForEach(item, profiles) {
+      if (!cJSON_IsObject(item)) continue;
+      Profile p{};
+      if (!cjsonFillProfileFromObject(item, p, errOut)) continue;
+      s_profiles.push_back(p);
+      ok = true;
+      if ((int)s_profiles.size() >= (int)kMaxProfiles) break;
+    }
+  } else if (cJSON_IsObject(root)) {
+    Profile p{};
+    if (cjsonFillProfileFromObject(root, p, errOut)) {
+      s_profiles.push_back(p);
+      ok = true;
+    }
+  }
+
+  cJSON_Delete(root);
+  if (ok) return true;
   if (errOut) *errOut = "No profiles";
   return false;
 }

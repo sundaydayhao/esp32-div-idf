@@ -4,8 +4,10 @@
 #include "Touchscreen.h"
 #include "config.h"
 #include "icon.h"
+#include "signal_dsp.h"
 #include "shared.h"
 #include "utils.h"
+#include "driver/ledc.h"
 
 
 namespace {
@@ -476,7 +478,6 @@ struct __attribute__((packed)) Profile {
 uint16_t profileCount = 0;
 
 RCSwitch mySwitch = RCSwitch();
-ArduinoFFT<double> FFTSUB;
 
 const uint16_t samplesSUB = 256;
 const double FrequencySUB = 5000;
@@ -547,27 +548,63 @@ static uint16_t lastDetectAlertFreq = 0xFFFF;
 static uint32_t notifHideAtMs = 0;
 static bool notifActive = false;
 
-static constexpr uint8_t BUZZER_LEDC_CH = 7;
 static bool buzzerArmed = false;
+static bool buzzerPwmReady = false;
 static uint32_t buzzerOffAtMs = 0;
+
+static bool replayBuzzerInit(uint16_t hz) {
+  if (BUZZER_PIN < 0) {
+    return false;
+  }
+  if (!buzzerPwmReady) {
+    const ledc_timer_config_t timerConfig = {
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .duty_resolution = LEDC_TIMER_8_BIT,
+        .timer_num = LEDC_TIMER_1,
+        .freq_hz = hz,
+        .clk_cfg = LEDC_AUTO_CLK,
+        .deconfigure = false,
+    };
+    if (ledc_timer_config(&timerConfig) != ESP_OK) {
+      return false;
+    }
+
+    const ledc_channel_config_t channelConfig = {
+        .gpio_num = BUZZER_PIN,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = LEDC_CHANNEL_1,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LEDC_TIMER_1,
+        .duty = 0,
+        .hpoint = 0,
+        .sleep_mode = LEDC_SLEEP_MODE_NO_ALIVE_NO_PD,
+        .flags = {.output_invert = 0},
+        .deconfigure = false,
+    };
+    if (ledc_channel_config(&channelConfig) != ESP_OK) {
+      return false;
+    }
+    buzzerPwmReady = true;
+  }
+
+  return ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_TIMER_1, hz) == ESP_OK;
+}
+
 static void replayBeep(uint16_t hz = 2200, uint16_t ms = 60) {
-  #ifdef BUZZER_PIN
-  ledcAttach(BUZZER_PIN, 4000, 8);
-  ledcWriteTone(BUZZER_PIN, hz);
+  if (!replayBuzzerInit(hz)) {
+    return;
+  }
+  ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 128);
+  ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
   buzzerArmed = true;
   buzzerOffAtMs = millis() + ms;
-  #endif
 }
 
 static void replayBeepPoll() {
-  #ifdef BUZZER_PIN
   if (!buzzerArmed) return;
   if ((int32_t)(millis() - buzzerOffAtMs) < 0) return;
-  ledcWriteTone(BUZZER_PIN, 0);
-
-  ledcDetach(BUZZER_PIN);
+  ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
   buzzerArmed = false;
-  #endif
 }
 
 static void replayShowDetectNotice(const String& reason, int rssi = 0) {
@@ -1029,9 +1066,7 @@ for (int i = 0; i < samplesSUB; i++) {
 
   micro_s = micros();
 
-  FFTSUB.windowing(vRealSUB, samplesSUB, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  FFTSUB.compute(vRealSUB, vImagSUB, samplesSUB, FFT_FORWARD);
-  FFTSUB.complexToMagnitude(vRealSUB, vImagSUB, samplesSUB);
+  signalDspComputeMagnitude(vRealSUB, vRealSUB, samplesSUB);
 
 unsigned int left_x = 120;
 unsigned int graph_y_offset = kGraphYOffset;

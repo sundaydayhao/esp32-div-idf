@@ -134,7 +134,7 @@ ESP32-DIV is an open-source, multi-band wireless toolkit built on the **ESP32-S3
   
 | Tool | Description |
 |------|-------------|
-| Serial Monitor | Mirrors serial traffic on the TFT for field debugging |
+| Serial Console | Mirrors serial traffic on the TFT for field debugging |
 | SD File Manager | Browses and manages files on the SD card |
 | Update Firmware | Flashes new firmware from SD |
 | Touch Calibrate | Four-corner XPT2046 touchscreen calibration |

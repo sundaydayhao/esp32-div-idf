@@ -1,11 +1,15 @@
-#include <ArduinoJson.h>
-#include <SD.h>
 #include "SettingsStore.h"
-#include "utils.h"
 
+#include <string.h>
+
+#include "esp_log.h"
+#include "nvs.h"
+#include "nvs_flash.h"
 
 static AppSettings g_settings;
 AppSettings& settings() { return g_settings; }
+
+static const char* TAG = "settings";
 
 static const AccentOption kAccentPresets[] = {
   {"Orange", 0xFBE4},
@@ -42,68 +46,78 @@ void settingsApplyBoardTouchDefaults() {
   s.touchYMax = TOUCH_Y_MAX;
 }
 
-static bool settingsTouchSavedForBoard(const StaticJsonDocument<512>& doc) {
-  JsonObjectConst touch = doc["touch"];
-  if (touch.isNull()) {
+static bool settingsOpen(nvs_open_mode_t mode, nvs_handle_t* out) {
+  esp_err_t err = nvs_open(SETTINGS_NVS_NAMESPACE, mode, out);
+  if (err == ESP_ERR_NVS_NOT_FOUND && mode == NVS_READONLY) {
     return false;
   }
-  if (!touch["xMin"].is<uint16_t>() || !touch["xMax"].is<uint16_t>() ||
-      !touch["yMin"].is<uint16_t>() || !touch["yMax"].is<uint16_t>()) {
-    return false;
-  }
-  const char* savedBoard = doc["board"] | "";
-  if (savedBoard[0] == '\0') {
-    return true;
-  }
-  return strcmp(savedBoard, TOUCH_PROFILE_ID) == 0;
-}
-
-static bool sd_mounted = false;
-static bool mountSD() {
-
-  if (sd_mounted) {
-    if (SD.exists("/")) return true;
-    sd_mounted = false;
-  }
-
-  sd_mounted = isSDCardAvailable();
-  return sd_mounted;
-}
-
-static bool ensureDir(const char* dirPath) {
-  if (!mountSD()) return false;
-  if (!SD.exists(dirPath)) {
-    if (SD.mkdir(dirPath)) return true;
-
-    if (dirPath && dirPath[0] == '/') {
-      return SD.mkdir(dirPath + 1);
-    }
+  if (err != ESP_OK) {
+    ESP_LOGW(TAG, "nvs_open failed: %s", esp_err_to_name(err));
     return false;
   }
   return true;
 }
 
+static bool settingsGetU8(nvs_handle_t h, const char* key, uint8_t* value) {
+  uint8_t tmp = 0;
+  esp_err_t err = nvs_get_u8(h, key, &tmp);
+  if (err == ESP_ERR_NVS_NOT_FOUND) {
+    return false;
+  }
+  if (err != ESP_OK) {
+    ESP_LOGW(TAG, "nvs_get_u8(%s) failed: %s", key, esp_err_to_name(err));
+    return false;
+  }
+  *value = tmp;
+  return true;
+}
+
+static bool settingsGetBool(nvs_handle_t h, const char* key, bool* value) {
+  uint8_t tmp = *value ? 1 : 0;
+  if (settingsGetU8(h, key, &tmp)) {
+    *value = tmp != 0;
+    return true;
+  }
+  return false;
+}
+
+static bool settingsGetU16(nvs_handle_t h, const char* key, uint16_t* value) {
+  uint16_t tmp = 0;
+  esp_err_t err = nvs_get_u16(h, key, &tmp);
+  if (err == ESP_ERR_NVS_NOT_FOUND) {
+    return false;
+  }
+  if (err != ESP_OK) {
+    ESP_LOGW(TAG, "nvs_get_u16(%s) failed: %s", key, esp_err_to_name(err));
+    return false;
+  }
+  *value = tmp;
+  return true;
+}
+
 bool settingsLoad() {
   settingsApplyBoardTouchDefaults();
-  if (!mountSD()) return false;
-  if (!SD.exists(SETTINGS_PATH)) return true;
 
-  File f = SD.open(SETTINGS_PATH, FILE_READ);
-  if (!f) return false;
-
-  StaticJsonDocument<512> doc;
-  DeserializationError err = deserializeJson(doc, f);
-  f.close();
-  if (err) return false;
+  nvs_handle_t h = 0;
+  if (!settingsOpen(NVS_READONLY, &h)) {
+    return true;
+  }
 
   auto& s = g_settings;
-  s.brightness      = doc["brightness"]      | s.brightness;
-  s.theme           = (Theme)(uint8_t)(doc["theme"] | (uint8_t)s.theme);
-  s.accentColor     = accentPresetClamp(doc["accentColor"] | s.accentColor);
-  s.neopixelEnabled = doc["neopixelEnabled"] | s.neopixelEnabled;
+  uint8_t u8 = 0;
+  if (settingsGetU8(h, "brightness", &u8)) {
+    s.brightness = u8;
+  }
+  if (settingsGetU8(h, "theme", &u8)) {
+    s.theme = (u8 == (uint8_t)Theme::Light) ? Theme::Light : Theme::Dark;
+  }
+  if (settingsGetU8(h, "accent", &u8)) {
+    s.accentColor = accentPresetClamp(u8);
+  }
+  settingsGetBool(h, "neopixel", &s.neopixelEnabled);
 
-  s.autoWifiScan    = doc["autoWifiScan"]    | s.autoWifiScan;
-  s.autoBleScan     = doc["autoBleScan"]     | s.autoBleScan;
+  settingsGetBool(h, "auto_wifi", &s.autoWifiScan);
+  settingsGetBool(h, "auto_ble", &s.autoBleScan);
 
   if (s.autoWifiScan != s.autoBleScan) {
     bool en = (s.autoWifiScan || s.autoBleScan);
@@ -111,52 +125,57 @@ bool settingsLoad() {
     s.autoBleScan  = en;
   }
 
-  if (settingsTouchSavedForBoard(doc)) {
-    JsonObjectConst touch = doc["touch"];
-    s.touchXMin = touch["xMin"] | s.touchXMin;
-    s.touchXMax = touch["xMax"] | s.touchXMax;
-    s.touchYMin = touch["yMin"] | s.touchYMin;
-    s.touchYMax = touch["yMax"] | s.touchYMax;
+  char board[32] = {};
+  size_t boardLen = sizeof(board);
+  bool touchForThisBoard = false;
+  esp_err_t boardErr = nvs_get_str(h, "board", board, &boardLen);
+  if (boardErr == ESP_OK) {
+    touchForThisBoard = (strcmp(board, TOUCH_PROFILE_ID) == 0);
+  } else if (boardErr == ESP_ERR_NVS_NOT_FOUND) {
+    touchForThisBoard = false;
   } else {
+    ESP_LOGW(TAG, "nvs_get_str(board) failed: %s", esp_err_to_name(boardErr));
+  }
+
+  if (touchForThisBoard) {
+    settingsGetU16(h, "touch_x_min", &s.touchXMin);
+    settingsGetU16(h, "touch_x_max", &s.touchXMax);
+    settingsGetU16(h, "touch_y_min", &s.touchYMin);
+    settingsGetU16(h, "touch_y_max", &s.touchYMax);
+  } else if (boardErr != ESP_ERR_NVS_NOT_FOUND) {
     settingsApplyBoardTouchDefaults();
   }
 
+  nvs_close(h);
   return true;
 }
 
 bool settingsSave() {
 
-  if (!ensureDir("/config")) {
-    sd_mounted = false;
-    if (!ensureDir("/config")) return false;
-  }
-
-  File f = SD.open(SETTINGS_PATH, FILE_WRITE);
-  if (!f) {
-    sd_mounted = false;
-    if (!mountSD()) return false;
-    f = SD.open(SETTINGS_PATH, FILE_WRITE);
-    if (!f) return false;
+  nvs_handle_t h = 0;
+  if (!settingsOpen(NVS_READWRITE, &h)) {
+    return false;
   }
 
   auto& s = g_settings;
-  StaticJsonDocument<512> doc;
-  doc["board"]           = TOUCH_PROFILE_ID;
-  doc["brightness"]      = s.brightness;
-  doc["theme"]           = (uint8_t)s.theme;
-  doc["accentColor"]     = s.accentColor;
-  doc["neopixelEnabled"] = s.neopixelEnabled;
+  esp_err_t err = ESP_OK;
+  if (err == ESP_OK) err = nvs_set_str(h, "board", TOUCH_PROFILE_ID);
+  if (err == ESP_OK) err = nvs_set_u8(h, "brightness", s.brightness);
+  if (err == ESP_OK) err = nvs_set_u8(h, "theme", (uint8_t)s.theme);
+  if (err == ESP_OK) err = nvs_set_u8(h, "accent", accentPresetClamp(s.accentColor));
+  if (err == ESP_OK) err = nvs_set_u8(h, "neopixel", s.neopixelEnabled ? 1 : 0);
+  if (err == ESP_OK) err = nvs_set_u8(h, "auto_wifi", s.autoWifiScan ? 1 : 0);
+  if (err == ESP_OK) err = nvs_set_u8(h, "auto_ble", s.autoBleScan ? 1 : 0);
+  if (err == ESP_OK) err = nvs_set_u16(h, "touch_x_min", s.touchXMin);
+  if (err == ESP_OK) err = nvs_set_u16(h, "touch_x_max", s.touchXMax);
+  if (err == ESP_OK) err = nvs_set_u16(h, "touch_y_min", s.touchYMin);
+  if (err == ESP_OK) err = nvs_set_u16(h, "touch_y_max", s.touchYMax);
+  if (err == ESP_OK) err = nvs_commit(h);
 
-  doc["autoWifiScan"]    = s.autoWifiScan;
-  doc["autoBleScan"]     = s.autoBleScan;
-
-  JsonObject t = doc.createNestedObject("touch");
-  t["xMin"] = s.touchXMin;
-  t["xMax"] = s.touchXMax;
-  t["yMin"] = s.touchYMin;
-  t["yMax"] = s.touchYMax;
-
-  bool ok = serializeJson(doc, f) > 0;
-  f.close();
-  return ok;
+  nvs_close(h);
+  if (err != ESP_OK) {
+    ESP_LOGW(TAG, "settings save failed: %s", esp_err_to_name(err));
+    return false;
+  }
+  return true;
 }

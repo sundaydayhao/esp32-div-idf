@@ -132,7 +132,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 
 /*──────────────────── Touch calibration profiles ────────────────────*/
 /* Factory defaults per board (raw XPT2046 range). Override in BoardConfig.h.
- * User-saved calibration in settings.json overrides when board id matches. */
+ * User-saved NVS calibration overrides these defaults when the board id matches. */
 #if defined(BOARD_CYD)
 #ifndef TOUCH_PROFILE_ID
 #define TOUCH_PROFILE_ID "CYD"
@@ -706,8 +706,8 @@ enum class Theme : uint8_t { Dark = 0, Light = 1 };
 #ifndef NEOPIXEL_BRIGHT_MAX
 #define NEOPIXEL_BRIGHT_MAX 64
 #endif
-#ifndef SETTINGS_PATH
-#define SETTINGS_PATH "/config/settings.json"
+#ifndef SETTINGS_NVS_NAMESPACE
+#define SETTINGS_NVS_NAMESPACE "app_settings"
 #endif
 
 void displaySubmenu();

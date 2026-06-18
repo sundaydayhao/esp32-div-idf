@@ -2,7 +2,7 @@
 #define TOUCHSCREEN_H
 
 #include <SPI.h>
-#include <XPT2046_Touchscreen.h>
+#include "XPT2046_Touchscreen.h"
 #include "SettingsStore.h"
 #include "shared.h"
 

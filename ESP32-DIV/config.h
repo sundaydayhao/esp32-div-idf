@@ -4,8 +4,6 @@
 /* ───────────── Common includes ───────────── */
 #include <Arduino.h>
 #include <TFT_eSPI.h>
-#include <PCF8574.h>
-#include <XPT2046_Touchscreen.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <EEPROM.h>
@@ -29,13 +27,14 @@
 // Use NimBLE for all BLE functionality, via the BleCompat shim which
 // exposes BLEDevice/BLEScan/etc as aliases to NimBLE types.
 #include "BleCompat.h"
+#include "XPT2046_Touchscreen.h"
 
 #include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp_gap_bt_api.h"
 
-#include "arduinoFFT.h"
 #include "ELECHOUSE_CC1101_SRC_DRV.h"
+#include "PCF8574.h"
 #include "utils.h"
 #include "shared.h"
 

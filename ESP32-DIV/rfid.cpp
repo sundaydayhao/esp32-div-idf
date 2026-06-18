@@ -1733,7 +1733,7 @@ void sessionErase() {
 void sessionDump() {
   static const char kIntro[] =
       "Reads Classic blocks 0–63 or UL/NTAG user pages.\n\n"
-      "Summary here; full hex prints on Serial Monitor.\n\n"
+      "Summary here; full hex prints on Serial Console.\n\n"
       "Present tag on the coil.";
 
   rfidAttachBus();
@@ -1762,14 +1762,14 @@ void sessionDump() {
   if (ct == MIFARE_CLASSIC) {
     segmentsExpected = 64;
     rfidTransitionToProgress("Dump", "Reading Classic blocks", "Cancel",
-                             "Reading MIFARE Classic blocks 0–63.\nFull hex on Serial Monitor.");
+                             "Reading MIFARE Classic blocks 0–63.\nFull hex on Serial Console.");
     Serial.println(F("\n--- RFID Dump Classic ---"));
     for (uint8_t block = 0; block < 64; block++) {
       char l2[48];
       snprintf(l2, sizeof(l2), "Block %u / 63", (unsigned)block);
       rfidDynamicBand(RF_DYN_TOP_PROG, "Dumping MIFARE Classic", l2);
       char infoLine[72];
-      snprintf(infoLine, sizeof(infoLine), "Reading block %u of 63.\nFull hex on Serial Monitor.",
+      snprintf(infoLine, sizeof(infoLine), "Reading block %u of 63.\nFull hex on Serial Console.",
                (unsigned)block);
       rfidRefreshInfoPanel("PROGRESS", infoLine);
       if (rfidPollCancel()) {
@@ -1806,14 +1806,14 @@ void sessionDump() {
     uint8_t maxPages = (ct == MIFARE_ULTRALIGHT) ? 16u : 36u;
     segmentsExpected = (int)maxPages - 4;
     rfidTransitionToProgress("Dump", "Reading user pages", "Cancel",
-                             "Reading Ultralight / NTAG user pages.\nFull hex on Serial Monitor.");
+                             "Reading Ultralight / NTAG user pages.\nFull hex on Serial Console.");
     Serial.println(F("\n--- RFID Dump Ultralight / NTAG ---"));
     for (uint8_t page = 4; page < maxPages; page++) {
       char l2[48];
       snprintf(l2, sizeof(l2), "Page %u / %u", (unsigned)page, (unsigned)(maxPages - 1));
       rfidDynamicBand(RF_DYN_TOP_PROG, "Dumping pages", l2);
       char infoLine[72];
-      snprintf(infoLine, sizeof(infoLine), "Reading page %u of %u.\nFull hex on Serial Monitor.",
+      snprintf(infoLine, sizeof(infoLine), "Reading page %u of %u.\nFull hex on Serial Console.",
                (unsigned)page, (unsigned)(maxPages - 1));
       rfidRefreshInfoPanel("PROGRESS", infoLine);
       if (rfidPollCancel()) {
@@ -1876,7 +1876,7 @@ void sessionDump() {
   snprintf(body, sizeof(body),
            "UID: %s\nType: %s\n\n"
            "Segments read OK: %d%s\nBlocks/pages with any non-zero byte: %d\n\n"
-           "%sOpen Serial Monitor for full hex.",
+           "%sOpen Serial Console for full hex.",
            uidStr, cardTypeStr(ct), blocksRead,
            partial ? " (partial — some blocks need other keys)" : "",
            blocksWithData, partial ? "Some blocks were skipped (auth/key).\n" : "");
@@ -2154,7 +2154,7 @@ void sessionCardReader() {
 
   char ulSample[240] = "";
   if (ct == MIFARE_ULTRALIGHT || ct == NTAG) {
-    uint8_t pg[4][4];
+    uint8_t pg[4][4] = {};
     bool ok = true;
     for (int pi = 0; pi < 4; pi++) {
       if (!s_nfc.mifareultralight_ReadPage((uint8_t)(4 + pi), pg[pi])) {

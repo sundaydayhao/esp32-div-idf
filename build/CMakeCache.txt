@@ -14,12 +14,6 @@
 # EXTERNAL cache entries
 ########################
 
-//Arduino ESP32 core root
-ARDUINO_CORE_DIR:PATH=C:/Users/zhang/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.3.10-cn
-
-//Arduino library root
-ARDUINO_LIB_DIR:PATH=C:/Users/zhang/Documents/Arduino/libraries
-
 //No help, variable specified on the command line.
 CCACHE_ENABLE:UNINITIALIZED=True
 
@@ -594,7 +588,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=186
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=178
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

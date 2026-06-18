@@ -10,10 +10,11 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "icon.h"
+#include "signal_dsp.h"
 #include "shared.h"
 #include "utils.h"
 
-/** Active-scan dwell per channel for STA scans (Arduino default 300 ms; shared.h WIFI_SCAN_ACTIVE_MS). */
+/** Active-scan dwell per channel for STA scans (shared.h WIFI_SCAN_ACTIVE_MS). */
 static inline uint32_t wifiStaScanMsPerChannel() {
   return (uint32_t)constrain((long)WIFI_SCAN_ACTIVE_MS, 120L, 1500L);
 }
@@ -299,8 +300,6 @@ static uint16_t pcapChannelFlags(uint16_t freqMHz) {
 #define MAX_X 240
 #define MAX_Y 320
 
-ArduinoFFT<double> FFT;
-
 bool btnLeftPressed = false;
 bool btnRightPressed = false;
 
@@ -355,9 +354,7 @@ void do_sampling_FFT() {
 
   microseconds = micros();
 
-  FFT.windowing(vReal, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  FFT.compute(vReal, vImag, samples, FFT_FORWARD);
-  FFT.complexToMagnitude(vReal, vImag, samples);
+  signalDspComputeMagnitude(vReal, vReal, samples);
 
   unsigned int left_x = 120;
   unsigned int graph_y_offset = 91;

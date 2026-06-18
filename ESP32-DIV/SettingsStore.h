@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Arduino.h>
+#include <stdint.h>
 #include "shared.h"
 
-#ifndef SETTINGS_PATH
-#define SETTINGS_PATH "/config/settings.json"
+#ifndef SETTINGS_NVS_NAMESPACE
+#define SETTINGS_NVS_NAMESPACE "app_settings"
 #endif
 
 struct AppSettings {

@@ -57,8 +57,7 @@ When creating a bug report, include:
 |---|---|
 | **Firmware version** | e.g. v1.6.0 |
 | **Hardware revision** | Main board only / with Shield / DIY |
-| **Arduino IDE version** | e.g. 2.3.2 |
-| **ESP32 board package version** | e.g. 3.0.5 (Espressif) |
+| **ESP-IDF version** | e.g. 6.0.1 |
 | **Steps to reproduce** | Numbered, minimal steps |
 | **Expected behaviour** | What should happen |
 | **Actual behaviour** | What actually happens |
@@ -90,51 +89,31 @@ When creating a bug report, include:
 
 | Tool | Version |
 |---|---|
-| Arduino IDE | 2.x (recommended) |
-| ESP32 board package (Espressif) | 3.x |
-| Python + esptool | For manual flashing |
+| ESP-IDF | 6.x |
+| Python + esptool | Installed with ESP-IDF |
 
-### Installing the ESP32 Board Package
+### Building
 
-1. Open Arduino IDE → **File → Preferences**.
-2. Add this URL to *Additional Boards Manager URLs*:
-   ```
-   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-   ```
-3. Go to **Tools → Board → Boards Manager**, search for `esp32`, and install the **Espressif Systems** package.
+Use the ESP-IDF shell so `IDF_PATH` and the toolchain are configured, then build and flash with:
 
-### Arduino IDE Settings
+```bash
+idf.py set-target esp32s3
+idf.py build
+idf.py -p <PORT> flash monitor
+```
 
-| Setting | Value |
-|---|---|
-| Board | ESP32S3 Dev Module |
-| Flash Size | 16MB |
-| Partition Scheme | 16MB Flash (3MB APP / 9.9MB FATFS) |
-| PSRAM | OPI PSRAM |
-| Upload Speed | 921600 |
-
-### Installing Libraries
-
-Copy every folder inside `Libraries/` into your Arduino `libraries` directory, or install them individually via the Library Manager. Key libraries include:
-
-- `TFT_eSPI`
-- `PCF8574`
-- `XPT2046_Touchscreen`
-- `NimBLE-Arduino`
-- `RCSwitch`
-- `ELECHOUSE_CC1101_SRC_DRV`
-- `arduinoFFT`
+Board, partition, Bluetooth, display, and filesystem defaults live in `sdkconfig.defaults`, `partitions.csv`, and `ESP32-DIV/BoardConfig.h`.
 
 ---
 
 ## Coding Standards
 
 - Follow the existing **namespace-per-feature** pattern (`namespace WifiScan { ... }`).
-- Every feature module must expose at minimum a `Setup()` and `Loop()` function.
+- Every feature module should expose a small init/tick style interface and keep long-running work bounded.
 - Use `feature_exit_requested = true` to exit a feature loop rather than calling `return` or `break` directly inside the loop.
 - Avoid blocking `delay()` calls longer than **200 ms** inside feature loops — use non-blocking timing with `millis()`.
 - All display writes should respect the active theme via `UI_BG`, `UI_FG`, `UI_TEXT`, `UI_ICON`, and `UI_ACCENT` constants defined in `shared.h`.
-- Do **not** use `Serial.print` in production code paths — use the built-in Serial Monitor feature or TFT debug overlays.
+- Do **not** use `Serial.print` in production code paths — use the ESP-IDF logging APIs or TFT debug overlays.
 - Use `#pragma once` instead of header guards for new header files.
 
 ---
@@ -164,7 +143,7 @@ Follow the **Conventional Commits** specification:
 feat(wifi): add channel hopping option to Packet Monitor
 fix(rfid): resolve crash when no card is present on startup
 docs: add CONTRIBUTING guide
-chore(ci): add Arduino compile check workflow
+chore(ci): add ESP-IDF build workflow
 ```
 
 ---
