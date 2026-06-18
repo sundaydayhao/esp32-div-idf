@@ -1,0 +1,51 @@
+Command: C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe C:\esp\v6.0.1\esp-idf\tools/idf_monitor.py -p COM6 -b 115200 --toolchain-prefix xtensa-esp32s3-elf- --target esp32s3 --revision 0 C:\projects\ESP32-DIV-IDF-v2\build\esp32_div_idf.elf C:\projects\ESP32-DIV-IDF-v2\build\bootloader\bootloader.elf --force-color -m 'C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe' 'C:\esp\v6.0.1\esp-idf\tools\idf.py'
+[0;33m--- Warning: GDB cannot open serial ports accessed as COMx[0m
+[0;33m--- Using \\.\COM6 instead...[0m
+[0;33m--- esp-idf-monitor 1.9.0 on \\.\COM6 115200[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H[0m
+[0m--- 0x40048c29: [0;33muart_tx_flush[0m[0m in [0;32mROM[0m
+[0m--- 0x403c8700: [0;33m_stext[0m[0m at [0;32m??[0m[0m:[1;31m?[0m
+[0m--- 0x403c8908: [0;33mcall_start_cpu0[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/bootloader/subproject/main/bootloader_start.c[0m[0m:[1;31m27[0m
+[0m--- 0x42057c85: [0;33mTFT_eSPI::begin_tft_write()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m81[0m
+[0m--- (inlined by) [0;33mTFT_eSPI::writecommand(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m982[0m
+[0m--- 0x40056f5c: [0;33mmemcpy[0m[0m in [0;32mROM[0m
+[0m--- 0x40056f72: [0;33mmemcpy[0m[0m in [0;32mROM[0m
+[0m--- 0x42057c82: [0;33mTFT_eSPI::begin_tft_write()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m81[0m
+[0m--- (inlined by) [0;33mTFT_eSPI::writecommand(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m982[0m
+[0m--- 0x42057ffb: [0;33mTFT_eSPI::init(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m701[0m
+[0m--- 0x4201a004: [0;33msetup()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/ESP32-DIV.ino[0m[0m:[1;31m3304[0m
+[0m--- 0x42012a26: [0;33mapp_main[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/main/main.cpp[0m[0m:[1;31m9[0m
+[0m--- 0x4200928c: [0;33mmain_task[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/freertos/app_startup.c[0m[0m:[1;31m199[0m
+[0m--- 0x4218b30a: [0;33mvPortTaskWrapper[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c[0m[0m:[1;31m143[0m
+[0m--- 0x403836f5: [0;33mesp_restart_noos[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/esp_system/port/soc/esp32s3/system_internal.c[0m[0m:[1;31m165[0m
+[0m--- 0x403c8700: [0;33m_stext[0m[0m at [0;32m??[0m[0m:[1;31m?[0m
+[0m--- 0x403c8908: [0;33mcall_start_cpu0[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/bootloader/subproject/main/bootloader_start.c[0m[0m:[1;31m27[0m
+[0m--- 0x42057c85: [0;33mTFT_eSPI::begin_tft_write()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m81[0m
+[0m--- (inlined by) [0;33mTFT_eSPI::writecommand(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m982[0m
+[0m--- 0x40056f5c: [0;33mmemcpy[0m[0m in [0;32mROM[0m
+[0m--- 0x40056f72: [0;33mmemcpy[0m[0m in [0;32mROM[0m
+[0m--- 0x42057c82: [0;33mTFT_eSPI::begin_tft_write()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m81[0m
+[0m--- (inlined by) [0;33mTFT_eSPI::writecommand(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m982[0m
+[0m--- 0x42057ffb: [0;33mTFT_eSPI::init(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m701[0m
+[0m--- 0x4201a004: [0;33msetup()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/ESP32-DIV.ino[0m[0m:[1;31m3304[0m
+[0m--- 0x42012a26: [0;33mapp_main[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/main/main.cpp[0m[0m:[1;31m9[0m
+[0m--- 0x4200928c: [0;33mmain_task[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/freertos/app_startup.c[0m[0m:[1;31m199[0m
+[0m--- 0x4218b30a: [0;33mvPortTaskWrapper[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c[0m[0m:[1;31m143[0m
+[0m--- 0x403836f5: [0;33mesp_restart_noos[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/esp_system/port/soc/esp32s3/system_internal.c[0m[0m:[1;31m165[0m
+[0m--- 0x403c8700: [0;33m_stext[0m[0m at [0;32m??[0m[0m:[1;31m?[0m
+[0m--- 0x403c8908: [0;33mcall_start_cpu0[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/bootloader/subproject/main/bootloader_start.c[0m[0m:[1;31m27[0m
+[0m--- 0x42057c85: [0;33mTFT_eSPI::begin_tft_write()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m81[0m
+[0m--- (inlined by) [0;33mTFT_eSPI::writecommand(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m982[0m
+[0m--- 0x40056f5c: [0;33mmemcpy[0m[0m in [0;32mROM[0m
+[0m--- 0x40056f72: [0;33mmemcpy[0m[0m in [0;32mROM[0m
+[0m--- 0x42057c82: [0;33mTFT_eSPI::begin_tft_write()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m81[0m
+[0m--- (inlined by) [0;33mTFT_eSPI::writecommand(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m982[0m
+[0m--- 0x42057ffb: [0;33mTFT_eSPI::init(unsigned char)[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI/TFT_eSPI.cpp[0m[0m:[1;31m701[0m
+[0m--- 0x4201a004: [0;33msetup()[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/ESP32-DIV.ino[0m[0m:[1;31m3304[0m
+[0m--- 0x42012a26: [0;33mapp_main[0m[0m at [0;32mC:/projects/ESP32-DIV-IDF-v2/main/main.cpp[0m[0m:[1;31m9[0m
+[0m--- 0x4200928c: [0;33mmain_task[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/freertos/app_startup.c[0m[0m:[1;31m199[0m
+[0m--- 0x4218b30a: [0;33mvPortTaskWrapper[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c[0m[0m:[1;31m143[0m
+[0m--- 0x403836f5: [0;33mesp_restart_noos[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/esp_system/port/soc/esp32s3/system_internal.c[0m[0m:[1;31m165[0m
+[0m--- 0x403c8700: [0;33m_stext[0m[0m at [0;32m??[0m[0m:[1;31m?[0m
+[0m--- 0x403c8908: [0;33mcall_start_cpu0[0m[0m at [0;32mC:/esp/v6.0.1/esp-idf/components/bootloader/subproject/main/bootloader_start.c[0m[0m:[1;31m27[0m
+[0m

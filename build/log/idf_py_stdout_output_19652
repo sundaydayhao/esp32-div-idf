@@ -1,0 +1,429 @@
+Command: ninja all
+[1/13] Performing build step for 'bootloader'
+[1/1] C:\WINDOWS\system32\cmd.exe /C "cd /D C:\projects\ESP32-DIV-IDF-v2\build\bootloader && C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe C:/esp/v6.0.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/projects/ESP32-DIV-IDF-v2/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5240 bytes. 0x2dc0 bytes (36%) free.
+[2/13] No install step for 'bootloader'
+[3/13] Completed 'bootloader'
+[4/13] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/bluetooth.cpp.obj
+FAILED: esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/bluetooth.cpp.obj 
+ccache C:\Espressif\tools\xtensa-esp-elf\esp-15.2.0_20251204\xtensa-esp-elf\bin\xtensa-esp32s3-elf-g++.exe -DESP_MDNS_VERSION_NUMBER=\"1.11.1\" -DESP_PLATFORM -DESP_PSA_ITS_AVAILABLE -DIDF_VER=\"v6.0.1\" -DMBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\" -DMBEDTLS_MAJOR_VERSION=4 -DMB_MDNS_IS_INCLUDED -DSOC_MMU_PAGE_SIZE=CONFIG_MMU_PAGE_SIZE -DSOC_XTAL_FREQ_MHZ=CONFIG_XTAL_FREQ -DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"mbedtls/esp_config.h\" -D_GLIBCXX_HAVE_POSIX_SEMAPHORE -D_GLIBCXX_USE_POSIX_SEMAPHORE -D_GNU_SOURCE -D_POSIX_READER_WRITER_LOCKS -IC:/projects/ESP32-DIV-IDF-v2/build/config -IC:/projects/ESP32-DIV-IDF-v2/ESP32-DIV -IC:/esp/v6.0.1/esp-idf/components/esp_libc/platform_include -IC:/esp/v6.0.1/esp-idf/components/freertos/config/include -IC:/esp/v6.0.1/esp-idf/components/freertos/config/include/freertos -IC:/esp/v6.0.1/esp-idf/components/freertos/config/xtensa/include -IC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/include -IC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include -IC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos -IC:/esp/v6.0.1/esp-idf/components/freertos/esp_additions/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/include/soc -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/ldo/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/debug_probe/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/etm/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/tuning_scheme_impl/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/power_supply/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/modem/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/include/soc/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/port/esp32s3/. -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/port/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/port/esp32s3/. -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/port/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/heap/include -IC:/esp/v6.0.1/esp-idf/components/heap/tlsf -IC:/esp/v6.0.1/esp-idf/components/log/include -IC:/esp/v6.0.1/esp-idf/components/soc/include -IC:/esp/v6.0.1/esp-idf/components/soc/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/soc/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/soc/esp32s3/register -IC:/esp/v6.0.1/esp-idf/components/hal/platform_port/include -IC:/esp/v6.0.1/esp-idf/components/hal/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/hal/include -IC:/esp/v6.0.1/esp-idf/components/esp_rom/include -IC:/esp/v6.0.1/esp-idf/components/esp_rom/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_rom/esp32s3/include/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/esp_rom/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/esp_common/include -IC:/esp/v6.0.1/esp-idf/components/esp_system/include -IC:/esp/v6.0.1/esp-idf/components/esp_system/port/soc -IC:/esp/v6.0.1/esp-idf/components/esp_system/port/include/private -IC:/esp/v6.0.1/esp-idf/components/esp_stdio/include -IC:/esp/v6.0.1/esp-idf/components/xtensa/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/xtensa/include -IC:/esp/v6.0.1/esp-idf/components/xtensa/deprecated_include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpio/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpio/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_usb/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_usb/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_pmu/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_pmu/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ana_conv/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ana_conv/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_dma/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_dma/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/lwip/include -IC:/esp/v6.0.1/esp-idf/components/lwip/include/apps -IC:/esp/v6.0.1/esp-idf/components/lwip/lwip/src/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/freertos/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/esp32xx/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/esp32xx/include/arch -IC:/esp/v6.0.1/esp-idf/components/lwip/port/esp32xx/include/sys -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/variants/esp32s3 -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/cores/esp32 -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ArduinoOTA/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/AsyncUDP/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BluetoothSerial/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Console/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/DNSServer/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/EEPROM/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_I2S/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_NOW/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_SR/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_HostedOTA/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESPmDNS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Ethernet/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/FFat/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/FS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Hash/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/HTTPClient/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/HTTPUpdate/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Insights/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/LittleFS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Matter/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/NetBIOS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Network/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/OpenThread/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/PPP/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Preferences/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/RainMaker/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SD_MMC/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SD/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SimpleBLE/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SPIFFS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SPI/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Ticker/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Update/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/USB/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WebServer/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/NetworkClientSecure/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WiFi/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WiFiProv/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Wire/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Zigbee/src -IC:/esp/v6.0.1/esp-idf/components/spi_flash/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_mspi/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_mspi/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpspi/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpspi/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_clock/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_clock/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_blockdev/include -IC:/esp/v6.0.1/esp-idf/components/esp_partition/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/port/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/library -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/core -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/src -IC:/esp/v6.0.1/esp-idf/components/mbedtls/esp_crt_bundle/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/port/psa_driver/include -IC:/esp/v6.0.1/esp-idf/components/esp_security/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_security/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_security/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/everest/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/p256-m -IC:/esp/v6.0.1/esp-idf/components/wpa_supplicant/include -IC:/esp/v6.0.1/esp-idf/components/wpa_supplicant/port/include -IC:/esp/v6.0.1/esp-idf/components/wpa_supplicant/esp_supplicant/include -IC:/esp/v6.0.1/esp-idf/components/esp_adc/include -IC:/esp/v6.0.1/esp-idf/components/esp_adc/interface -IC:/esp/v6.0.1/esp-idf/components/esp_adc/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_eth/include -IC:/esp/v6.0.1/esp-idf/components/esp_event/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_spi/include -IC:/esp/v6.0.1/esp-idf/components/esp_pm/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_dma/include -IC:/esp/v6.0.1/esp-idf/components/http_parser -IC:/esp/v6.0.1/esp-idf/components/esp_ringbuf/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_gptimer/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_timg/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_timg/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_usb_serial_jtag/include -IC:/esp/v6.0.1/esp-idf/components/vfs/include -IC:/esp/v6.0.1/esp-idf/components/driver/i2c/include -IC:/esp/v6.0.1/esp-idf/components/driver/touch_sensor/include -IC:/esp/v6.0.1/esp-idf/components/driver/twai/include -IC:/esp/v6.0.1/esp-idf/components/driver/touch_sensor/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2c/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2c/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_twai/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_twai/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_touch_sens/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_touch_sens/include -IC:/esp/v6.0.1/esp-idf/components/esp_http_client/include -IC:/esp/v6.0.1/esp-idf/components/esp_https_ota/include -IC:/esp/v6.0.1/esp-idf/components/esp_bootloader_format/include -IC:/esp/v6.0.1/esp-idf/components/esp_app_format/include -IC:/esp/v6.0.1/esp-idf/components/esp_timer/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_uart/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_uart/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ledc/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ledc/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_i2c/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_ledc/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_sdm/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_tsens/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_rmt/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_rmt/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_rmt/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_i2s/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2s/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2s/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_uart/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_dac/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_touch_sens/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_touch_sens/hw_ver2/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/chmorgan__esp-libhelix-mp3/libhelix-mp3/pub -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_transports -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_controller/common/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_objects/common -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_ports/common -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_ports/serial -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_ports/tcp -IC:/esp/v6.0.1/esp-idf/components/ieee802154/include -IC:/esp/v6.0.1/esp-idf/components/esp_coex/include -IC:/esp/v6.0.1/esp-idf/components/esp_netif/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_gpio/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__mdns/include -IC:/esp/v6.0.1/esp-idf/components/console -IC:/projects/ESP32-DIV-IDF-v2/managed_components/joltwallet__littlefs/include -IC:/esp/v6.0.1/esp-idf/components/sdmmc/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_sd/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_sd/esp32s3/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__network_provisioning/include -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/common -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/security -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/transports -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/crypto/srp6a -IC:/esp/v6.0.1/esp-idf/components/protocomm/proto-c -IC:/esp/v6.0.1/esp-idf/components/bt/include/esp32c3/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/osi/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/api/include/api -IC:/esp/v6.0.1/esp-idf/components/bt/common/btc/profile/esp/blufi/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/btc/profile/esp/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/hci_log/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/ble_log/include -IC:/esp/v6.0.1/esp-idf/components/bt/host/bluedroid/api/include/api -IC:/esp/v6.0.1/esp-idf/components/bt/common/tinycrypt/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/tinycrypt/port -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/include -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/include/local -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/wifi_apps/include -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/wifi_apps/nan_app/include -IC:/esp/v6.0.1/esp-idf/components/esp_phy/include -IC:/esp/v6.0.1/esp-idf/components/esp_phy/esp32s3/include -IC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI -IC:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src -IC:/Users/zhang/Documents/Arduino/libraries/Adafruit_BusIO -IC:/Users/zhang/Documents/Arduino/libraries/Adafruit_PN532 -IC:/Users/zhang/Documents/Arduino/libraries/arduinoFFT/src -IC:/Users/zhang/Documents/Arduino/libraries/PCF8574_library -IC:/Users/zhang/Documents/Arduino/libraries/XPT2046_Touchscreen -IC:/Users/zhang/Documents/Arduino/libraries/rc-switch -IC:/Users/zhang/Documents/Arduino/libraries/SmartRC-CC1101-Driver-Lib -IC:/Users/zhang/Documents/Arduino/libraries/RF24 -IC:/Users/zhang/Documents/Arduino/libraries/IRremoteESP8266/src -IC:/projects/ESP32-DIV-IDF-v2/components/nimble_compat -IC:/esp/v6.0.1/esp-idf/components/nvs_flash/include @"C:/projects/ESP32-DIV-IDF-v2/build/toolchain/cxxflags" -fdiagnostics-color=always -ffunction-sections -fdata-sections -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=deprecated-declarations -Wextra -Wno-error=extra -Wno-unused-parameter -Wno-sign-compare -Wno-enum-conversion -gdwarf-4 -ggdb -Wno-error=missing-field-initializers -Wno-missing-field-initializers -Wno-error=cpp -Wno-cpp -Wno-error=misleading-indentation -Wno-misleading-indentation -Og -fno-shrink-wrap -fmacro-prefix-map=C:/projects/ESP32-DIV-IDF-v2=. -fmacro-prefix-map=C:/esp/v6.0.1/esp-idf=/IDF -fstrict-volatile-bitfields -fno-jump-tables -fno-tree-switch-conversion -std=gnu++26 -fno-exceptions -fuse-cxa-atexit -DARDUINO=10812 -DARDUINO_ESP32S3_DEV -DARDUINO_ARCH_ESP32 -DARDUINO_BOARD=\"ESP32S3_DEV\" -DARDUINO_VARIANT=\"esp32s3\" -DESP32=ESP32 -MD -MT esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/bluetooth.cpp.obj -MF esp-idf\esp32_div\CMakeFiles\__idf_esp32_div.dir\__\__\ESP32-DIV\bluetooth.cpp.obj.d -o esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/bluetooth.cpp.obj -c C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:110:9: warning: 'STATUS_BAR_Y_OFFSET' redefined
+  110 | #define STATUS_BAR_Y_OFFSET 20
+      |         ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:903:9: warning: 'ICON_NUM' redefined
+  903 | #define ICON_NUM 1
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:113:9: note: this is the location of the previous definition
+  113 | #define ICON_NUM 5
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:914:9: warning: 'MAX_LINES' redefined
+  914 | #define MAX_LINES 30
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:100:9: note: this is the location of the previous definition
+  100 | #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1153:9: warning: 'SCREEN_HEIGHT' redefined
+ 1153 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:98:9: note: this is the location of the previous definition
+   98 | #define SCREEN_HEIGHT 250
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1155:9: warning: 'MAX_LINES' redefined
+ 1155 | #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:914:9: note: this is the location of the previous definition
+  914 | #define MAX_LINES 30
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1425:9: warning: 'ICON_NUM' redefined
+ 1425 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:903:9: note: this is the location of the previous definition
+  903 | #define ICON_NUM 1
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2088:9: warning: 'SCREEN_HEIGHT' redefined
+ 2088 | #define SCREEN_HEIGHT 180
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1153:9: note: this is the location of the previous definition
+ 1153 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2324:9: warning: 'SCREEN_HEIGHT' redefined
+ 2324 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2088:9: note: this is the location of the previous definition
+ 2088 | #define SCREEN_HEIGHT 180
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2328:9: warning: 'ICON_NUM' redefined
+ 2328 | #define ICON_NUM 3
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1425:9: note: this is the location of the previous definition
+ 1425 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3357:9: warning: 'LINE_HEIGHT' redefined
+ 3357 | #define LINE_HEIGHT 16
+      |         ^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3007:9: note: this is the location of the previous definition
+ 3007 | #define LINE_HEIGHT 12
+      |         ^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3358:9: warning: 'MAX_LINES' redefined
+ 3358 | #define MAX_LINES 16
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3008:9: note: this is the location of the previous definition
+ 3008 | #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'bool BleSpoofer::generateSamsungAdvPacket(uint8_t, BLEAdvertisementData&)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:196:18: error: no matching function for call to 'BLEAdvertisementData::addData(std::string)'
+  196 |   advData.addData(std::string((char*)advDataRaw, SAMSUNG_ADV_SIZE));
+      |   ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:196:18: note: there are 2 candidates
+In file included from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEServer.h:49,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEDevice.h:57,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/BleCompat.h:10,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/config.h:31,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3:
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:8: note: candidate 1: 'void BLEAdvertisementData::addData(String)'
+  137 |   void addData(String data);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:23: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'String'
+  137 |   void addData(String data);
+      |                ~~~~~~~^~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate 2: 'void BLEAdvertisementData::addData(char*, size_t)'
+  138 |   void addData(char *data, size_t length);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate expects 2 arguments, 1 provided
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'bool BleSpoofer::generateGoogleAdvPacket(BLEAdvertisementData&)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:204:18: error: no matching function for call to 'BLEAdvertisementData::addData(std::string)'
+  204 |   advData.addData(std::string((char*)advDataRaw, GOOGLE_ADV_SIZE));
+      |   ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:204:18: note: there are 2 candidates
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:8: note: candidate 1: 'void BLEAdvertisementData::addData(String)'
+  137 |   void addData(String data);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:23: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'String'
+  137 |   void addData(String data);
+      |                ~~~~~~~^~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate 2: 'void BLEAdvertisementData::addData(char*, size_t)'
+  138 |   void addData(char *data, size_t length);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate expects 2 arguments, 1 provided
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'BLEAdvertisementData BleSpoofer::getAdvertismentData()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:212:31: error: no matching function for call to 'BLEAdvertisementData::addData(std::string)'
+  212 |     oAdvertisementData.addData(std::string((char*)DEVICES[device_index], 31));
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:212:31: note: there are 2 candidates
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:8: note: candidate 1: 'void BLEAdvertisementData::addData(String)'
+  137 |   void addData(String data);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:23: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'String'
+  137 |   void addData(String data);
+      |                ~~~~~~~^~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate 2: 'void BLEAdvertisementData::addData(char*, size_t)'
+  138 |   void addData(char *data, size_t length);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate expects 2 arguments, 1 provided
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void BleSpoofer::toggleAdvertising()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:710:35: error: no matching function for call to 'BLEAdvertising::addServiceUUID(std::string&)'
+  710 |       pAdvertising->addServiceUUID(devices_uuid);
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:710:35: note: there are 2 candidates
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:161:8: note: candidate 1: 'void BLEAdvertising::addServiceUUID(BLEUUID)'
+  161 |   void addServiceUUID(BLEUUID serviceUUID);
+      |        ^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:161:31: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'BLEUUID'
+  161 |   void addServiceUUID(BLEUUID serviceUUID);
+      |                       ~~~~~~~~^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:162:8: note: candidate 2: 'void BLEAdvertising::addServiceUUID(const char*)'
+  162 |   void addServiceUUID(const char *serviceUUID);
+      |        ^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:162:35: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'const char*'
+  162 |   void addServiceUUID(const char *serviceUUID);
+      |                       ~~~~~~~~~~~~^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'BLEAdvertisementData SourApple::getOAdvertisementData()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1063:28: error: no matching function for call to 'BLEAdvertisementData::addData(std::string)'
+ 1063 |   advertisementData.addData(std::string((char *)packet, 17));
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1063:28: note: there are 2 candidates
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:8: note: candidate 1: 'void BLEAdvertisementData::addData(String)'
+  137 |   void addData(String data);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:137:23: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'String'
+  137 |   void addData(String data);
+      |                ~~~~~~~^~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate 2: 'void BLEAdvertisementData::addData(char*, size_t)'
+  138 |   void addData(char *data, size_t length);
+      |        ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:138:8: note: candidate expects 2 arguments, 1 provided
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void SourApple::sourappleLoop()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1112:30: error: no matching function for call to 'BLEAdvertising::addServiceUUID(std::string&)'
+ 1112 |   Advertising->addServiceUUID(device_uuid);
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1112:30: note: there are 2 candidates
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:161:8: note: candidate 1: 'void BLEAdvertising::addServiceUUID(BLEUUID)'
+  161 |   void addServiceUUID(BLEUUID serviceUUID);
+      |        ^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:161:31: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'BLEUUID'
+  161 |   void addServiceUUID(BLEUUID serviceUUID);
+      |                       ~~~~~~~~^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:162:8: note: candidate 2: 'void BLEAdvertising::addServiceUUID(const char*)'
+  162 |   void addServiceUUID(const char *serviceUUID);
+      |        ^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertising.h:162:35: note: no known conversion for argument 1 from 'std::string' {aka 'std::__cxx11::basic_string<char>'} to 'const char*'
+  162 |   void addServiceUUID(const char *serviceUUID);
+      |                       ~~~~~~~~~~~~^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void BleJammer::updateTFT()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1283:15: warning: unused variable 'previousJammerState' [-Wunused-variable]
+ 1283 |   static bool previousJammerState = false;
+      |               ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1284:15: warning: unused variable 'prevNRF1State' [-Wunused-variable]
+ 1284 |   static bool prevNRF1State = false;
+      |               ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1285:15: warning: unused variable 'prevNRF2State' [-Wunused-variable]
+ 1285 |   static bool prevNRF2State = false;
+      |               ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1286:14: warning: unused variable 'previousMode' [-Wunused-variable]
+ 1286 |   static int previousMode = -1;
+      |              ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void BleScan::bgBleScanTask(void*)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1540:43: error: no match for 'operator=' (operand types are 'BLEScanResults' and 'BLEScanResults*')
+ 1540 |       bleResults = bleScan->start(2, false);
+      |                                           ^
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1540:43: note: there are 2 candidates
+In file included from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertisedDevice.h:45,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEClient.h:49,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLESecurity.h:43,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEServer.h:52:
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: candidate 1: 'BLEScanResults& BLEScanResults::operator=(const BLEScanResults&)'
+  101 | class BLEScanResults {
+      |       ^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: no known conversion for argument 1 from 'BLEScanResults*' to 'const BLEScanResults&'
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: candidate 2: 'BLEScanResults& BLEScanResults::operator=(BLEScanResults&&)'
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: no known conversion for argument 1 from 'BLEScanResults*' to 'BLEScanResults&&'
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void BleScan::startBLEScan()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1595:39: error: no match for 'operator=' (operand types are 'BLEScanResults' and 'BLEScanResults*')
+ 1595 |   bleResults = bleScan->start(5, false);
+      |                                       ^
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1595:39: note: there are 2 candidates
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: candidate 1: 'BLEScanResults& BLEScanResults::operator=(const BLEScanResults&)'
+  101 | class BLEScanResults {
+      |       ^~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: no known conversion for argument 1 from 'BLEScanResults*' to 'const BLEScanResults&'
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: candidate 2: 'BLEScanResults& BLEScanResults::operator=(BLEScanResults&&)'
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEScan.h:101:7: note: no known conversion for argument 1 from 'BLEScanResults*' to 'BLEScanResults&&'
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3904:10: error: 'void BleSniffer::BluetoothSniffer::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice*)' marked 'override', but does not override
+ 3904 |     void onResult(BLEAdvertisedDevice* advertisedDevice) override {
+      |          ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertisedDevice.h:215:16: error: 'virtual void BLEAdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice)' was hidden [-Werror=overloaded-virtual=]
+  215 |   virtual void onResult(BLEAdvertisedDevice advertisedDevice) = 0;
+      |                ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3904:10: note:   by 'void BleSniffer::BluetoothSniffer::AdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice*)'
+ 3904 |     void onResult(BLEAdvertisedDevice* advertisedDevice) override {
+      |          ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In member function 'void BleSniffer::BluetoothSniffer::setup()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3836:61: error: invalid new-expression of abstract class type 'BleSniffer::BluetoothSniffer::AdvertisedDeviceCallbacks'
+ 3836 |     bleDeviceCallbacks = new AdvertisedDeviceCallbacks(*this);
+      |                                                             ^
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3900:9: note:   because the following virtual functions are pure within 'BleSniffer::BluetoothSniffer::AdvertisedDeviceCallbacks':
+ 3900 |   class AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src/BLEAdvertisedDevice.h:215:16: note:     'virtual void BLEAdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice)'
+  215 |   virtual void onResult(BLEAdvertisedDevice advertisedDevice) = 0;
+      |                ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:80:13: warning: 'void bleWaitNavRelease(int, int, int)' defined but not used [-Wunused-function]
+   80 | static void bleWaitNavRelease(int pin1, int pin2 = -1, int pin3 = -1) {
+      |             ^~~~~~~~~~~~~~~~~
+cc1plus.exe: some warnings being treated as errors
+[5/13] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/wifi.cpp.obj
+FAILED: esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/wifi.cpp.obj 
+ccache C:\Espressif\tools\xtensa-esp-elf\esp-15.2.0_20251204\xtensa-esp-elf\bin\xtensa-esp32s3-elf-g++.exe -DESP_MDNS_VERSION_NUMBER=\"1.11.1\" -DESP_PLATFORM -DESP_PSA_ITS_AVAILABLE -DIDF_VER=\"v6.0.1\" -DMBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\" -DMBEDTLS_MAJOR_VERSION=4 -DMB_MDNS_IS_INCLUDED -DSOC_MMU_PAGE_SIZE=CONFIG_MMU_PAGE_SIZE -DSOC_XTAL_FREQ_MHZ=CONFIG_XTAL_FREQ -DTF_PSA_CRYPTO_USER_CONFIG_FILE=\"mbedtls/esp_config.h\" -D_GLIBCXX_HAVE_POSIX_SEMAPHORE -D_GLIBCXX_USE_POSIX_SEMAPHORE -D_GNU_SOURCE -D_POSIX_READER_WRITER_LOCKS -IC:/projects/ESP32-DIV-IDF-v2/build/config -IC:/projects/ESP32-DIV-IDF-v2/ESP32-DIV -IC:/esp/v6.0.1/esp-idf/components/esp_libc/platform_include -IC:/esp/v6.0.1/esp-idf/components/freertos/config/include -IC:/esp/v6.0.1/esp-idf/components/freertos/config/include/freertos -IC:/esp/v6.0.1/esp-idf/components/freertos/config/xtensa/include -IC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/include -IC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include -IC:/esp/v6.0.1/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos -IC:/esp/v6.0.1/esp-idf/components/freertos/esp_additions/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/include/soc -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/ldo/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/debug_probe/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/etm/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/tuning_scheme_impl/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/power_supply/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/modem/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/include/soc/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/port/esp32s3/. -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/port/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/port/esp32s3/. -IC:/esp/v6.0.1/esp-idf/components/esp_hw_support/mspi_timing_tuning/port/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/heap/include -IC:/esp/v6.0.1/esp-idf/components/heap/tlsf -IC:/esp/v6.0.1/esp-idf/components/log/include -IC:/esp/v6.0.1/esp-idf/components/soc/include -IC:/esp/v6.0.1/esp-idf/components/soc/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/soc/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/soc/esp32s3/register -IC:/esp/v6.0.1/esp-idf/components/hal/platform_port/include -IC:/esp/v6.0.1/esp-idf/components/hal/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/hal/include -IC:/esp/v6.0.1/esp-idf/components/esp_rom/include -IC:/esp/v6.0.1/esp-idf/components/esp_rom/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_rom/esp32s3/include/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/esp_rom/esp32s3 -IC:/esp/v6.0.1/esp-idf/components/esp_common/include -IC:/esp/v6.0.1/esp-idf/components/esp_system/include -IC:/esp/v6.0.1/esp-idf/components/esp_system/port/soc -IC:/esp/v6.0.1/esp-idf/components/esp_system/port/include/private -IC:/esp/v6.0.1/esp-idf/components/esp_stdio/include -IC:/esp/v6.0.1/esp-idf/components/xtensa/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/xtensa/include -IC:/esp/v6.0.1/esp-idf/components/xtensa/deprecated_include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpio/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpio/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_usb/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_usb/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_pmu/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_pmu/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ana_conv/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ana_conv/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_dma/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_dma/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/lwip/include -IC:/esp/v6.0.1/esp-idf/components/lwip/include/apps -IC:/esp/v6.0.1/esp-idf/components/lwip/lwip/src/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/freertos/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/esp32xx/include -IC:/esp/v6.0.1/esp-idf/components/lwip/port/esp32xx/include/arch -IC:/esp/v6.0.1/esp-idf/components/lwip/port/esp32xx/include/sys -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/variants/esp32s3 -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/cores/esp32 -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ArduinoOTA/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/AsyncUDP/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BLE/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/BluetoothSerial/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Console/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/DNSServer/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/EEPROM/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_I2S/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_NOW/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_SR/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESP_HostedOTA/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/ESPmDNS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Ethernet/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/FFat/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/FS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Hash/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/HTTPClient/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/HTTPUpdate/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Insights/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/LittleFS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Matter/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/NetBIOS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Network/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/OpenThread/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/PPP/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Preferences/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/RainMaker/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SD_MMC/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SD/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SimpleBLE/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SPIFFS/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/SPI/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Ticker/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Update/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/USB/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WebServer/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/NetworkClientSecure/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WiFi/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WiFiProv/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Wire/src -IC:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Zigbee/src -IC:/esp/v6.0.1/esp-idf/components/spi_flash/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_mspi/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_mspi/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpspi/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_gpspi/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_clock/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_clock/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_blockdev/include -IC:/esp/v6.0.1/esp-idf/components/esp_partition/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/port/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/library -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/core -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/src -IC:/esp/v6.0.1/esp-idf/components/mbedtls/esp_crt_bundle/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/port/psa_driver/include -IC:/esp/v6.0.1/esp-idf/components/esp_security/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_security/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_security/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/builtin/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/everest/include -IC:/esp/v6.0.1/esp-idf/components/mbedtls/mbedtls/tf-psa-crypto/drivers/p256-m -IC:/esp/v6.0.1/esp-idf/components/wpa_supplicant/include -IC:/esp/v6.0.1/esp-idf/components/wpa_supplicant/port/include -IC:/esp/v6.0.1/esp-idf/components/wpa_supplicant/esp_supplicant/include -IC:/esp/v6.0.1/esp-idf/components/esp_adc/include -IC:/esp/v6.0.1/esp-idf/components/esp_adc/interface -IC:/esp/v6.0.1/esp-idf/components/esp_adc/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_eth/include -IC:/esp/v6.0.1/esp-idf/components/esp_event/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_spi/include -IC:/esp/v6.0.1/esp-idf/components/esp_pm/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_dma/include -IC:/esp/v6.0.1/esp-idf/components/http_parser -IC:/esp/v6.0.1/esp-idf/components/esp_ringbuf/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_gptimer/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_timg/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_timg/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_usb_serial_jtag/include -IC:/esp/v6.0.1/esp-idf/components/vfs/include -IC:/esp/v6.0.1/esp-idf/components/driver/i2c/include -IC:/esp/v6.0.1/esp-idf/components/driver/touch_sensor/include -IC:/esp/v6.0.1/esp-idf/components/driver/twai/include -IC:/esp/v6.0.1/esp-idf/components/driver/touch_sensor/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2c/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2c/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_twai/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_twai/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_touch_sens/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_touch_sens/include -IC:/esp/v6.0.1/esp-idf/components/esp_http_client/include -IC:/esp/v6.0.1/esp-idf/components/esp_https_ota/include -IC:/esp/v6.0.1/esp-idf/components/esp_bootloader_format/include -IC:/esp/v6.0.1/esp-idf/components/esp_app_format/include -IC:/esp/v6.0.1/esp-idf/components/esp_timer/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_uart/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_uart/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ledc/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_ledc/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_i2c/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_ledc/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_sdm/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_tsens/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_rmt/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_rmt/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_rmt/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_i2s/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2s/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_i2s/esp32s3/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_uart/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_dac/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_touch_sens/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_touch_sens/hw_ver2/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/chmorgan__esp-libhelix-mp3/libhelix-mp3/pub -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_transports -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_controller/common/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_objects/common -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_ports/common -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_ports/serial -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__esp-modbus/modbus/mb_ports/tcp -IC:/esp/v6.0.1/esp-idf/components/ieee802154/include -IC:/esp/v6.0.1/esp-idf/components/esp_coex/include -IC:/esp/v6.0.1/esp-idf/components/esp_netif/include -IC:/esp/v6.0.1/esp-idf/components/esp_driver_gpio/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__mdns/include -IC:/esp/v6.0.1/esp-idf/components/console -IC:/projects/ESP32-DIV-IDF-v2/managed_components/joltwallet__littlefs/include -IC:/esp/v6.0.1/esp-idf/components/sdmmc/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_sd/include -IC:/esp/v6.0.1/esp-idf/components/esp_hal_sd/esp32s3/include -IC:/projects/ESP32-DIV-IDF-v2/managed_components/espressif__network_provisioning/include -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/common -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/security -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/transports -IC:/esp/v6.0.1/esp-idf/components/protocomm/include/crypto/srp6a -IC:/esp/v6.0.1/esp-idf/components/protocomm/proto-c -IC:/esp/v6.0.1/esp-idf/components/bt/include/esp32c3/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/osi/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/api/include/api -IC:/esp/v6.0.1/esp-idf/components/bt/common/btc/profile/esp/blufi/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/btc/profile/esp/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/hci_log/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/ble_log/include -IC:/esp/v6.0.1/esp-idf/components/bt/host/bluedroid/api/include/api -IC:/esp/v6.0.1/esp-idf/components/bt/common/tinycrypt/include -IC:/esp/v6.0.1/esp-idf/components/bt/common/tinycrypt/port -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/include -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/include/local -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/wifi_apps/include -IC:/esp/v6.0.1/esp-idf/components/esp_wifi/wifi_apps/nan_app/include -IC:/esp/v6.0.1/esp-idf/components/esp_phy/include -IC:/esp/v6.0.1/esp-idf/components/esp_phy/esp32s3/include -IC:/projects/ESP32-DIV-IDF-v2/components/TFT_eSPI -IC:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src -IC:/Users/zhang/Documents/Arduino/libraries/Adafruit_BusIO -IC:/Users/zhang/Documents/Arduino/libraries/Adafruit_PN532 -IC:/Users/zhang/Documents/Arduino/libraries/arduinoFFT/src -IC:/Users/zhang/Documents/Arduino/libraries/PCF8574_library -IC:/Users/zhang/Documents/Arduino/libraries/XPT2046_Touchscreen -IC:/Users/zhang/Documents/Arduino/libraries/rc-switch -IC:/Users/zhang/Documents/Arduino/libraries/SmartRC-CC1101-Driver-Lib -IC:/Users/zhang/Documents/Arduino/libraries/RF24 -IC:/Users/zhang/Documents/Arduino/libraries/IRremoteESP8266/src -IC:/projects/ESP32-DIV-IDF-v2/components/nimble_compat -IC:/esp/v6.0.1/esp-idf/components/nvs_flash/include @"C:/projects/ESP32-DIV-IDF-v2/build/toolchain/cxxflags" -fdiagnostics-color=always -ffunction-sections -fdata-sections -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=deprecated-declarations -Wextra -Wno-error=extra -Wno-unused-parameter -Wno-sign-compare -Wno-enum-conversion -gdwarf-4 -ggdb -Wno-error=missing-field-initializers -Wno-missing-field-initializers -Wno-error=cpp -Wno-cpp -Wno-error=misleading-indentation -Wno-misleading-indentation -Og -fno-shrink-wrap -fmacro-prefix-map=C:/projects/ESP32-DIV-IDF-v2=. -fmacro-prefix-map=C:/esp/v6.0.1/esp-idf=/IDF -fstrict-volatile-bitfields -fno-jump-tables -fno-tree-switch-conversion -std=gnu++26 -fno-exceptions -fuse-cxa-atexit -DARDUINO=10812 -DARDUINO_ESP32S3_DEV -DARDUINO_ARCH_ESP32 -DARDUINO_BOARD=\"ESP32S3_DEV\" -DARDUINO_VARIANT=\"esp32s3\" -DESP32=ESP32 -MD -MT esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/wifi.cpp.obj -MF esp-idf\esp32_div\CMakeFiles\__idf_esp32_div.dir\__\__\ESP32-DIV\wifi.cpp.obj.d -o esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/wifi.cpp.obj -c C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:613:9: warning: 'STATUS_BAR_Y_OFFSET' redefined
+  613 | #define STATUS_BAR_Y_OFFSET 20
+      |         ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:2:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1474:9: warning: 'ICON_NUM' redefined
+ 1474 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1223:9: note: this is the location of the previous definition
+ 1223 | #define ICON_NUM 3
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:2104:9: warning: 'MAX_SSID_LENGTH' redefined
+ 2104 | #define MAX_SSID_LENGTH 10
+      |         ^~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1467:9: note: this is the location of the previous definition
+ 1467 | #define MAX_SSID_LENGTH 8
+      |         ^~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3851:9: warning: 'ICON_NUM' redefined
+ 3851 | #define ICON_NUM 6
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1935:9: note: this is the location of the previous definition
+ 1935 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4610:9: warning: 'ICON_NUM' redefined
+ 4610 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3851:9: note: this is the location of the previous definition
+ 3851 | #define ICON_NUM 6
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5937:9: warning: 'ICON_NUM' redefined
+ 5937 | #define ICON_NUM 1
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5292:9: note: this is the location of the previous definition
+ 5292 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void PacketMonitor::wifi_promiscuous(void*, wifi_promiscuous_pkt_type_t)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:507:32: error: 'packetLength' was not declared in this scope
+  507 |   if (type == WIFI_PKT_MGMT && packetLength > 0 && (pkt->payload[0] == 0xA0 || pkt->payload[0] == 0xC0 )) deauths++;
+      |                                ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void PacketMonitor::draw()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:600:10: warning: unused variable 'multiplicator' [-Wunused-variable]
+  600 |   double multiplicator = getMultiplicator();
+      |          ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:601:7: warning: unused variable 'len' [-Wunused-variable]
+  601 |   int len;
+      |       ^~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void DeauthDetect::snifferCallback(void*, wifi_promiscuous_pkt_type_t)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1565:27: error: the address of 'wifi_promiscuous_pkt_t::payload' will never be NULL [-Werror=address]
+ 1565 |   if (!packet || !packet->payload) {
+      |                   ~~~~~~~~^~~~~~~
+In file included from C:/esp/v6.0.1/esp-idf/components/esp_wifi/include/esp_wifi_types.h:10,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Network/src/NetworkEvents.h:24,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/Network/src/Network.h:9,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/arduino/libraries/WebServer/src/WebServer.h:29,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/config.h:13,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4:
+C:/esp/v6.0.1/esp-idf/components/esp_wifi/include/local/esp_wifi_types_native.h:112:13: note: 'wifi_promiscuous_pkt_t::payload' declared here
+  112 |     uint8_t payload[0];       /**< Data or management payload. Length of payload is described by rx_ctrl.sig_len. Type of content determined by packet type argument of callback. */
+      |             ^~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void CaptivePortal::startAttack()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3765:9: warning: unused variable 'ip' [-Wunused-variable]
+ 3765 |     int ip = WiFi.softAPIP();
+      |         ^~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void CaptivePortal::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3879:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 3879 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void Deauther::drawAttackScreen()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4458:43: error: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uint32_t' {aka 'long unsigned int'} [-Werror=format=]
+ 4458 |     snprintf(buf, sizeof(buf), "Packets: %u", packet_count);
+      |                                          ~^   ~~~~~~~~~~~~
+      |                                           |   |
+      |                                           |   uint32_t {aka long unsigned int}
+      |                                           unsigned int
+      |                                          %lu
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4468:40: error: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uint32_t' {aka 'long unsigned int'} [-Werror=format=]
+ 4468 |     snprintf(buf, sizeof(buf), "Heap: %u", ESP.getFreeHeap());
+      |                                       ~^   ~~~~~~~~~~~~~~~~~
+      |                                        |                  |
+      |                                        unsigned int       uint32_t {aka long unsigned int}
+      |                                       %lu
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void Deauther::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4634:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 4634 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void ProbeRequestFlood::drawAttackScreen()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5142:43: error: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uint32_t' {aka 'long unsigned int'} [-Werror=format=]
+ 5142 |     snprintf(buf, sizeof(buf), "Packets: %u", packet_count);
+      |                                          ~^   ~~~~~~~~~~~~
+      |                                           |   |
+      |                                           |   uint32_t {aka long unsigned int}
+      |                                           unsigned int
+      |                                          %lu
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5152:40: error: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'uint32_t' {aka 'long unsigned int'} [-Werror=format=]
+ 5152 |     snprintf(buf, sizeof(buf), "Heap: %u", ESP.getFreeHeap());
+      |                                       ~^   ~~~~~~~~~~~~~~~~~
+      |                                        |                  |
+      |                                        unsigned int       uint32_t {aka long unsigned int}
+      |                                       %lu
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void ProbeRequestFlood::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5316:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 5316 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void FirmwareUpdate::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5960:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 5960 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void FirmwareUpdate::performWebOTAUpdate()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:6796:19: warning: capture of variable 'totalUploaded' with non-automatic storage duration
+ 6796 |   }, [&inUpdate, &totalUploaded]() {
+      |                   ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:6641:17: note: 'size_t totalUploaded' declared here
+ 6641 |   static size_t totalUploaded = 0;
+      |                 ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1499:29: warning: 'DeauthDetect::icons' defined but not used [-Wunused-variable]
+ 1499 | static const unsigned char* icons[ICON_NUM] = {
+      |                             ^~~~~
+cc1plus.exe: some warnings being treated as errors
+[6/13] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/subghz.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1205:13: warning: 'STATUS_BAR_Y_OFFSET' redefined
+ 1205 |     #define STATUS_BAR_Y_OFFSET 20
+      |             ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/Touchscreen.h:6,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:4:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2090:13: warning: 'ICON_NUM' redefined
+ 2090 |     #define ICON_NUM 4
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1208:13: note: this is the location of the previous definition
+ 1208 |     #define ICON_NUM 6
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2304:9: warning: 'SCREEN_HEIGHT' redefined
+ 2304 | #define SCREEN_HEIGHT 64
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1585:9: note: this is the location of the previous definition
+ 1585 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2580:13: warning: 'ICON_NUM' redefined
+ 2580 |     #define ICON_NUM 6
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2090:13: note: this is the location of the previous definition
+ 2090 |     #define ICON_NUM 4
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1774:13: warning: 'void SavedProfile::profileRefreshSd()' defined but not used [-Wunused-function]
+ 1774 | static void profileRefreshSd() {
+      |             ^~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:776:13: warning: 'void replayat::replayToggleAuto()' defined but not used [-Wunused-function]
+  776 | static void replayToggleAuto() {
+      |             ^~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:111:15: warning: 'bool {anonymous}::findLatestExportPath(String&)' defined but not used [-Wunused-function]
+  111 |   static bool findLatestExportPath(String& outPath) {
+      |               ^~~~~~~~~~~~~~~~~~~~
+[7/13] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/utils.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1179:13: warning: 'STATUS_BAR_Y_OFFSET' redefined
+ 1179 |     #define STATUS_BAR_Y_OFFSET 20
+      |             ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/Touchscreen.h:6,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:6:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: In function 'void drawStatusBar(float, bool, bool)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:637:14: warning: unused variable 'wifiColor' [-Wunused-variable]
+  637 |     uint16_t wifiColor = (wifiDevices > 0) ? TFT_GREEN : TFT_WHITE;
+      |              ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: In function 'void AppSettingsUI::drawAccentWidget(uint8_t, bool)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1579:7: warning: unused variable 'right' [-Wunused-variable]
+ 1579 |   int right = r.x + r.w - 6;
+      |       ^~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: In function 'bool AppSettingsUI::applyBrightness(uint8_t)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1773:9: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+ 1773 |   if (v > 255) v = 255;
+      |       ~~^~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1669:13: warning: 'void AppSettingsUI::drawFooterButton(const Rect&, const char*, uint16_t, uint16_t)' defined but not used [-Wunused-function]
+ 1669 | static void drawFooterButton(const Rect& b, const char* label, uint16_t body, uint16_t edge){
+      |             ^~~~~~~~~~~~~~~~
+ninja: build stopped: subcommand failed.

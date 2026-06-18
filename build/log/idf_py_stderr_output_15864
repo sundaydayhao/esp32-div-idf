@@ -1,0 +1,179 @@
+Command: cmake -G Ninja -B C:\projects\ESP32-DIV-IDF-v2\build -DPYTHON_DEPS_CHECKED=1 -DPYTHON=C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe -DESP_PLATFORM=1 -DCCACHE_ENABLE=True C:\projects\ESP32-DIV-IDF-v2
+CMake Error at C:/esp/v6.0.1/esp-idf/tools/cmake/component.cmake:231 (message):
+  CMake Warning (dev) at build_properties.temp.cmake:8:
+
+    Syntax Warning in cmake code at column 106
+
+
+
+    Argument not separated from preceding token by whitespace.
+
+  Call Stack (most recent call first):
+
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:3 (include)
+
+  This warning is for project developers.  Use -Wno-dev to suppress it.
+
+
+
+  CMake Error at
+  C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:1
+  (idf_component_register):
+
+    Syntax error in cmake code at
+
+
+
+      C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:3
+
+
+
+    when parsing string
+
+
+
+      ${ENV{USERPROFILE}}/Documents/Arduino/libraries/Adafruit_BusIO/Adafruit_BusIO_Register.cpp
+
+
+
+    Invalid character ('{') in a variable name: 'ENV'
+
+  Call Stack (most recent call first):
+
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:107 (include)
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:160 (__component_get_requirements)
+
+
+
+
+
+  CMake Error at
+  C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:1
+  (idf_component_register):
+
+    Syntax error in cmake code at
+
+
+
+      C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:4
+
+
+
+    when parsing string
+
+
+
+      ${ENV{USERPROFILE}}/Documents/Arduino/libraries/Adafruit_BusIO/Adafruit_GenericDevice.cpp
+
+
+
+    Invalid character ('{') in a variable name: 'ENV'
+
+  Call Stack (most recent call first):
+
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:107 (include)
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:160 (__component_get_requirements)
+
+
+
+
+
+  CMake Error at
+  C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:1
+  (idf_component_register):
+
+    Syntax error in cmake code at
+
+
+
+      C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:5
+
+
+
+    when parsing string
+
+
+
+      ${ENV{USERPROFILE}}/Documents/Arduino/libraries/Adafruit_BusIO/Adafruit_I2CDevice.cpp
+
+
+
+    Invalid character ('{') in a variable name: 'ENV'
+
+  Call Stack (most recent call first):
+
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:107 (include)
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:160 (__component_get_requirements)
+
+
+
+
+
+  CMake Error at
+  C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:1
+  (idf_component_register):
+
+    Syntax error in cmake code at
+
+
+
+      C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:6
+
+
+
+    when parsing string
+
+
+
+      ${ENV{USERPROFILE}}/Documents/Arduino/libraries/Adafruit_BusIO/Adafruit_SPIDevice.cpp
+
+
+
+    Invalid character ('{') in a variable name: 'ENV'
+
+  Call Stack (most recent call first):
+
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:107 (include)
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:160 (__component_get_requirements)
+
+
+
+
+
+  CMake Error at
+  C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:1
+  (idf_component_register):
+
+    Syntax error in cmake code at
+
+
+
+      C:/projects/ESP32-DIV-IDF-v2/components/Adafruit_BusIO/CMakeLists.txt:8
+
+
+
+    when parsing string
+
+
+
+      ${ENV{USERPROFILE}}/Documents/Arduino/libraries/Adafruit_BusIO
+
+
+
+    Invalid character ('{') in a variable name: 'ENV'
+
+  Call Stack (most recent call first):
+
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:107 (include)
+    C:/esp/v6.0.1/esp-idf/tools/cmake/scripts/component_get_requirements.cmake:160 (__component_get_requirements)
+
+
+
+
+
+Call Stack (most recent call first):
+  C:/esp/v6.0.1/esp-idf/tools/cmake/build.cmake:732 (__component_get_requirements)
+  C:/esp/v6.0.1/esp-idf/tools/cmake/project.cmake:773 (idf_build_process)
+  CMakeLists.txt:21 (project)
+
+

@@ -1,0 +1,298 @@
+Command: ninja all
+[1/14] Performing build step for 'bootloader'
+[1/1] C:\WINDOWS\system32\cmd.exe /C "cd /D C:\projects\ESP32-DIV-IDF-v2\build\bootloader && C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe C:/esp/v6.0.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/projects/ESP32-DIV-IDF-v2/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5240 bytes. 0x2dc0 bytes (36%) free.
+[2/14] No install step for 'bootloader'
+[3/14] Completed 'bootloader'
+[4/14] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/ducky.cpp.obj
+[5/14] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/subghz.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1178:13: warning: 'STATUS_BAR_Y_OFFSET' redefined
+ 1178 |     #define STATUS_BAR_Y_OFFSET 20
+      |             ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/Touchscreen.h:6,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:4:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2063:13: warning: 'ICON_NUM' redefined
+ 2063 |     #define ICON_NUM 4
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1181:13: note: this is the location of the previous definition
+ 1181 |     #define ICON_NUM 6
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2277:9: warning: 'SCREEN_HEIGHT' redefined
+ 2277 | #define SCREEN_HEIGHT 64
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1558:9: note: this is the location of the previous definition
+ 1558 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2553:13: warning: 'ICON_NUM' redefined
+ 2553 |     #define ICON_NUM 6
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:2063:13: note: this is the location of the previous definition
+ 2063 |     #define ICON_NUM 4
+      |             ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:1747:13: warning: 'void SavedProfile::profileRefreshSd()' defined but not used [-Wunused-function]
+ 1747 | static void profileRefreshSd() {
+      |             ^~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:749:13: warning: 'void replayat::replayToggleAuto()' defined but not used [-Wunused-function]
+  749 | static void replayToggleAuto() {
+      |             ^~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/subghz.cpp:84:15: warning: 'bool {anonymous}::findLatestExportPath(String&)' defined but not used [-Wunused-function]
+   84 |   static bool findLatestExportPath(String& outPath) {
+      |               ^~~~~~~~~~~~~~~~~~~~
+[6/14] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/utils.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1208:13: warning: 'STATUS_BAR_Y_OFFSET' redefined
+ 1208 |     #define STATUS_BAR_Y_OFFSET 20
+      |             ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/Touchscreen.h:6,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:6:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: In function 'void drawStatusBar(float, bool, bool)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:657:14: warning: unused variable 'wifiColor' [-Wunused-variable]
+  657 |     uint16_t wifiColor = (wifiDevices > 0) ? TFT_GREEN : TFT_WHITE;
+      |              ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: In function 'void AppSettingsUI::drawAccentWidget(uint8_t, bool)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1608:7: warning: unused variable 'right' [-Wunused-variable]
+ 1608 |   int right = r.x + r.w - 6;
+      |       ^~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: In function 'bool AppSettingsUI::applyBrightness(uint8_t)':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1802:9: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+ 1802 |   if (v > 255) v = 255;
+      |       ~~^~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/utils.cpp:1698:13: warning: 'void AppSettingsUI::drawFooterButton(const Rect&, const char*, uint16_t, uint16_t)' defined but not used [-Wunused-function]
+ 1698 | static void drawFooterButton(const Rect& b, const char* label, uint16_t body, uint16_t edge){
+      |             ^~~~~~~~~~~~~~~~
+[7/14] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/bluetooth.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:110:9: warning: 'STATUS_BAR_Y_OFFSET' redefined
+  110 | #define STATUS_BAR_Y_OFFSET 20
+      |         ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:903:9: warning: 'ICON_NUM' redefined
+  903 | #define ICON_NUM 1
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:113:9: note: this is the location of the previous definition
+  113 | #define ICON_NUM 5
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:914:9: warning: 'MAX_LINES' redefined
+  914 | #define MAX_LINES 30
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:100:9: note: this is the location of the previous definition
+  100 | #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1153:9: warning: 'SCREEN_HEIGHT' redefined
+ 1153 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:98:9: note: this is the location of the previous definition
+   98 | #define SCREEN_HEIGHT 250
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1155:9: warning: 'MAX_LINES' redefined
+ 1155 | #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:914:9: note: this is the location of the previous definition
+  914 | #define MAX_LINES 30
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1425:9: warning: 'ICON_NUM' redefined
+ 1425 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:903:9: note: this is the location of the previous definition
+  903 | #define ICON_NUM 1
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2094:9: warning: 'SCREEN_HEIGHT' redefined
+ 2094 | #define SCREEN_HEIGHT 180
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1153:9: note: this is the location of the previous definition
+ 1153 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2330:9: warning: 'SCREEN_HEIGHT' redefined
+ 2330 | #define SCREEN_HEIGHT 320
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2094:9: note: this is the location of the previous definition
+ 2094 | #define SCREEN_HEIGHT 180
+      |         ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:2334:9: warning: 'ICON_NUM' redefined
+ 2334 | #define ICON_NUM 3
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1425:9: note: this is the location of the previous definition
+ 1425 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3363:9: warning: 'LINE_HEIGHT' redefined
+ 3363 | #define LINE_HEIGHT 16
+      |         ^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3013:9: note: this is the location of the previous definition
+ 3013 | #define LINE_HEIGHT 12
+      |         ^~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3364:9: warning: 'MAX_LINES' redefined
+ 3364 | #define MAX_LINES 16
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3014:9: note: this is the location of the previous definition
+ 3014 | #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
+      |         ^~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void BleJammer::initializeRadiosMultiMode()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1253:8: warning: variable 'radio1Active' set but not used [-Wunused-but-set-variable]
+ 1253 |   bool radio1Active = false;
+      |        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1254:8: warning: variable 'radio2Active' set but not used [-Wunused-but-set-variable]
+ 1254 |   bool radio2Active = false;
+      |        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1255:8: warning: variable 'radio3Active' set but not used [-Wunused-but-set-variable]
+ 1255 |   bool radio3Active = false;
+      |        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void BleJammer::updateTFT()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1283:15: warning: unused variable 'previousJammerState' [-Wunused-variable]
+ 1283 |   static bool previousJammerState = false;
+      |               ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1284:15: warning: unused variable 'prevNRF1State' [-Wunused-variable]
+ 1284 |   static bool prevNRF1State = false;
+      |               ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1285:15: warning: unused variable 'prevNRF2State' [-Wunused-variable]
+ 1285 |   static bool prevNRF2State = false;
+      |               ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:1286:14: warning: unused variable 'previousMode' [-Wunused-variable]
+ 1286 |   static int previousMode = -1;
+      |              ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: In function 'void ProtoKill::initializeRadiosMultiMode()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3124:8: warning: variable 'radio1Active' set but not used [-Wunused-but-set-variable]
+ 3124 |   bool radio1Active = false;
+      |        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3125:8: warning: variable 'radio2Active' set but not used [-Wunused-but-set-variable]
+ 3125 |   bool radio2Active = false;
+      |        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:3126:8: warning: variable 'radio3Active' set but not used [-Wunused-but-set-variable]
+ 3126 |   bool radio3Active = false;
+      |        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/bluetooth.cpp:80:13: warning: 'void bleWaitNavRelease(int, int, int)' defined but not used [-Wunused-function]
+   80 | static void bleWaitNavRelease(int pin1, int pin2 = -1, int pin3 = -1) {
+      |             ^~~~~~~~~~~~~~~~~
+[8/14] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/wifi.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:584:9: warning: 'STATUS_BAR_Y_OFFSET' redefined
+  584 | #define STATUS_BAR_Y_OFFSET 20
+      |         ^~~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.h:4,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:2:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/shared.h:592:9: note: this is the location of the previous definition
+  592 | #define STATUS_BAR_Y_OFFSET 0
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1445:9: warning: 'ICON_NUM' redefined
+ 1445 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1194:9: note: this is the location of the previous definition
+ 1194 | #define ICON_NUM 3
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:2075:9: warning: 'MAX_SSID_LENGTH' redefined
+ 2075 | #define MAX_SSID_LENGTH 10
+      |         ^~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1438:9: note: this is the location of the previous definition
+ 1438 | #define MAX_SSID_LENGTH 8
+      |         ^~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3809:9: warning: 'ICON_NUM' redefined
+ 3809 | #define ICON_NUM 6
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1906:9: note: this is the location of the previous definition
+ 1906 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4565:9: warning: 'ICON_NUM' redefined
+ 4565 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3809:9: note: this is the location of the previous definition
+ 3809 | #define ICON_NUM 6
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5893:9: warning: 'ICON_NUM' redefined
+ 5893 | #define ICON_NUM 1
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5248:9: note: this is the location of the previous definition
+ 5248 | #define ICON_NUM 2
+      |         ^~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void PacketMonitor::draw()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:571:10: warning: unused variable 'multiplicator' [-Wunused-variable]
+  571 |   double multiplicator = getMultiplicator();
+      |          ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:572:7: warning: unused variable 'len' [-Wunused-variable]
+  572 |   int len;
+      |       ^~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:573:7: warning: variable 'rssi' set but not used [-Wunused-but-set-variable]
+  573 |   int rssi;
+      |       ^~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void CaptivePortal::startAttack()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3723:9: warning: unused variable 'ip' [-Wunused-variable]
+ 3723 |     int ip = WiFi.softAPIP();
+      |         ^~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void CaptivePortal::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:3837:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 3837 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void Deauther::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:4589:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 4589 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void ProbeRequestFlood::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5272:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 5272 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void FirmwareUpdate::runUI()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:5916:24: warning: unused variable 'lastSpamTime' [-Wunused-variable]
+ 5916 |   static unsigned long lastSpamTime = 0;
+      |                        ^~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: In function 'void FirmwareUpdate::performWebOTAUpdate()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:6742:19: warning: capture of variable 'totalUploaded' with non-automatic storage duration
+ 6742 |   }, [&inUpdate, &totalUploaded]() {
+      |                   ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:6587:17: note: 'size_t totalUploaded' declared here
+ 6587 |   static size_t totalUploaded = 0;
+      |                 ^~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp: At global scope:
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/wifi.cpp:1470:29: warning: 'DeauthDetect::icons' defined but not used [-Wunused-variable]
+ 1470 | static const unsigned char* icons[ICON_NUM] = {
+      |                             ^~~~~
+[9/14] Building CXX object esp-idf/esp32_div/CMakeFiles/__idf_esp32_div.dir/__/__/ESP32-DIV/SettingsStore.cpp.obj
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp:45:46: warning: 'template<unsigned int N> class ArduinoJson::V743PB22::StaticJsonDocument' is deprecated: use JsonDocument instead [-Wdeprecated-declarations]
+   45 | static bool settingsTouchSavedForBoard(const StaticJsonDocument<512>& doc) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson.hpp:65,
+                 from C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson.h:9,
+                 from C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp:1:
+C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson/compatibility.hpp:63:58: note: declared here
+   63 | class ARDUINOJSON_DEPRECATED("use JsonDocument instead") StaticJsonDocument
+      |                                                          ^~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp: In function 'bool settingsLoad()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp:94:3: warning: 'template<unsigned int N> class ArduinoJson::V743PB22::StaticJsonDocument' is deprecated: use JsonDocument instead [-Wdeprecated-declarations]
+   94 |   StaticJsonDocument<512> doc;
+      |   ^~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson/compatibility.hpp:63:58: note: declared here
+   63 | class ARDUINOJSON_DEPRECATED("use JsonDocument instead") StaticJsonDocument
+      |                                                          ^~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp: In function 'bool settingsSave()':
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp:143:3: warning: 'template<unsigned int N> class ArduinoJson::V743PB22::StaticJsonDocument' is deprecated: use JsonDocument instead [-Wdeprecated-declarations]
+  143 |   StaticJsonDocument<512> doc;
+      |   ^~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson/compatibility.hpp:63:58: note: declared here
+   63 | class ARDUINOJSON_DEPRECATED("use JsonDocument instead") StaticJsonDocument
+      |                                                          ^~~~~~~~~~~~~~~~~~
+C:/projects/ESP32-DIV-IDF-v2/ESP32-DIV/SettingsStore.cpp:153:40: warning: 'ArduinoJson::V743PB22::JsonObject ArduinoJson::V743PB22::JsonDocument::createNestedObject(TChar*) [with TChar = const char]' is deprecated: use doc[key].to<JsonObject>() instead [-Wdeprecated-declarations]
+  153 |   JsonObject t = doc.createNestedObject("touch");
+      |                  ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+In file included from C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson.hpp:42:
+C:/projects/ESP32-DIV-IDF-v2/components/ArduinoJson/src/ArduinoJson/Document/JsonDocument.hpp:376:14: note: declared here
+  376 |   JsonObject createNestedObject(TChar* key) {
+      |              ^~~~~~~~~~~~~~~~~~
+[10/14] Linking C static library esp-idf\esp32_div\libesp32_div.a
+[11/14] Generating esp-idf/esp_system/ld/sections.ld
+[12/14] Linking CXX executable esp32_div_idf.elf
+[13/14] Generating binary image from built executable
+esptool v5.3.0
+Creating ESP32-S3 image...
+Merged 3 ELF sections.
+Successfully created ESP32-S3 image.
+Generated C:/projects/ESP32-DIV-IDF-v2/build/esp32_div_idf.bin
+[14/14] C:\WINDOWS\system32\cmd.exe /C "cd /D C:\projects\ESP32-DIV-IDF-v2\build && C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe C:/esp/v6.0.1/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/projects/ESP32-DIV-IDF-v2/build/partition_table/partition-table.bin C:/projects/ESP32-DIV-IDF-v2/build/esp32_div_idf.bin"
+esp32_div_idf.bin binary size 0x203790 bytes. Smallest app partition is 0x300000 bytes. 0xfc870 bytes (33%) free.

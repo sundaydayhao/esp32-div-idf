@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "${ARDUINO_LIB_DIR}/Adafruit_BusIO/Adafruit_BusIO_Register.cpp"
+        "${ARDUINO_LIB_DIR}/Adafruit_BusIO/Adafruit_GenericDevice.cpp"
+        "${ARDUINO_LIB_DIR}/Adafruit_BusIO/Adafruit_I2CDevice.cpp"
+        "${ARDUINO_LIB_DIR}/Adafruit_BusIO/Adafruit_SPIDevice.cpp"
+    INCLUDE_DIRS
+        "${ARDUINO_LIB_DIR}/Adafruit_BusIO"
+    REQUIRES
+        arduino
+)

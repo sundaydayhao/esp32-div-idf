@@ -1,0 +1,40 @@
+set(ESP32_DIV_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../ESP32-DIV")
+
+idf_component_register(
+    SRCS
+        "main.cpp"
+        "${ESP32_DIV_SRC_DIR}/bluetooth.cpp"
+        "${ESP32_DIV_SRC_DIR}/ducky.cpp"
+        "${ESP32_DIV_SRC_DIR}/gps.cpp"
+        "${ESP32_DIV_SRC_DIR}/ir.cpp"
+        "${ESP32_DIV_SRC_DIR}/KeyboardUI.cpp"
+        "${ESP32_DIV_SRC_DIR}/rfid.cpp"
+        "${ESP32_DIV_SRC_DIR}/SettingsStore.cpp"
+        "${ESP32_DIV_SRC_DIR}/subghz.cpp"
+        "${ESP32_DIV_SRC_DIR}/Theme.cpp"
+        "${ESP32_DIV_SRC_DIR}/Touchscreen.cpp"
+        "${ESP32_DIV_SRC_DIR}/utils.cpp"
+        "${ESP32_DIV_SRC_DIR}/wifi.cpp"
+    INCLUDE_DIRS
+        "${ESP32_DIV_SRC_DIR}"
+    REQUIRES
+        arduino
+        TFT_eSPI
+        ArduinoJson
+        Adafruit_BusIO
+        Adafruit_PN532
+        arduinoFFT
+        pcf8574
+        xpt2046
+        rcswitch
+        smartrc_cc1101
+        rf24
+        irremoteesp8266
+        nimble_compat
+        nvs_flash
+        esp_event
+        esp_system
+        esp_timer
+        esp_wifi
+        esp_netif
+)

@@ -1,0 +1,2 @@
+source C:/projects/ESP32-DIV-IDF-v2/build/gdbinit/symbols
+source C:/projects/ESP32-DIV-IDF-v2/build/gdbinit/connect

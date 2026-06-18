@@ -1,0 +1,339 @@
+Command: C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe C:\esp\v6.0.1\esp-idf\tools/idf_monitor.py -p COM6 -b 115200 --toolchain-prefix xtensa-esp32s3-elf- --target esp32s3 --revision 0 C:\projects\ESP32-DIV-IDF-v2\build\esp32_div_idf.elf C:\projects\ESP32-DIV-IDF-v2\build\bootloader\bootloader.elf --force-color -m 'C:\Espressif\tools\python\v6.0.1\venv\Scripts\python.exe' 'C:\esp\v6.0.1\esp-idf\tools\idf.py'
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40048c29
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f58
+entry 0x403c8908
+[0;32mI (24) boot: ESP-IDF v6.0.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time Jun 18 2026 14:05:12[0m
+[0;32mI (25) boot: Multicore bootloader[0m
+[0;32mI (25) boot: chip revision: v0.2[0m
+[0;32mI (27) boot: efuse block revision: v1.3[0m
+[0;32mI (31) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (35) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (39) boot.esp32s3: SPI Flash Size : 4MB[0m
+[0;32mI (42) boot: Enabling RNG early entropy source...[0m
+[0;32mI (47) boot: Partition Table:[0m
+[0;32mI (50) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (56) boot:  0 nvs              WiFi data        01 02 00009000 00005000[0m
+[0;32mI (62) boot:  1 otadata          OTA data         01 00 0000e000 00002000[0m
+[0;32mI (69) boot:  2 app0             OTA app          00 10 00010000 00300000[0m
+[0;32mI (75) boot:  3 spiffs           Unknown data     01 82 00310000 000e0000[0m
+[0;32mI (82) boot:  4 coredump         Unknown data     01 03 003f0000 00010000[0m
+[0;32mI (88) boot: End of partition table[0m
+[0;32mI (92) esp_image: segment 0: paddr=00010020 vaddr=3c190020 size=57c90h (359568) map[0m
+[0;32mI (164) esp_image: segment 1: paddr=00067cb8 vaddr=3fc9e200 size=05fe0h ( 24544) load[0m
+[0;32mI (169) esp_image: segment 2: paddr=0006dca0 vaddr=40374000 size=02378h (  9080) load[0m
+[0;32mI (172) esp_image: segment 3: paddr=00070020 vaddr=42000020 size=18e150h (1630544) map[0m
+[0;32mI (468) esp_image: segment 4: paddr=001fe178 vaddr=40376378 size=17e14h ( 97812) load[0m
+[0;32mI (489) esp_image: segment 5: paddr=00215f94 vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (501) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (501) boot: Disabling RNG early entropy source...[0m
+[0;32mI (511) cpu_start: Multicore app[0m
+[0;32mI (520) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (521) cpu_start: Pro cpu start user code[0m
+[0;32mI (521) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (522) app_init: Application information:[0m
+[0;32mI (526) app_init: Project name:     esp32_div_idf[0m
+[0;32mI (530) app_init: App version:      v1.7.0-3-g9624444-dirty[0m
+[0;32mI (536) app_init: Compile time:     Jun 18 2026 14:04:48[0m
+[0;32mI (541) app_init: ELF file SHA256:  7a6514030...[0m
+[0;32mI (545) app_init: ESP-IDF:          v6.0.1[0m
+[0;32mI (549) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (553) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (557) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (561) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (567) heap_init: At 3FCBBA20 len 0002DCF0 (183 KiB): RAM[0m
+[0;32mI (572) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (577) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (582) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (589) spi_flash: detected chip: generic[0m
+[0;32mI (591) spi_flash: flash io: dio[0m
+[0;33mW (594) spi_flash: Detected size(16384k) larger than the size in the binary image header(4096k). Using the size in the binary image header.[0m
+[    24][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    42][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    54][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    66][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    78][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    90][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   102][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   114][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   126][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   138][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[0;32mI (742) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (742) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (752) main_task: Started on CPU0[0m
+[0;32mI (755) main_task: Calling app_main()[0m
+[0;32mI (768) uart: queue free spaces: 20[0m
+Guru Meditation Error: Core  0 panic'ed (StoreProhibited). Exception was unhandled.
+
+Core  0 register dump:
+PC      : 0x42057c85  PS      : 0x00060730  A0      : 0x82057ffe  A1      : 0x3fcbfde0  
+A2      : 0x3fca4f98  A3      : 0x00000001  A4      : 0x00000025  A5      : 0x00000023  
+A6      : 0x00000001  A7      : 0x00000000  A8      : 0x00000010  A9      : 0x08000000  
+A10     : 0x3fcb3ca0  A11     : 0x019bfcc0  A12     : 0x00000001  A13     : 0x00010000  
+A14     : 0x3fcbfdd0  A15     : 0x00000000  SAR     : 0x00000010  EXCCAUSE: 0x0000001d  
+EXCVADDR: 0x00000010  LBEG    : 0x40056f5c  LEND    : 0x40056f72  LCOUNT  : 0xffffffff  
+
+
+Backtrace: 0x42057c82:0x3fcbfde0 0x42057ffb:0x3fcbfe10 0x4201a004:0x3fcbfe40 0x42012a26:0x3fcbfe80 0x4200928c:0x3fcbfea0 0x4218b30a:0x3fcbfed0
+
+
+
+
+ELF file SHA256: 7a6514030
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x403836f5
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f58
+entry 0x403c8908
+[0;32mI (24) boot: ESP-IDF v6.0.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time Jun 18 2026 14:05:12[0m
+[0;32mI (24) boot: Multicore bootloader[0m
+[0;32mI (24) boot: chip revision: v0.2[0m
+[0;32mI (27) boot: efuse block revision: v1.3[0m
+[0;32mI (31) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (34) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (38) boot.esp32s3: SPI Flash Size : 4MB[0m
+[0;32mI (42) boot: Enabling RNG early entropy source...[0m
+[0;32mI (46) boot: Partition Table:[0m
+[0;32mI (49) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (55) boot:  0 nvs              WiFi data        01 02 00009000 00005000[0m
+[0;32mI (62) boot:  1 otadata          OTA data         01 00 0000e000 00002000[0m
+[0;32mI (68) boot:  2 app0             OTA app          00 10 00010000 00300000[0m
+[0;32mI (75) boot:  3 spiffs           Unknown data     01 82 00310000 000e0000[0m
+[0;32mI (81) boot:  4 coredump         Unknown data     01 03 003f0000 00010000[0m
+[0;32mI (88) boot: End of partition table[0m
+[0;32mI (91) esp_image: segment 0: paddr=00010020 vaddr=3c190020 size=57c90h (359568) map[0m
+[0;32mI (163) esp_image: segment 1: paddr=00067cb8 vaddr=3fc9e200 size=05fe0h ( 24544) load[0m
+[0;32mI (169) esp_image: segment 2: paddr=0006dca0 vaddr=40374000 size=02378h (  9080) load[0m
+[0;32mI (171) esp_image: segment 3: paddr=00070020 vaddr=42000020 size=18e150h (1630544) map[0m
+[0;32mI (467) esp_image: segment 4: paddr=001fe178 vaddr=40376378 size=17e14h ( 97812) load[0m
+[0;32mI (489) esp_image: segment 5: paddr=00215f94 vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (500) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (501) boot: Disabling RNG early entropy source...[0m
+[0;32mI (511) cpu_start: Multicore app[0m
+[0;32mI (519) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (520) cpu_start: Pro cpu start user code[0m
+[0;32mI (520) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (522) app_init: Application information:[0m
+[0;32mI (526) app_init: Project name:     esp32_div_idf[0m
+[0;32mI (530) app_init: App version:      v1.7.0-3-g9624444-dirty[0m
+[0;32mI (535) app_init: Compile time:     Jun 18 2026 14:04:48[0m
+[0;32mI (540) app_init: ELF file SHA256:  7a6514030...[0m
+[0;32mI (545) app_init: ESP-IDF:          v6.0.1[0m
+[0;32mI (548) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (552) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (556) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (560) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (566) heap_init: At 3FCBBA20 len 0002DCF0 (183 KiB): RAM[0m
+[0;32mI (572) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (577) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (582) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (588) spi_flash: detected chip: generic[0m
+[0;32mI (591) spi_flash: flash io: dio[0m
+[0;33mW (594) spi_flash: Detected size(16384k) larger than the size in the binary image header(4096k). Using the size in the binary image header.[0m
+[    24][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    42][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    54][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    66][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    78][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    90][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   102][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   114][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   126][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   138][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[0;32mI (741) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (742) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (752) main_task: Started on CPU0[0m
+[0;32mI (755) main_task: Calling app_main()[0m
+[0;32mI (768) uart: queue free spaces: 20[0m
+Guru Meditation Error: Core  0 panic'ed (StoreProhibited). Exception was unhandled.
+
+Core  0 register dump:
+PC      : 0x42057c85  PS      : 0x00060730  A0      : 0x82057ffe  A1      : 0x3fcbfde0  
+A2      : 0x3fca4f98  A3      : 0x00000001  A4      : 0x00000025  A5      : 0x00000023  
+A6      : 0x00000001  A7      : 0x00000000  A8      : 0x00000010  A9      : 0x08000000  
+A10     : 0x3fcb3ca0  A11     : 0x019bfcc0  A12     : 0x00000001  A13     : 0x00010000  
+A14     : 0x3fcbfdd0  A15     : 0x00000000  SAR     : 0x00000010  EXCCAUSE: 0x0000001d  
+EXCVADDR: 0x00000010  LBEG    : 0x40056f5c  LEND    : 0x40056f72  LCOUNT  : 0xffffffff  
+
+
+Backtrace: 0x42057c82:0x3fcbfde0 0x42057ffb:0x3fcbfe10 0x4201a004:0x3fcbfe40 0x42012a26:0x3fcbfe80 0x4200928c:0x3fcbfea0 0x4218b30a:0x3fcbfed0
+
+
+
+
+ELF file SHA256: 7a6514030
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x403836f5
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f58
+entry 0x403c8908
+[0;32mI (24) boot: ESP-IDF v6.0.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time Jun 18 2026 14:05:12[0m
+[0;32mI (24) boot: Multicore bootloader[0m
+[0;32mI (24) boot: chip revision: v0.2[0m
+[0;32mI (27) boot: efuse block revision: v1.3[0m
+[0;32mI (31) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (34) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (38) boot.esp32s3: SPI Flash Size : 4MB[0m
+[0;32mI (42) boot: Enabling RNG early entropy source...[0m
+[0;32mI (46) boot: Partition Table:[0m
+[0;32mI (49) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (55) boot:  0 nvs              WiFi data        01 02 00009000 00005000[0m
+[0;32mI (62) boot:  1 otadata          OTA data         01 00 0000e000 00002000[0m
+[0;32mI (68) boot:  2 app0             OTA app          00 10 00010000 00300000[0m
+[0;32mI (75) boot:  3 spiffs           Unknown data     01 82 00310000 000e0000[0m
+[0;32mI (81) boot:  4 coredump         Unknown data     01 03 003f0000 00010000[0m
+[0;32mI (88) boot: End of partition table[0m
+[0;32mI (91) esp_image: segment 0: paddr=00010020 vaddr=3c190020 size=57c90h (359568) map[0m
+[0;32mI (163) esp_image: segment 1: paddr=00067cb8 vaddr=3fc9e200 size=05fe0h ( 24544) load[0m
+[0;32mI (169) esp_image: segment 2: paddr=0006dca0 vaddr=40374000 size=02378h (  9080) load[0m
+[0;32mI (171) esp_image: segment 3: paddr=00070020 vaddr=42000020 size=18e150h (1630544) map[0m
+[0;32mI (467) esp_image: segment 4: paddr=001fe178 vaddr=40376378 size=17e14h ( 97812) load[0m
+[0;32mI (489) esp_image: segment 5: paddr=00215f94 vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (500) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (501) boot: Disabling RNG early entropy source...[0m
+[0;32mI (511) cpu_start: Multicore app[0m
+[0;32mI (519) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (520) cpu_start: Pro cpu start user code[0m
+[0;32mI (520) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (522) app_init: Application information:[0m
+[0;32mI (526) app_init: Project name:     esp32_div_idf[0m
+[0;32mI (530) app_init: App version:      v1.7.0-3-g9624444-dirty[0m
+[0;32mI (535) app_init: Compile time:     Jun 18 2026 14:04:48[0m
+[0;32mI (540) app_init: ELF file SHA256:  7a6514030...[0m
+[0;32mI (545) app_init: ESP-IDF:          v6.0.1[0m
+[0;32mI (548) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (552) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (556) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (560) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (566) heap_init: At 3FCBBA20 len 0002DCF0 (183 KiB): RAM[0m
+[0;32mI (572) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (577) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (582) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (588) spi_flash: detected chip: generic[0m
+[0;32mI (591) spi_flash: flash io: dio[0m
+[0;33mW (594) spi_flash: Detected size(16384k) larger than the size in the binary image header(4096k). Using the size in the binary image header.[0m
+[    24][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    42][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    54][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    66][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    78][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    90][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   102][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   114][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   126][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   138][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[0;32mI (741) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (742) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (752) main_task: Started on CPU0[0m
+[0;32mI (755) main_task: Calling app_main()[0m
+[0;32mI (768) uart: queue free spaces: 20[0m
+Guru Meditation Error: Core  0 panic'ed (StoreProhibited). Exception was unhandled.
+
+Core  0 register dump:
+PC      : 0x42057c85  PS      : 0x00060730  A0      : 0x82057ffe  A1      : 0x3fcbfde0  
+A2      : 0x3fca4f98  A3      : 0x00000001  A4      : 0x00000025  A5      : 0x00000023  
+A6      : 0x00000001  A7      : 0x00000000  A8      : 0x00000010  A9      : 0x08000000  
+A10     : 0x3fcb3ca0  A11     : 0x019bfcc0  A12     : 0x00000001  A13     : 0x00010000  
+A14     : 0x3fcbfdd0  A15     : 0x00000000  SAR     : 0x00000010  EXCCAUSE: 0x0000001d  
+EXCVADDR: 0x00000010  LBEG    : 0x40056f5c  LEND    : 0x40056f72  LCOUNT  : 0xffffffff  
+
+
+Backtrace: 0x42057c82:0x3fcbfde0 0x42057ffb:0x3fcbfe10 0x4201a004:0x3fcbfe40 0x42012a26:0x3fcbfe80 0x4200928c:0x3fcbfea0 0x4218b30a:0x3fcbfed0
+
+
+
+
+ELF file SHA256: 7a6514030
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x403836f5
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xda0
+load:0x403cb700,len:0x2f58
+entry 0x403c8908
+[0;32mI (24) boot: ESP-IDF v6.0.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time Jun 18 2026 14:05:12[0m
+[0;32mI (24) boot: Multicore bootloader[0m
+[0;32mI (24) boot: chip revision: v0.2[0m
+[0;32mI (27) boot: efuse block revision: v1.3[0m
+[0;32mI (31) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (34) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (38) boot.esp32s3: SPI Flash Size : 4MB[0m
+[0;32mI (42) boot: Enabling RNG early entropy source...[0m
+[0;32mI (46) boot: Partition Table:[0m
+[0;32mI (49) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (55) boot:  0 nvs              WiFi data        01 02 00009000 00005000[0m
+[0;32mI (62) boot:  1 otadata          OTA data         01 00 0000e000 00002000[0m
+[0;32mI (68) boot:  2 app0             OTA app          00 10 00010000 00300000[0m
+[0;32mI (75) boot:  3 spiffs           Unknown data     01 82 00310000 000e0000[0m
+[0;32mI (81) boot:  4 coredump         Unknown data     01 03 003f0000 00010000[0m
+[0;32mI (88) boot: End of partition table[0m
+[0;32mI (91) esp_image: segment 0: paddr=00010020 vaddr=3c190020 size=57c90h (359568) map[0m
+[0;32mI (163) esp_image: segment 1: paddr=00067cb8 vaddr=3fc9e200 size=05fe0h ( 24544) load[0m
+[0;32mI (169) esp_image: segment 2: paddr=0006dca0 vaddr=40374000 size=02378h (  9080) load[0m
+[0;32mI (171) esp_image: segment 3: paddr=00070020 vaddr=42000020 size=18e150h (1630544) map[0m
+[0;32mI (467) esp_image: segment 4: paddr=001fe178 vaddr=40376378 size=17e14h ( 97812) load[0m
+[0;32mI (489) esp_image: segment 5: paddr=00215f94 vaddr=50000000 size=00024h (    36) load[0m
+[0;32mI (500) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (501) boot: Disabling RNG early entropy source...[0m
+[0;32mI (511) cpu_start: Multicore app[0m
+[0;32mI (519) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (520) cpu_start: Pro cpu start user code[0m
+[0;32mI (520) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (522) app_init: Application information:[0m
+[0;32mI (526) app_init: Project name:     esp32_div_idf[0m
+[0;32mI (530) app_init: App version:      v1.7.0-3-g9624444-dirty[0m
+[0;32mI (535) app_init: Compile time:     Jun 18 2026 14:04:48[0m
+[0;32mI (540) app_init: ELF file SHA256:  7a6514030...[0m
+[0;32mI (545) app_init: ESP-IDF:          v6.0.1[0m
+[0;32mI (548) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (552) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (556) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (560) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (566) heap_init: At 3FCBBA20 len 0002DCF0 (183 KiB): RAM[0m
+[0;32mI (572) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (577) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (582) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (588) spi_flash: detected chip: generic[0m
+[0;32mI (591) spi_flash: flash io: dio[0m
+[0;33mW (594) spi_flash: Detected size(16384k) larger than the size in the binary image header(4096k). Using the size in the binary image header.[0m
+[    24][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    42][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    54][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    66][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    78][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[    90][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   102][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   114][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   126][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[   138][E][esp32-hal-adc.c:303] __analogRead(): Pin 255 is not ADC pin!
+[0;32mI (741) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (742) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
