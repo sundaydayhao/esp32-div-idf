@@ -10,4 +10,5 @@ idf_component_register(
         log
     PRIV_REQUIRES
         esp_driver_gpio
+        esp32_div
 )

@@ -14,6 +14,7 @@
  ****************************************************/
 
 #include "TFT_eSPI.h"
+#include "esp_random.h"
 
 #if defined (ESP32)
   #if defined(CONFIG_IDF_TARGET_ESP32S3)
@@ -5000,7 +5001,7 @@ uint16_t TFT_eSPI::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc)
 uint16_t TFT_eSPI::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc, uint8_t dither)
 {
   if (dither) {
-    int16_t alphaDither = (int16_t)alpha - dither + random(2*dither+1); // +/-4 randomised
+    int16_t alphaDither = (int16_t)alpha - dither + (int16_t)(esp_random() % (uint32_t)(2 * dither + 1)); // +/-4 randomised
     alpha = (uint8_t)alphaDither;
     if (alphaDither <  0) alpha = 0;
     if (alphaDither >255) alpha = 255;
@@ -5017,7 +5018,7 @@ uint32_t TFT_eSPI::alphaBlend24(uint8_t alpha, uint32_t fgc, uint32_t bgc, uint8
 {
 
   if (dither) {
-    int16_t alphaDither = (int16_t)alpha - dither + random(2*dither+1); // +/-dither randomised
+    int16_t alphaDither = (int16_t)alpha - dither + (int16_t)(esp_random() % (uint32_t)(2 * dither + 1)); // +/-dither randomised
     alpha = (uint8_t)alphaDither;
     if (alphaDither <  0) alpha = 0;
     if (alphaDither >255) alpha = 255;
@@ -6155,4 +6156,3 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
   #include "Extensions/AA_graphics.cpp"  // Loaded if SMOOTH_FONT is defined by user
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////
-

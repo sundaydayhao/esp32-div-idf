@@ -823,40 +823,33 @@ uint8_t getPcf8574Address() {
 }
 
 bool initPcf8574Buttons() {
-  pcf.pinMode(BTN_UP, INPUT_PULLUP);
-  pcf.pinMode(BTN_DOWN, INPUT_PULLUP);
-  pcf.pinMode(BTN_LEFT, INPUT_PULLUP);
-  pcf.pinMode(BTN_RIGHT, INPUT_PULLUP);
-  pcf.pinMode(BTN_SELECT, INPUT_PULLUP);
-
-#if PCF8574_AUTO_DETECT
-  for (uint8_t addr = PCF8574_ADDR_MIN; addr <= PCF8574_ADDR_MAX; addr++) {
-    if (pcf.begin(addr)) {
-      s_pcf8574Addr = addr;
-      Serial.printf("[PCF8574] auto-detected at 0x%02X\n", addr);
-      break;
+  #if PCF8574_ENABLED
+    ESP_LOGI("esp32_div", "PCF8574 fixed address 0x%02X", PCF8574_I2C_ADDR);
+    if (!pcf.begin(PCF8574_I2C_ADDR)) {
+      Serial.printf("[PCF8574] not found at fixed address 0x%02X\n", PCF8574_I2C_ADDR);
+      return false;
     }
-  }
-  if (s_pcf8574Addr == 0) {
-    Serial.println("[PCF8574] not found (scanned 0x20-0x27)");
-    return false;
-  }
-#else
-  if (!pcf.begin(PCF8574_I2C_ADDR)) {
-    Serial.printf("[PCF8574] not found at fixed address 0x%02X\n", PCF8574_I2C_ADDR);
-    return false;
-  }
-  s_pcf8574Addr = PCF8574_I2C_ADDR;
-  Serial.printf("[PCF8574] using fixed address 0x%02X\n", s_pcf8574Addr);
-#endif
+    s_pcf8574Addr = PCF8574_I2C_ADDR;
+    Serial.printf("[PCF8574] using fixed address 0x%02X\n", s_pcf8574Addr);
 
-  for (int pin = 0; pin < 8; pin++) {
-    Serial.print("Button ");
-    Serial.print(pin);
-    Serial.print(": ");
-    Serial.println(pcf.digitalRead(pin) ? "Released" : "Pressed");
-  }
-  return true;
+    pcf.pinMode(BTN_UP, INPUT_PULLUP);
+    pcf.pinMode(BTN_DOWN, INPUT_PULLUP);
+    pcf.pinMode(BTN_LEFT, INPUT_PULLUP);
+    pcf.pinMode(BTN_RIGHT, INPUT_PULLUP);
+    pcf.pinMode(BTN_SELECT, INPUT_PULLUP);
+
+    for (int pin = 0; pin < 8; pin++) {
+      Serial.print("Button ");
+      Serial.print(pin);
+      Serial.print(": ");
+      Serial.println(pcf.digitalRead(pin) ? "Released" : "Pressed");
+    }
+    return true;
+  #else
+    ESP_LOGI("esp32_div", "PCF8574 disabled by board config");
+    s_pcf8574Addr = 0;
+    return false;
+  #endif
 }
 #else
 uint8_t getPcf8574Address() {
@@ -2931,11 +2924,7 @@ void loop(){
     uint16_t yMax = max(ys[2], ys[3]);
     auto& s = settings();
     s.touchXMin = xMin; s.touchXMax = xMax;
-#if defined(BOARD_CYD)
     s.touchYMin = yMin; s.touchYMax = yMax;
-#else
-    s.touchYMin = yMax; s.touchYMax = yMin;
-#endif
 
     bool ok = settingsSave();
 

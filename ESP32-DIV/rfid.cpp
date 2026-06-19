@@ -2,7 +2,6 @@
 
 #include <Adafruit_PN532.h>
 #include <SPI.h>
-#include <Arduino.h>
 #include <cstdio>
 #include <cstring>
 

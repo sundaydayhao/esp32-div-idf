@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <cstdint>
 
 #define CC1101_TXFIFO 0x3F

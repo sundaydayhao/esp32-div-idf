@@ -1,6 +1,7 @@
 #include "SettingsStore.h"
 #include "Touchscreen.h"
 #include <TFT_eSPI.h>
+#include "esp_log.h"
 
 extern TFT_eSPI tft;
 
@@ -12,6 +13,8 @@ XPT2046_Touchscreen ts(XPT2046_CS, XPT2046_IRQ);
 bool feature_active = false;
 
 static bool s_touchInitialized = false;
+static const char* TAG = "esp32_div_touch";
+static uint32_t s_lastTouchDebugMs = 0;
 
 #ifndef TOUCH_ROTATION
 #if defined(BOARD_ESP32_DIV_V2)
@@ -34,6 +37,12 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   }
   rawX = p.x;
   rawY = p.y;
+  const uint32_t now = millis();
+  if (now - s_lastTouchDebugMs >= 250) {
+    s_lastTouchDebugMs = now;
+    ESP_LOGI(TAG, "raw touch x=%d y=%d z=%d irq=%d", (int)p.x, (int)p.y, (int)p.z,
+             (int)ts.tirqTouched());
+  }
   return true;
 }
 
@@ -64,14 +73,43 @@ bool readTouchRawXY(int16_t& x, int16_t& y, uint16_t zThresh) {
 
 static void mapTouchToScreen(int16_t rawX, int16_t rawY, int& x, int& y) {
   auto& s = settings();
+  auto clampToScreen = [](long v, long maxV) -> int {
+    if (v < 0) return 0;
+    if (v > maxV) return (int)maxV;
+    return (int)v;
+  };
+  int x0 = 0;
+  int y0 = 0;
+
 #if defined(BOARD_CYD)
-  // Same axis order as the RNT CYD touch test (no inverted Y).
-  x = ::map(rawX, s.touchXMin, s.touchXMax, 0, TFT_WIDTH - 1);
-  y = ::map(rawY, s.touchYMin, s.touchYMax, 0, TFT_HEIGHT - 1);
+  x0 = ::map(rawX, s.touchXMin, s.touchXMax, 0, TFT_WIDTH - 1);
+  y0 = ::map(rawY, s.touchYMin, s.touchYMax, 0, TFT_HEIGHT - 1);
 #else
-  x = ::map(rawX, s.touchXMin, s.touchXMax, 0, TFT_WIDTH - 1);
-  y = ::map(rawY, s.touchYMax, s.touchYMin, 0, TFT_HEIGHT - 1);
+  x0 = ::map(rawX, s.touchXMin, s.touchXMax, 0, TFT_WIDTH - 1);
+  y0 = ::map(rawY, s.touchYMax, s.touchYMin, 0, TFT_HEIGHT - 1);
 #endif
+
+  switch (TOUCH_ROTATION & 3) {
+    case 0:
+      x = x0;
+      y = y0;
+      break;
+    case 1:
+      x = TFT_WIDTH - 1 - y0;
+      y = x0;
+      break;
+    case 2:
+      x = TFT_WIDTH - 1 - x0;
+      y = TFT_HEIGHT - 1 - y0;
+      break;
+    case 3:
+      x = y0;
+      y = TFT_HEIGHT - 1 - x0;
+      break;
+  }
+
+  x = clampToScreen(x, TFT_WIDTH - 1);
+  y = clampToScreen(y, TFT_HEIGHT - 1);
 }
 
 bool readTouchXY(int& x, int& y) {

@@ -3345,26 +3345,32 @@ void esp32_div_app_init() {
   ESP_LOGI(TAG, "boot start");
 
   tft.init();
+  ESP_LOGI(TAG, "tft init done");
   tft.setRotation(TFT_ROTATION);
 
   initBacklightPwm();
   setBrightness(100);
+  ESP_LOGI(TAG, "backlight ready");
 
   applyThemeToPalette(settings().theme);
 
   tft.fillScreen(TFT_BLACK);
 
   loading(100, UI_ICON, 0, 0, 2, true);
+  ESP_LOGI(TAG, "loading animation done");
 
   tft.fillScreen(TFT_BLACK);
 
   displayLogo(TFT_WHITE, 500);
+  ESP_LOGI(TAG, "logo done");
 
   initSDCard();
+  ESP_LOGI(TAG, "sd init done");
 
   settingsLoad();
   applyThemeToPalette(settings().theme);
   setBrightness(settings().brightness);
+  ESP_LOGI(TAG, "settings loaded");
 
 #if HAS_PCF8574_BUTTONS
   if (!initPcf8574Buttons()) {
@@ -3376,6 +3382,7 @@ void esp32_div_app_init() {
 
   ESP_LOGI(TAG, "BLE init");
   BLEDevice::init(ESP32DIV_NAME);
+  ESP_LOGI(TAG, "BLE init done");
 
 #if FEATURE_BLE_DUCKY
   Ducky::setup();
@@ -3385,14 +3392,17 @@ void esp32_div_app_init() {
   WifiScan::startBackgroundScanner();
   BleScan::startBackgroundScanner();
   startStatusBarTask();
+  ESP_LOGI(TAG, "background tasks done");
 
   ESP_LOGI(TAG, "draw menu");
   menu_initialized = false;
   currentBatteryVoltage = readBatteryVoltage();
   displayMenu();
   drawStatusBar(currentBatteryVoltage, false);
+  ESP_LOGI(TAG, "menu drawn");
 
   setupTouchscreen();
+  ESP_LOGI(TAG, "touch ready");
 
   last_interaction_time = millis();
   ESP_LOGI(TAG, "ready");

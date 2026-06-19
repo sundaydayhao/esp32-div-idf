@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include "BoardConfig.h"
 
+#ifndef PROGMEM
+#define PROGMEM
+#endif
+
 /*──────────────────── Colors ────────────────────*/
 const uint16_t GRAY = 0x8410, BLUE = 0x001F, RED = 0xF800,
                GREEN  = 0x07E0, BLACK = 0x0000, WHITE = 0xFFFF,
@@ -220,13 +224,12 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #endif
 
 /*──────────────────── I/O & Pins ────────────────────*/
-// PCF8574 I2C address: auto-detect 0x20-0x27 by default.
-// To force a fixed address, add to BoardConfig.h: #define pcf_ADDR 0x21
+// PCF8574 I2C address: only enabled when BoardConfig.h defines pcf_ADDR.
 #ifndef pcf_ADDR
-#define PCF8574_AUTO_DETECT 1
+#define PCF8574_ENABLED 0
 #define PCF8574_I2C_ADDR  0x20
 #else
-#define PCF8574_AUTO_DETECT 0
+#define PCF8574_ENABLED 1
 #define PCF8574_I2C_ADDR  pcf_ADDR
 #endif
 #define PCF8574_ADDR_MIN 0x20
@@ -307,6 +310,14 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define XPT2046_IRQ  36
 #else
 #define XPT2046_IRQ  255
+#endif
+#endif
+
+#ifndef XPT2046_HOST
+#if defined(BOARD_ESP32_DIV_V2)
+#define XPT2046_HOST SPI3_HOST
+#else
+#define XPT2046_HOST SPI2_HOST
 #endif
 #endif
 

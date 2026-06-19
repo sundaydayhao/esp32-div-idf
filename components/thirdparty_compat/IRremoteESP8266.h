@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
 #include <cstdint>
 
 enum decode_type_t : uint8_t {

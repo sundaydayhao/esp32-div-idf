@@ -211,7 +211,7 @@
 #define TFT_CS   17  // Chip select control pin
 #define TFT_DC   16  // Data Command control pin
 //#define TFT_RST   4  // Reset pin (could connect to RST pin)
-#define TFT_RST  0 // Set TFT_RST to -1 if display RESET is connected to ESP32 board RST
+#define TFT_RST  -1  // Display RESET is tied to the ESP32-S3 module RESET/EN pin
 
 #define TOUCH_CS 18     // Chip select pin (T_CS) of touch screen
 
@@ -358,7 +358,7 @@
 // #define SPI_FREQUENCY   5000000
 // #define SPI_FREQUENCY  10000000
 // #define SPI_FREQUENCY  20000000
-#define SPI_FREQUENCY  27000000
+#define SPI_FREQUENCY  20000000
 // #define SPI_FREQUENCY  40000000
 // #define SPI_FREQUENCY  55000000 // STM32 SPI1 only (SPI2 maximum is 27MHz)
 // #define SPI_FREQUENCY  80000000

@@ -40,6 +40,21 @@ static int bleContentBottom() {
   return featureHasTouchNavBar() ? touchNavContentBottomY() : kBleScreenH;
 }
 
+static inline uint32_t bleRandU32(uint32_t maxExclusive) {
+  return maxExclusive ? (uint32_t)(esp_random() % maxExclusive) : 0U;
+}
+
+static inline int bleRandInt(int maxExclusive) {
+  return maxExclusive > 0 ? (int)bleRandU32((uint32_t)maxExclusive) : 0;
+}
+
+static inline int bleRandInt(int minInclusive, int maxExclusive) {
+  if (maxExclusive <= minInclusive) {
+    return minInclusive;
+  }
+  return minInclusive + bleRandInt(maxExclusive - minInclusive);
+}
+
 static int bleMaxLinesInZone(int contentTop, int lineHeight) {
   const int h = bleContentBottom() - contentTop;
   if (h <= 0 || lineHeight <= 0) {
@@ -200,7 +215,7 @@ bool generateSamsungAdvPacket(uint8_t modelIndex, BLEAdvertisementData& advData)
 bool generateGoogleAdvPacket(BLEAdvertisementData& advData) {
   uint8_t advDataRaw[GOOGLE_ADV_SIZE];
   memcpy(advDataRaw, GOOGLE_ADV_TEMPLATE, GOOGLE_ADV_SIZE);
-  advDataRaw[GOOGLE_ADV_SIZE - 1] = (uint8_t)(random(121) - 100);
+  advDataRaw[GOOGLE_ADV_SIZE - 1] = (uint8_t)(bleRandInt(121) - 100);
   advData.addData(String((char*)advDataRaw, GOOGLE_ADV_SIZE));
   return true;
 }
@@ -659,7 +674,7 @@ void handleButtonPress(int pin, void (*callback)()) {
 void changeDeviceTypeNext() {
   deviceType++;
   if (deviceType > 21) deviceType = 1;
-  Serial.println("Device Type Next: " + String(deviceType));
+  Serial.printf("Device Type Next: %d\n", deviceType);
   setAdvertisingData();
   updateSpoofer();
 }
@@ -667,7 +682,7 @@ void changeDeviceTypeNext() {
 void changeDeviceTypePrev() {
   deviceType--;
   if (deviceType < 1) deviceType = 21;
-  Serial.println("Device Type Prev: " + String(deviceType));
+  Serial.printf("Device Type Prev: %d\n", deviceType);
   setAdvertisingData();
   updateSpoofer();
 }
@@ -675,7 +690,7 @@ void changeDeviceTypePrev() {
 void changeAdvTypeNext() {
   advType++;
   if (advType > 5) advType = 1;
-  Serial.println("Advertising Type Next: " + String(advType));
+  Serial.printf("Advertising Type Next: %d\n", advType);
   setAdvertisingData();
   updateSpoofer();
 }
@@ -683,7 +698,7 @@ void changeAdvTypeNext() {
 void changeAdvTypePrev() {
   advType--;
   if (advType < 1) advType = 5;
-  Serial.println("Advertising Type Prev: " + String(advType));
+  Serial.printf("Advertising Type Prev: %d\n", advType);
   setAdvertisingData();
   updateSpoofer();
 }
@@ -700,7 +715,7 @@ void toggleAdvertising() {
     if (attack_state == 1) {
       esp_bd_addr_t dummy_addr = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
       for (int i = 0; i < 6; i++) {
-        dummy_addr[i] = random(256);
+        dummy_addr[i] = (uint8_t)bleRandU32(256);
         if (i == 0) {
           dummy_addr[i] |= 0xF0;
         }
@@ -715,8 +730,11 @@ void toggleAdvertising() {
       pAdvertising->setMaxPreferred(0x20);
       pAdvertising->start();
 
-      Printspoofer("[+] Device Type: " + String(deviceType), TFT_WHITE, false);
-      Printspoofer("[+] Advertising Type: " + String(advType), TFT_WHITE, false);
+      char line[64];
+      snprintf(line, sizeof(line), "[+] Device Type: %d", deviceType);
+      Printspoofer(line, TFT_WHITE, false);
+      snprintf(line, sizeof(line), "[+] Advertising Type: %d", advType);
+      Printspoofer(line, TFT_WHITE, false);
       Printspoofer("[!] Advertising started", TFT_YELLOW, false);
     }
 
@@ -815,7 +833,7 @@ void spooferSetup() {
 
   tft.drawFastHLine(0, 19, 240, UI_LINE);
 
-  randomSeed(esp_random() ^ micros());
+  randomSeed((unsigned long)esp_random());
   setupTouchscreen();
 
   tft.setTextFont(1);
@@ -835,7 +853,7 @@ void spooferSetup() {
 
   for (int i = 0; i <= 4; i++) {
     sppferLoadingBar(i);
-    delay(random(500));
+    delay(bleRandInt(500));
     redrawTouchButtonBar();
   }
 
@@ -1102,7 +1120,7 @@ void sourappleLoop() {
 
   esp_bd_addr_t dummy_addr = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   for (int i = 0; i < 6; i++) {
-    dummy_addr[i] = random(256);
+        dummy_addr[i] = (uint8_t)bleRandU32(256);
     if (i == 0) {
       dummy_addr[i] |= 0xF0;
     }
@@ -1390,14 +1408,14 @@ void blejamLoop() {
 
   if (jammerActive) {
     if (currentMode == BLE_MODULE) {
-      int randomIndex = random(0, sizeof(ble_channels) / sizeof(ble_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(ble_channels) / sizeof(ble_channels[0])));
       int channel = ble_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == Bluetooth_MODULE) {
-      int randomIndex = random(0, sizeof(bluetooth_channels) / sizeof(bluetooth_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(bluetooth_channels) / sizeof(bluetooth_channels[0])));
       int channel = bluetooth_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
@@ -1780,15 +1798,19 @@ void displayBLEDetails() {
   tft.print("MAC: " + address);
   y += 20;
   tft.setCursor(10, y);
-  tft.print("RSSI: " + String(rssi) + " dBm");
+  char line[64];
+  snprintf(line, sizeof(line), "RSSI: %d dBm", rssi);
+  tft.print(line);
   y += 20;
   tft.setCursor(10, y);
-  tft.print("Tx Power: " + String(txPower) + " dBm");
+  snprintf(line, sizeof(line), "Tx Power: %d dBm", txPower);
+  tft.print(line);
 
   if (device.haveServiceUUID()) {
     y += 20;
     tft.setCursor(10, y);
-    tft.print("Service UUID: " + String(device.getServiceUUID().toString().c_str()));
+    tft.print("Service UUID: ");
+    tft.print(device.getServiceUUID().toString().c_str());
   } else {
     y += 20;
     tft.setCursor(10, y);
@@ -2285,7 +2307,9 @@ void calibrateBackgroundNoise() {
     }
   }
 
-  Print("[+] Calibrate done  Ch" + String(maxNoiseCh) + " " + scannerChannelGHzText(maxNoiseCh) + "GHz", UI_WARN, false);
+  char line[80];
+  snprintf(line, sizeof(line), "[+] Calibrate done  Ch%d %sGHz", maxNoiseCh, scannerChannelGHzText(maxNoiseCh).c_str());
+  Print(line, UI_WARN, false);
 }
 
 void scan() {
@@ -2319,7 +2343,9 @@ void scan() {
     }
   }
   if (peakHits > 0) {
-    Print("[+] Scan done  " + String(active) + " hit(s)  peak Ch" + String(peakCh), UI_WARN, false);
+    char line[80];
+    snprintf(line, sizeof(line), "[+] Scan done  %d hit(s)  peak Ch%d", active, peakCh);
+    Print(line, UI_WARN, false);
   } else {
     Print("[*] Scan done  no carriers", UI_DIM_TEXT, false);
   }
@@ -2440,7 +2466,7 @@ void scanChannels() {
         runUI();
         scannerPollNavButtons();
         lastUI = now;
-        delay(0);
+    taskYIELD();
         if (feature_exit_requested || featureExitButtonPressed()) {
           scanning = false;
           return;
@@ -2472,7 +2498,7 @@ void outputChannels() {
       runUI();
       scannerPollNavButtons();
       lastUI = now;
-      delay(0);
+      taskYIELD();
     } else if ((i % BUTTON_POLL_STRIDE) == 0) {
       scannerPollNavButtons();
     }
@@ -2668,7 +2694,9 @@ static String scannerBandHint(int ch) {
 }
 
 static String scannerChannelBandLine(int ch) {
-  return "Ch " + String(ch) + "  " + scannerBandHint(ch);
+  char line[32];
+  snprintf(line, sizeof(line), "Ch %d  %s", ch, scannerBandHint(ch).c_str());
+  return String(line);
 }
 
 static String scannerFitStatusText(const String& text) {
@@ -3280,56 +3308,56 @@ void prokillLoop() {
 
   if (jammerActive) {
     if (currentMode == BLE_MODULE) {
-      int randomIndex = random(0, sizeof(ble_channels) / sizeof(ble_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(ble_channels) / sizeof(ble_channels[0])));
       int channel = ble_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == Bluetooth_MODULE) {
-      int randomIndex = random(0, sizeof(bluetooth_channels) / sizeof(bluetooth_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(bluetooth_channels) / sizeof(bluetooth_channels[0])));
       int channel = bluetooth_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == WiFi_MODULE) {
-      int randomIndex = random(0, sizeof(WiFi_channels) / sizeof(WiFi_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(WiFi_channels) / sizeof(WiFi_channels[0])));
       int channel = WiFi_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == USB_WIRELESS_MODULE) {
-      int randomIndex = random(0, sizeof(usbWireless_channels) / sizeof(usbWireless_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(usbWireless_channels) / sizeof(usbWireless_channels[0])));
       int channel = usbWireless_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == VIDEO_TX_MODULE) {
-      int randomIndex = random(0, sizeof(videoTransmitter_channels) / sizeof(videoTransmitter_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(videoTransmitter_channels) / sizeof(videoTransmitter_channels[0])));
       int channel = videoTransmitter_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == RC_MODULE) {
-      int randomIndex = random(0, sizeof(rc_channels) / sizeof(rc_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(rc_channels) / sizeof(rc_channels[0])));
       int channel = rc_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == ZIGBEE_MODULE) {
-      int randomIndex = random(0, sizeof(zigbee_channels) / sizeof(zigbee_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(zigbee_channels) / sizeof(zigbee_channels[0])));
       int channel = zigbee_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
       radio3.setChannel(channel);
 
     } else if (currentMode == NRF24_MODULE) {
-      int randomIndex = random(0, sizeof(nrf24_channels) / sizeof(nrf24_channels[0]));
+      int randomIndex = bleRandInt((int)(sizeof(nrf24_channels) / sizeof(nrf24_channels[0])));
       int channel = nrf24_channels[randomIndex];
       radio1.setChannel(channel);
       radio2.setChannel(channel);
@@ -3480,7 +3508,9 @@ private:
     tft.setTextColor(WHITE, DARK_GRAY);
     tft.setCursor(5, Y_OFFSET + 6);
     String status = isBLEScanActive ? "BLE Scanning" : "BT Scanning";
-    tft.print(status + " | Dev: " + String(deviceCount) + " Sus: " + String(suspiciousCount));
+    char line[96];
+    snprintf(line, sizeof(line), "%s | Dev: %d Sus: %d", status.c_str(), deviceCount, suspiciousCount);
+    tft.print(line);
     uint16_t dotColor = isBLEScanActive ? BLUE : GREEN;
     tft.fillCircle(tft.width() - 10, 46, STATUS_DOT_SIZE / 2, dotColor);
     tft.drawFastHLine(0, 56, 240, UI_LINE);
@@ -3560,9 +3590,11 @@ private:
         device.isSuspicious = true;
         suspiciousCount++;
         if (device.display && !device.jammingAlerted) {
-          String protocol = device.isBLE ? "BLE" : "BT";
-          addLine(String(lineNumber++) + " -> Jamming Suspected (" + protocol + "): " + device.mac + " T:" + String(timestamp),
-                  ORANGE, true, MessageType::ALERT);
+          const char* protocol = device.isBLE ? "BLE" : "BT";
+          char line[160];
+          snprintf(line, sizeof(line), "%d -> Jamming Suspected (%s): %s T:%lu",
+                   lineNumber++, protocol, device.mac.c_str(), (unsigned long)timestamp);
+          addLine(line, ORANGE, true, MessageType::ALERT);
           device.jammingAlerted = true;
         }
       }
@@ -3571,8 +3603,10 @@ private:
       device.isSuspicious = true;
       suspiciousCount++;
       if (device.display) {
-        addLine(String(lineNumber++) + " -> MAC Spoofing Suspected (BLE): " + device.mac + " T:" + String(timestamp),
-                ORANGE, true, MessageType::ALERT);
+        char line[160];
+        snprintf(line, sizeof(line), "%d -> MAC Spoofing Suspected (BLE): %s T:%lu",
+                 lineNumber++, device.mac.c_str(), (unsigned long)timestamp);
+        addLine(line, ORANGE, true, MessageType::ALERT);
       }
     }
   }
@@ -3614,18 +3648,29 @@ private:
     checkMacSpoofing(device, timestamp);
     checkSuspiciousActivity(deviceCount, timestamp);
     if (device.display) {
-      String protocol = isBLE ? "BLE" : "BT";
-      String line = String(lineNumber++) + " -> " + device.mac + " (" + String(device.rssi) + " dBm, " + protocol + ")";
-      if (isBLE && !device.deviceName.isEmpty()) line += " N:" + device.deviceName.substring(0, 6);
-      if (isBLE && !device.serviceUUID.isEmpty()) line += " U:" + device.serviceUUID.substring(0, 8);
-      line += " T:" + String(timestamp).substring(0, 6);
-      addLine(line, device.isSuspicious ? ORANGE : GREEN, false, MessageType::DEVICE);
+      const char* protocol = isBLE ? "BLE" : "BT";
+      char line[220];
+      snprintf(line, sizeof(line), "%d -> %s (%d dBm, %s)",
+               lineNumber++, device.mac.c_str(), device.rssi, protocol);
+      String out = line;
+      if (isBLE && !device.deviceName.isEmpty()) {
+        out += " N:";
+        out += device.deviceName.substring(0, 6);
+      }
+      if (isBLE && !device.serviceUUID.isEmpty()) {
+        out += " U:";
+        out += device.serviceUUID.substring(0, 8);
+      }
+      out += " T:";
+      out += String(timestamp).substring(0, 6);
+      addLine(out, device.isSuspicious ? ORANGE : GREEN, false, MessageType::DEVICE);
     }
     deviceCount++;
     if (newDevicesThisScan > Config::maxNewDevices && device.display) {
-      String protocol = isBLE ? "BLE" : "BT";
-      addLine(String(lineNumber++) + " -> Flooding Detected (" + protocol + ") T:" + String(timestamp),
-              ORANGE, true, MessageType::ALERT);
+      char line[120];
+      snprintf(line, sizeof(line), "%d -> Flooding Detected (%s) T:%lu",
+               lineNumber++, isBLE ? "BLE" : "BT", (unsigned long)timestamp);
+      addLine(line, ORANGE, true, MessageType::ALERT);
     }
   }
 
@@ -3638,8 +3683,10 @@ private:
         device.isSuspicious = true;
         suspiciousCount++;
         if (device.display) {
-          addLine(String(lineNumber++) + " -> Beacon Spoofing (BLE): " + device.mac + " T:" + String(timestamp),
-                  ORANGE, true, MessageType::ALERT);
+          char line[160];
+          snprintf(line, sizeof(line), "%d -> Beacon Spoofing (BLE): %s T:%lu",
+                   lineNumber++, device.mac.c_str(), (unsigned long)timestamp);
+          addLine(line, ORANGE, true, MessageType::ALERT);
         }
       }
     }
@@ -3650,8 +3697,10 @@ private:
     device.isSuspicious = true;
     suspiciousCount++;
     if (device.display) {
-      addLine(String(lineNumber++) + " -> Malformed Packet (BLE): " + device.mac + " T:" + String(timestamp),
-              ORANGE, true, MessageType::ALERT);
+      char line[160];
+      snprintf(line, sizeof(line), "%d -> Malformed Packet (BLE): %s T:%lu",
+               lineNumber++, device.mac.c_str(), (unsigned long)timestamp);
+      addLine(line, ORANGE, true, MessageType::ALERT);
     }
   }
 
@@ -3663,8 +3712,10 @@ private:
         suspiciousCount++;
         if (device.display) {
           String protocol = device.isBLE ? "BLE" : "BT";
-          addLine(String(lineNumber++) + " -> Possible Spoofing (" + protocol + "): " + device.mac + " T:" + String(timestamp),
-                  ORANGE, true, MessageType::ALERT);
+          char line[160];
+          snprintf(line, sizeof(line), "%d -> Possible Spoofing (%s): %s T:%lu",
+                   lineNumber++, protocol.c_str(), device.mac.c_str(), (unsigned long)timestamp);
+          addLine(line, ORANGE, true, MessageType::ALERT);
         }
       }
     }
@@ -3717,12 +3768,16 @@ private:
     }
     for (int i = 0; i < deviceCount; i++) {
       if (devices[i].display) {
-        String protocol = devices[i].isBLE ? "BLE" : "BT";
-        String line = String(lineNumber++) + " -> " + devices[i].mac + " (" + String(devices[i].rssi) + " dBm, " + protocol + ")";
-        if (devices[i].isBLE && !devices[i].deviceName.isEmpty()) line += " N:" + devices[i].deviceName.substring(0, 6);
-        if (devices[i].isBLE && !devices[i].serviceUUID.isEmpty()) line += " U:" + devices[i].serviceUUID.substring(0, 8);
-        line += " T:" + String(devices[i].lastSeen).substring(0, 6);
-        addLine(line, devices[i].isSuspicious ? ORANGE : GREEN, false, MessageType::DEVICE);
+        const char* protocol = devices[i].isBLE ? "BLE" : "BT";
+        char line[220];
+        snprintf(line, sizeof(line), "%d -> %s (%d dBm, %s)",
+                 lineNumber++, devices[i].mac.c_str(), devices[i].rssi, protocol);
+        String out = line;
+        if (devices[i].isBLE && !devices[i].deviceName.isEmpty()) out += " N:" + devices[i].deviceName.substring(0, 6);
+        if (devices[i].isBLE && !devices[i].serviceUUID.isEmpty()) out += " U:" + devices[i].serviceUUID.substring(0, 8);
+        out += " T:";
+        out += String(devices[i].lastSeen).substring(0, 6);
+        addLine(out, devices[i].isSuspicious ? ORANGE : GREEN, false, MessageType::DEVICE);
       }
     }
   }
@@ -3877,7 +3932,17 @@ public:
       lastScanTime = now;
     }
     if (Serial.available()) {
-      String input = Serial.readStringUntil('\n');
+      String input;
+      while (Serial.available()) {
+        char ch = (char)Serial.read();
+        if (ch == '\r') {
+          continue;
+        }
+        if (ch == '\n') {
+          break;
+        }
+        input += ch;
+      }
       input.trim();
       if (input.startsWith("FILTER MAC ")) {
         filterByMac(input.substring(11));
@@ -3972,14 +4037,18 @@ public:
       }
       pBLEScan->start(kScanChunkSec, false);
     }
-    addLine("BLE Scan Started T:" + String(millis()), DARK_GRAY, true, MessageType::STATUS);
+    char line[64];
+    snprintf(line, sizeof(line), "BLE Scan Started T:%lu", (unsigned long)millis());
+    addLine(line, DARK_GRAY, true, MessageType::STATUS);
     updateHeader();
   }
 
   void startBTScan() {
     newDevicesThisScan = 0;
 
-    addLine("Classic BT Scan Started T:" + String(millis()), DARK_GRAY, true, MessageType::STATUS);
+    char line[64];
+    snprintf(line, sizeof(line), "Classic BT Scan Started T:%lu", (unsigned long)millis());
+    addLine(line, DARK_GRAY, true, MessageType::STATUS);
     updateHeader();
   }
 

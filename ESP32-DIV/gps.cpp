@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <HardwareSerial.h>
 #include <TFT_eSPI.h>
 #include <math.h>

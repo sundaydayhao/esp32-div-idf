@@ -1,5 +1,7 @@
 #pragma once
 
+#include <WString.h>
+#include <cstdio>
 #include "IRremoteESP8266.h"
 
 inline String uint64ToString(uint64_t value, uint8_t base = 10) {

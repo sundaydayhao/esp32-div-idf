@@ -96,10 +96,6 @@ bool PCF8574::begin(uint8_t address) {
     return false;
   }
 
-  if (i2c_master_probe(state.bus, address_, 20) != ESP_OK) {
-    return false;
-  }
-
   const i2c_device_config_t dev_config = {
       .dev_addr_length = I2C_ADDR_BIT_LEN_7,
       .device_address = address_,

