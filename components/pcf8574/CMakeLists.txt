@@ -9,3 +9,9 @@ idf_component_register(
     PRIV_REQUIRES
         esp_driver_gpio
 )
+
+target_compile_definitions(${COMPONENT_LIB} PRIVATE
+    PCF8574_I2C_SDA=GPIO_NUM_8
+    PCF8574_I2C_SCL=GPIO_NUM_9
+    PCF8574_I2C_FREQ_HZ=100000
+)

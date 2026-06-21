@@ -11,13 +11,16 @@ class PCF8574 {
   void pinMode(uint8_t pin, uint8_t mode);
   int digitalRead(uint8_t pin);
   void digitalWrite(uint8_t pin, uint8_t level);
+  bool readPortState(uint8_t& value);
 
   uint8_t address() const;
 
  private:
   bool ensureReady();
   bool readPort(uint8_t& value);
+  bool readPortLocked(uint8_t& value);
   bool writePort(uint8_t value);
+  bool writePortLocked(uint8_t value);
 
   uint8_t address_;
   uint8_t pinModes_;

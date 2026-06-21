@@ -44,6 +44,16 @@ bool isTouchNavButtonPressedEdge(int buttonPin);
 bool isButtonPressedEdge(int buttonPin);
 /** Exit/back: level-sensitive so slow feature loops still catch PCF + touch nav. */
 bool featureExitButtonPressed();
+/** Debug helper: log the current PCF8574 pin snapshot when a button event happens. */
+void logPcf8574ButtonSnapshot(const char* reason, int buttonPin);
+/** Periodic PCF8574 self-test logger (prints only on state changes). */
+void startPcf8574SelfTest();
+/** Run the PCF8574 self-test from the main loop to avoid concurrent I2C access. */
+void pollPcf8574SelfTest();
+/** Force a raw PCF8574 scan log on demand. */
+void startPcf8574ScanMode();
+/** Run the raw scan mode from the main loop. */
+void pollPcf8574ScanMode();
 void setTouchButtonInputEnabled(bool enabled);
 void drawTouchButtonCue();
 void invalidateTouchButtonCue();

@@ -2,7 +2,10 @@
 
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "esp_check.h"
+#include "esp_log.h"
 
 #ifndef PCF8574_I2C_PORT
 #define PCF8574_I2C_PORT I2C_NUM_0
@@ -25,6 +28,7 @@ namespace {
 struct BusState {
   i2c_master_bus_handle_t bus = nullptr;
   bool ready = false;
+  SemaphoreHandle_t lock = nullptr;
 };
 
 BusState& busState() {
@@ -38,6 +42,7 @@ bool ensureBus() {
     return true;
   }
 
+  static const char* TAG = "pcf8574";
   const i2c_master_bus_config_t bus_config = {
       .i2c_port = PCF8574_I2C_PORT,
       .sda_io_num = PCF8574_I2C_SDA,
@@ -45,20 +50,35 @@ bool ensureBus() {
       .clk_source = I2C_CLK_SRC_DEFAULT,
       .glitch_ignore_cnt = 7,
       .intr_priority = 0,
-      .trans_queue_depth = 4,
+      // 0 = synchronous master. The driver only uses blocking
+      // i2c_master_transmit/receive; a non-zero depth switches the bus to
+      // async mode, which hangs when mixed with the blocking API.
+      .trans_queue_depth = 0,
       .flags = {
           .enable_internal_pullup = 1,
           .allow_pd = 0,
       },
   };
 
+  ESP_LOGI(TAG, "init I2C bus port=%d sda=%d scl=%d",
+           (int)PCF8574_I2C_PORT, (int)PCF8574_I2C_SDA, (int)PCF8574_I2C_SCL);
   esp_err_t err = i2c_new_master_bus(&bus_config, &state.bus);
   if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+    ESP_LOGE(TAG, "i2c_new_master_bus failed: %s", esp_err_to_name(err));
     return false;
   }
   if (err == ESP_ERR_INVALID_STATE) {
     esp_err_t probe = i2c_master_get_bus_handle(PCF8574_I2C_PORT, &state.bus);
     if (probe != ESP_OK || state.bus == nullptr) {
+      ESP_LOGE(TAG, "i2c_master_get_bus_handle failed: %s", esp_err_to_name(probe));
+      return false;
+    }
+  }
+
+  if (state.lock == nullptr) {
+    state.lock = xSemaphoreCreateMutex();
+    if (state.lock == nullptr) {
+      ESP_LOGE(TAG, "failed to create PCF8574 mutex");
       return false;
     }
   }
@@ -67,18 +87,38 @@ bool ensureBus() {
   return true;
 }
 
+bool lockBus(BusState& state) {
+  if (state.lock == nullptr && !ensureBus()) {
+    return false;
+  }
+  if (state.lock == nullptr) {
+    return false;
+  }
+  return xSemaphoreTake(state.lock, pdMS_TO_TICKS(100)) == pdTRUE;
+}
+
+void unlockBus(BusState& state) {
+  if (state.lock != nullptr) {
+    xSemaphoreGive(state.lock);
+  }
+}
+
 }  // namespace
 
 PCF8574::PCF8574(uint8_t address)
     : address_(address), pinModes_(0x00), pinStates_(0xFF), ready_(false), device_(nullptr) {}
 
 bool PCF8574::begin(uint8_t address) {
+  auto& state = busState();
+  if (!lockBus(state)) {
+    return false;
+  }
+
   address_ = address;
   pinModes_ = 0x00;
   pinStates_ = 0xFF;
   ready_ = false;
   if (device_ != nullptr) {
-    auto& state = busState();
     (void)i2c_master_bus_rm_device(device_);
     device_ = nullptr;
     if (state.bus == nullptr) {
@@ -88,11 +128,19 @@ bool PCF8574::begin(uint8_t address) {
   device_ = nullptr;
 
   if (!ensureBus()) {
+    unlockBus(state);
     return false;
   }
 
-  auto& state = busState();
   if (state.bus == nullptr) {
+    unlockBus(state);
+    return false;
+  }
+
+  const esp_err_t probe = i2c_master_probe(state.bus, address_, 50);
+  if (probe != ESP_OK) {
+    ESP_LOGW("pcf8574", "PCF8574 probe failed at 0x%02X: %s", address_, esp_err_to_name(probe));
+    unlockBus(state);
     return false;
   }
 
@@ -108,6 +156,8 @@ bool PCF8574::begin(uint8_t address) {
 
   i2c_master_dev_handle_t dev = nullptr;
   if (i2c_master_bus_add_device(state.bus, &dev_config, &dev) != ESP_OK) {
+    ESP_LOGE("pcf8574", "i2c_master_bus_add_device failed for 0x%02X", address_);
+    unlockBus(state);
     return false;
   }
 
@@ -115,14 +165,17 @@ bool PCF8574::begin(uint8_t address) {
   ready_ = true;
 
   uint8_t initial = 0xFF;
-  if (!readPort(initial)) {
+  if (!readPortLocked(initial)) {
+    ESP_LOGW("pcf8574", "PCF8574 read failed at 0x%02X", address_);
     (void)i2c_master_bus_rm_device(dev);
     device_ = nullptr;
     ready_ = false;
+    unlockBus(state);
     return false;
   }
 
   pinStates_ = initial;
+  unlockBus(state);
   return true;
 }
 
@@ -174,19 +227,84 @@ bool PCF8574::ensureReady() {
 }
 
 bool PCF8574::readPort(uint8_t& value) {
+  auto& state = busState();
+  if (!lockBus(state)) {
+    return false;
+  }
+  const bool ok = readPortLocked(value);
+  unlockBus(state);
+  return ok;
+}
+
+bool PCF8574::readPortLocked(uint8_t& value) {
   if (!ensureReady()) {
     return false;
   }
 
   uint8_t buf = 0xFF;
-  if (i2c_master_receive(device_, &buf, 1, 20) != ESP_OK) {
+  const esp_err_t err = i2c_master_receive(device_, &buf, 1, 20);
+  if (err != ESP_OK) {
+    ESP_LOGW("pcf8574", "PCF8574 receive failed at 0x%02X: %s", address_, esp_err_to_name(err));
     return false;
   }
   value = buf;
   return true;
 }
 
+bool PCF8574::readPortState(uint8_t& value) {
+  if (readPort(value)) {
+    return true;
+  }
+
+  if (device_ == nullptr) {
+    return false;
+  }
+
+  auto& state = busState();
+  if (!lockBus(state)) {
+    return false;
+  }
+  (void)i2c_master_bus_rm_device(device_);
+  device_ = nullptr;
+  ready_ = false;
+  if (state.bus == nullptr || !ensureBus()) {
+    unlockBus(state);
+    return false;
+  }
+
+  const i2c_device_config_t dev_config = {
+      .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+      .device_address = address_,
+      .scl_speed_hz = PCF8574_I2C_FREQ_HZ,
+      .scl_wait_us = 0,
+      .flags = {
+          .disable_ack_check = 0,
+      },
+  };
+
+  if (i2c_master_bus_add_device(state.bus, &dev_config, &device_) != ESP_OK) {
+    device_ = nullptr;
+    ready_ = false;
+    unlockBus(state);
+    return false;
+  }
+  ready_ = true;
+  const bool ok = readPortLocked(value);
+  unlockBus(state);
+  return ok;
+}
+
 bool PCF8574::writePort(uint8_t value) {
+  auto& state = busState();
+  if (!lockBus(state)) {
+    return false;
+  }
+  const bool ok = writePortLocked(value);
+  unlockBus(state);
+  return ok;
+}
+
+bool PCF8574::writePortLocked(uint8_t value) {
   if (!ensureReady()) {
     return false;
   }

@@ -1443,7 +1443,7 @@ namespace BleScan {
 #define ICON_NUM 2
 
 BLEScan* bleScan;
-BLEScanResults bleResults;
+static BLEScanResults* bleResults = nullptr;
 bool isScanning = false;
 bool isDetailView = false;
 int currentIndex = 0;
@@ -1557,12 +1557,12 @@ static void bgBleScanTask(void* ) {
       isScanning = true;
       BLEScanResults* scanResults = bleScan->start(2, false);
       if (scanResults) {
-        bleResults = *scanResults;
+        bleResults = scanResults;
       }
       isScanning = false;
       bgBleScanRunning = false;
-      if (bleResults.getCount() >= 0) {
-        bgHasResults = (bleResults.getCount() > 0);
+      if (bleResults) {
+        bgHasResults = (bleResults->getCount() > 0);
         bgLastScanMs = now;
       }
       vTaskDelay(BG_BLE_SCAN_INTERVAL_MS / portTICK_PERIOD_MS);
@@ -1615,14 +1615,14 @@ void startBLEScan() {
   fgBleScanInProgress = true;
   BLEScanResults* scanResults = bleScan->start(5, false);
   if (scanResults) {
-    bleResults = *scanResults;
+    bleResults = scanResults;
   }
   fgBleScanInProgress = false;
   isScanning = false;
   screenNeedsUpdate = true;
 
-  if (bleResults.getCount() >= 0) {
-    bgHasResults = (bleResults.getCount() > 0);
+  if (bleResults) {
+    bgHasResults = (bleResults->getCount() > 0);
     bgLastScanMs = millis();
   }
 }
@@ -1650,7 +1650,8 @@ void handleButtons() {
   }
 
   if (isButtonPressed(BTN_DOWN)) {
-    if (currentIndex < bleResults.getCount() - 1) {
+    const int deviceCount = bleResults ? bleResults->getCount() : 0;
+    if (currentIndex < deviceCount - 1) {
       currentIndex++;
       delay(200);
       if (!isDetailView) {
@@ -1690,7 +1691,7 @@ void handleButtons() {
 }
 
 void updateBLEList() {
-  int deviceCount = bleResults.getCount();
+  int deviceCount = bleResults ? bleResults->getCount() : 0;
   tft.setTextSize(1);
 
   if (deviceCount <= 0) {
@@ -1720,7 +1721,7 @@ void updateBLEList() {
 
     // Clear only this row (avoid overlapping next row).
     tft.fillRect(0, y, SCREEN_WIDTH, LIST_ROW_H, TFT_BLACK);
-    BLEAdvertisedDevice device = bleResults.getDevice(idx);
+    BLEAdvertisedDevice device = bleResults->getDevice(idx);
     String name = device.getName().length() > 0 ? device.getName().c_str() : "Unknown";
     if (name.length() > 22) name = name.substring(0, 22) + "...";
 
@@ -1771,7 +1772,7 @@ void displayBLEDetails() {
   bleScanClearBody();
   tft.setTextSize(1);
 
-  const int deviceCount = bleResults.getCount();
+  const int deviceCount = bleResults ? bleResults->getCount() : 0;
   if (deviceCount <= 0) {
     isDetailView = false;
     screenNeedsUpdate = true;
@@ -1781,7 +1782,7 @@ void displayBLEDetails() {
   if (currentIndex < 0) currentIndex = 0;
   if (currentIndex >= deviceCount) currentIndex = deviceCount - 1;
 
-  BLEAdvertisedDevice device = bleResults.getDevice(currentIndex);
+  BLEAdvertisedDevice device = bleResults->getDevice(currentIndex);
   String deviceName = device.getName().length() > 0 ? device.getName().c_str() : "Unknown Device";
   String address = device.getAddress().toString().c_str();
   int rssi = device.getRSSI();
@@ -1909,7 +1910,7 @@ void runUI() {
           }
         }
       } else if (!isScanning) {
-        const int deviceCount = bleResults.getCount();
+        const int deviceCount = bleResults ? bleResults->getCount() : 0;
 
         if (!featureHasTouchNavBar() && y >= 290 && y <= 320) {
           const bool prevDisabled = (current_page == 0);
@@ -1992,7 +1993,7 @@ void bleScanSetup() {
   ensureBleInit();
 
   // With auto BLE scan off, cached bleResults are not updated — only reuse when background scan is on.
-  if (settings().autoBleScan && bgHasResults && bleResults.getCount() > 0) {
+  if (settings().autoBleScan && bgHasResults && bleResults && bleResults->getCount() > 0) {
     current_page = 0;
     currentIndex = 0;
     listStartIndex = 0;
@@ -2049,7 +2050,7 @@ void startBackgroundScanner() {
 int getLastCount() {
 
   if (!settings().autoBleScan) return 0;
-  return bleResults.getCount();
+  return bleResults ? bleResults->getCount() : 0;
 }
 
 void exit() {

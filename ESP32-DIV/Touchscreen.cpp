@@ -35,6 +35,9 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   if (p.z < (int16_t)zThresh) {
     return false;
   }
+  if (p.x <= 5 || p.x >= 4090 || p.y <= 5 || p.y >= 4090) {
+    return false;
+  }
   rawX = p.x;
   rawY = p.y;
   const uint32_t now = millis();

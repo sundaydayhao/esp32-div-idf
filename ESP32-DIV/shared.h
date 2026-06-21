@@ -92,12 +92,12 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 /*──────────────────── Board Selection ────────────────────*/
 // Default is selected in BoardConfig.h. You can also pass a BOARD_* define
 // from your build flags to target a board without editing source.
-#if !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
+#if !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
 #define BOARD_ESP32_DIV_V2
 #endif
 
-#if (defined(BOARD_ESP32_DIV_V2) + defined(BOARD_CYD) + defined(BOARD_ESP32_DIV_V1)) > 1
-#error "Select only one board: BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
+#if (defined(BOARD_ESP32_DIV_V3) + defined(BOARD_ESP32_DIV_V2) + defined(BOARD_CYD) + defined(BOARD_ESP32_DIV_V1)) > 1
+#error "Select only one board: BOARD_ESP32_DIV_V3, BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
 #endif
 
 #if defined(BOARD_CYD)
@@ -130,8 +130,18 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef BOARD_HAS_ESP32S3
 #define BOARD_HAS_ESP32S3 1
 #endif
+#elif defined(BOARD_ESP32_DIV_V3)
+#ifndef ESP32DIV_BOARD_NAME
+#define ESP32DIV_BOARD_NAME "ESP32-DIV V3"
+#endif
+#ifndef HAS_PCF8574_BUTTONS
+#define HAS_PCF8574_BUTTONS 1
+#endif
+#ifndef BOARD_HAS_ESP32S3
+#define BOARD_HAS_ESP32S3 1
+#endif
 #else
-#error "Unknown board: define BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
+#error "Unknown board: define BOARD_ESP32_DIV_V3, BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
 #endif
 
 /*──────────────────── Touch calibration profiles ────────────────────*/
@@ -207,7 +217,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #if defined(BOARD_CYD) || defined(BOARD_ESP32_DIV_V1)
 #define TFT_ROTATION 0
 #else
-#define TFT_ROTATION 2
+#define TFT_ROTATION 0
 #endif
 #endif
 
@@ -234,12 +244,40 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #endif
 #define PCF8574_ADDR_MIN 0x20
 #define PCF8574_ADDR_MAX 0x27
+#ifndef PCF8574_I2C_SDA
+#if defined(BOARD_ESP32_DIV_V3)
+#define PCF8574_I2C_SDA 8
+#elif defined(BOARD_ESP32_DIV_V2)
+#define PCF8574_I2C_SDA 8
+#elif defined(BOARD_ESP32_DIV_V1)
+#define PCF8574_I2C_SDA 8
+#else
+#define PCF8574_I2C_SDA 8
+#endif
+#endif
+#ifndef PCF8574_I2C_SCL
+#if defined(BOARD_ESP32_DIV_V3)
+#define PCF8574_I2C_SCL 9
+#elif defined(BOARD_ESP32_DIV_V2)
+#define PCF8574_I2C_SCL 9
+#elif defined(BOARD_ESP32_DIV_V1)
+#define PCF8574_I2C_SCL 9
+#else
+#define PCF8574_I2C_SCL 9
+#endif
+#endif
 #if defined(BOARD_ESP32_DIV_V1)
 #define BTN_UP       6
 #define BTN_DOWN     3
 #define BTN_LEFT     4
 #define BTN_RIGHT    5
 #define BTN_SELECT   7
+#elif defined(BOARD_ESP32_DIV_V3)
+#define BTN_UP       1
+#define BTN_DOWN     2
+#define BTN_LEFT     3
+#define BTN_RIGHT    4
+#define BTN_SELECT   5
 #else
 #define BTN_UP       7
 #define BTN_DOWN     5
@@ -260,6 +298,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define BACKLIGHT_PIN   21
 #elif defined(BOARD_ESP32_DIV_V1)
 #define BACKLIGHT_PIN   32
+#elif defined(BOARD_ESP32_DIV_V3)
+#define BACKLIGHT_PIN   7
 #else
 #define BACKLIGHT_PIN   7
 #endif
@@ -274,6 +314,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define XPT2046_CS   33
 #elif defined(BOARD_ESP32_DIV_V1)
 #define XPT2046_CS   33
+#elif defined(BOARD_ESP32_DIV_V3)
+#define XPT2046_CS   18
 #else
 #define XPT2046_CS   18
 #endif
@@ -283,6 +325,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define XPT2046_MOSI 32
 #elif defined(BOARD_ESP32_DIV_V1)
 #define XPT2046_MOSI 23
+#elif defined(BOARD_ESP32_DIV_V3)
+#define XPT2046_MOSI 35
 #else
 #define XPT2046_MOSI 35
 #endif
@@ -292,6 +336,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define XPT2046_MISO 39
 #elif defined(BOARD_ESP32_DIV_V1)
 #define XPT2046_MISO 19
+#elif defined(BOARD_ESP32_DIV_V3)
+#define XPT2046_MISO 37
 #else
 #define XPT2046_MISO 37
 #endif
@@ -301,6 +347,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define XPT2046_CLK  25
 #elif defined(BOARD_ESP32_DIV_V1)
 #define XPT2046_CLK  18
+#elif defined(BOARD_ESP32_DIV_V3)
+#define XPT2046_CLK  36
 #else
 #define XPT2046_CLK  36
 #endif
@@ -327,6 +375,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define SD_CS    5
 #elif defined(BOARD_ESP32_DIV_V1)
 #define SD_CS    5
+#elif defined(BOARD_ESP32_DIV_V3)
+#define SD_CS    10
 #else
 #define SD_CS    10
 #endif
@@ -336,6 +386,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define SD_MOSI  23
 #elif defined(BOARD_ESP32_DIV_V1)
 #define SD_MOSI  23
+#elif defined(BOARD_ESP32_DIV_V3)
+#define SD_MOSI  11
 #else
 #define SD_MOSI  11
 #endif
@@ -345,6 +397,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define SD_MISO  19
 #elif defined(BOARD_ESP32_DIV_V1)
 #define SD_MISO  19
+#elif defined(BOARD_ESP32_DIV_V3)
+#define SD_MISO  13
 #else
 #define SD_MISO  13
 #endif
@@ -354,12 +408,16 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define SD_SCLK  18
 #elif defined(BOARD_ESP32_DIV_V1)
 #define SD_SCLK  18
+#elif defined(BOARD_ESP32_DIV_V3)
+#define SD_SCLK  12
 #else
 #define SD_SCLK  12
 #endif
 #endif
 #if !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1) && !defined(SD_CD)
+#if !defined(BOARD_ESP32_DIV_V3)
 #define SD_CD    38
+#endif
 #endif
 #ifndef SD_CS_PIN
 #define SD_CS_PIN 5
@@ -371,6 +429,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef PN532_SCK
 #if defined(BOARD_CYD)
 #define PN532_SCK  18
+#elif defined(BOARD_ESP32_DIV_V3)
+#define PN532_SCK  12
 #else
 #define PN532_SCK  12
 #endif
@@ -378,6 +438,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef PN532_MISO
 #if defined(BOARD_CYD)
 #define PN532_MISO 19
+#elif defined(BOARD_ESP32_DIV_V3)
+#define PN532_MISO 11
 #else
 #define PN532_MISO 11
 #endif
@@ -385,6 +447,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef PN532_MOSI
 #if defined(BOARD_CYD)
 #define PN532_MOSI 23
+#elif defined(BOARD_ESP32_DIV_V3)
+#define PN532_MOSI 13
 #else
 #define PN532_MOSI 13
 #endif
@@ -392,6 +456,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef PN532_SS
 #if defined(BOARD_CYD)
 #define PN532_SS   25
+#elif defined(BOARD_ESP32_DIV_V3)
+#define PN532_SS   4
 #else
 #define PN532_SS   4
 #endif
@@ -403,6 +469,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define RX_PIN 35
 #elif defined(BOARD_ESP32_DIV_V1)
 #define RX_PIN 16
+#elif defined(BOARD_ESP32_DIV_V3)
+#define RX_PIN 6
 #else
 #define RX_PIN 6
 #endif
@@ -412,6 +480,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define TX_PIN 22
 #elif defined(BOARD_ESP32_DIV_V1)
 #define TX_PIN 26
+#elif defined(BOARD_ESP32_DIV_V3)
+#define TX_PIN 3
 #else
 #define TX_PIN 3
 #endif
@@ -423,6 +493,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define GPS_UART_RX 35
 #elif defined(BOARD_ESP32_DIV_V1)
 #define GPS_UART_RX 3
+#elif defined(BOARD_ESP32_DIV_V3)
+#define GPS_UART_RX 47
 #else
 #define GPS_UART_RX 47
 #endif
@@ -432,6 +504,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define GPS_UART_TX 22
 #elif defined(BOARD_ESP32_DIV_V1)
 #define GPS_UART_TX 1
+#elif defined(BOARD_ESP32_DIV_V3)
+#define GPS_UART_TX 48
 #else
 #define GPS_UART_TX 48
 #endif
@@ -443,6 +517,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CC1101_SCK  18
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CC1101_SCK  18
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CC1101_SCK  12
 #else
 #define CC1101_SCK  12
 #endif
@@ -452,6 +528,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CC1101_MISO 19
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CC1101_MISO 19
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CC1101_MISO 13
 #else
 #define CC1101_MISO 13
 #endif
@@ -461,6 +539,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CC1101_MOSI 23
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CC1101_MOSI 23
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CC1101_MOSI 11
 #else
 #define CC1101_MOSI 11
 #endif
@@ -470,6 +550,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CC1101_CS   27
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CC1101_CS   27
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CC1101_CS   5
 #else
 #define CC1101_CS   5
 #endif
@@ -482,6 +564,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define SUBGHZ_RX_PIN 35
 #elif defined(BOARD_ESP32_DIV_V1)
 #define SUBGHZ_RX_PIN 16
+#elif defined(BOARD_ESP32_DIV_V3)
+#define SUBGHZ_RX_PIN 3
 #else
 #define SUBGHZ_RX_PIN 3
 #endif
@@ -491,6 +575,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define SUBGHZ_TX_PIN 22
 #elif defined(BOARD_ESP32_DIV_V1)
 #define SUBGHZ_TX_PIN 26
+#elif defined(BOARD_ESP32_DIV_V3)
+#define SUBGHZ_TX_PIN 6
 #else
 #define SUBGHZ_TX_PIN 6
 #endif
@@ -516,6 +602,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CE_PIN_1  16
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CE_PIN_1  4
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CE_PIN_1  15
 #else
 #define CE_PIN_1  15
 #endif
@@ -525,6 +613,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CSN_PIN_1 17
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CSN_PIN_1 5
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CSN_PIN_1 4
 #else
 #define CSN_PIN_1 4
 #endif
@@ -534,6 +624,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CE_PIN_2  22
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CE_PIN_2  26
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CE_PIN_2  47
 #else
 #define CE_PIN_2  47
 #endif
@@ -543,6 +635,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CSN_PIN_2 27
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CSN_PIN_2 27
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CSN_PIN_2 48
 #else
 #define CSN_PIN_2 48
 #endif
@@ -552,6 +646,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CE_PIN_3  4
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CE_PIN_3  16
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CE_PIN_3  14
 #else
 #define CE_PIN_3  14
 #endif
@@ -561,6 +657,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define CSN_PIN_3 25
 #elif defined(BOARD_ESP32_DIV_V1)
 #define CSN_PIN_3 17
+#elif defined(BOARD_ESP32_DIV_V3)
+#define CSN_PIN_3 21
 #else
 #define CSN_PIN_3 21
 #endif
@@ -575,6 +673,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define IR_RX_PIN 35
 #elif defined(BOARD_ESP32_DIV_V1)
 #define IR_RX_PIN 4
+#elif defined(BOARD_ESP32_DIV_V3)
+#define IR_RX_PIN 21
 #else
 #define IR_RX_PIN 21
 #endif
@@ -584,6 +684,8 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define IR_TX_PIN 4
 #elif defined(BOARD_ESP32_DIV_V1)
 #define IR_TX_PIN 5
+#elif defined(BOARD_ESP32_DIV_V3)
+#define IR_TX_PIN 14
 #else
 #define IR_TX_PIN 14
 #endif

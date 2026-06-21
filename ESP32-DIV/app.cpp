@@ -24,6 +24,7 @@ TFT_eSPI tft = TFT_eSPI();
 PCF8574 pcf(PCF8574_I2C_ADDR);
 
 static const char* TAG = "esp32_div";
+static const char* TOUCH_TAG = "esp32_div_touch_hit";
 static bool s_backlightPwmReady = false;
 
 static void initBacklightPwm() {
@@ -589,6 +590,7 @@ bool isTouchNavButtonPressed(int buttonPin) {
 
 bool isButtonPressed(int buttonPin) {
   if (isPhysicalButtonPressed(buttonPin)) {
+    logPcf8574ButtonSnapshot("level", buttonPin);
     return true;
   }
   return isTouchNavButtonPressed(buttonPin);
@@ -618,6 +620,7 @@ bool isButtonPressedEdge(int buttonPin) {
     const bool edge = !cur && s_pcfButtonLastState[idx];
     s_pcfButtonLastState[idx] = cur;
     if (edge) {
+      logPcf8574ButtonSnapshot("edge", buttonPin);
       return true;
     }
   }
@@ -678,8 +681,64 @@ const int X_OFFSET_LEFT = 10;
 const int X_OFFSET_RIGHT = X_OFFSET_LEFT + COLUMN_WIDTH;
 const int Y_START = 30;
 const int Y_SPACING = 75;
+const int MENU_TOUCH_PAD_X = 10;
+const int MENU_TOUCH_PAD_Y = 12;
 
+void displayMenu();
+void displaySubmenu();
 void displayOtherMenuGrid();
+void handleAboutPage();
+void handleSettingsSubmenuButtons();
+
+static void launchCurrentMainMenuItem() {
+    ESP_LOGI(TOUCH_TAG, "launch main menu idx=%d main=%d feature=%d in_sub=%d",
+             current_menu_index, (int)is_main_menu, (int)feature_active, (int)in_sub_menu);
+    if (current_menu_index == 3) {
+        handleSettingsSubmenuButtons();
+        return;
+    }
+    if (current_menu_index == 7) {
+        handleAboutPage();
+        return;
+    }
+
+    updateActiveSubmenu();
+    if (active_submenu_items && active_submenu_size > 0) {
+        current_submenu_index = 0;
+        if (current_menu_index == 2) {
+            other_layer = OTHER_LAYER_HOME;
+            other_menu_grid_initialized = false;
+            last_other_menu_index = -1;
+        }
+        in_sub_menu = true;
+        submenu_initialized = false;
+        displaySubmenu();
+    }
+
+    if (is_main_menu) {
+        is_main_menu = false;
+        displayMenu();
+    } else {
+        is_main_menu = true;
+    }
+}
+
+static void waitForTouchRelease(uint32_t timeoutMs = 500) {
+    const uint32_t start = millis();
+    while (isTouchDown(120) && (millis() - start < timeoutMs)) {
+        delay(10);
+    }
+}
+
+// Wait until a physical button is released before entering a feature.
+// Without this, the just-pressed SELECT is still held when the feature's
+// loop starts and is read as an immediate "exit", bouncing back to the menu.
+static void waitForButtonRelease(int buttonPin, uint32_t timeoutMs = 800) {
+    const uint32_t start = millis();
+    while (isPhysicalButtonPressed(buttonPin) && (millis() - start < timeoutMs)) {
+        delay(10);
+    }
+}
 
 void displaySubmenu() {
     setTouchButtonInputEnabled(false);
@@ -2383,8 +2442,13 @@ static void runToolsFeature(int idx, void (*setupFn)(), void (*loopFn)()) {
     in_sub_menu = true;
     feature_active = true;
     feature_exit_requested = false;
+    ESP_LOGI(TOUCH_TAG, "enter tools feature idx=%d touchNav=%d", idx, (int)useTouchNav);
     if (useTouchNav) {
         setTouchButtonInputEnabled(true);
+    }
+    waitForTouchRelease(800);
+    if (useTouchNav) {
+        waitForButtonRelease(BTN_SELECT);
     }
     setupFn();
     while (current_submenu_index == idx && !feature_exit_requested) {
@@ -2402,6 +2466,7 @@ static void runToolsFeature(int idx, void (*setupFn)(), void (*loopFn)()) {
 }
 
 static void launchToolsFeature(int idx) {
+    ESP_LOGI(TOUCH_TAG, "launch tools feature idx=%d", idx);
     switch (idx) {
         case TOOLS_IDX_TERMINAL:
             runToolsFeature(idx, Terminal::terminalSetup, Terminal::terminalLoop);
@@ -2458,34 +2523,44 @@ void handleToolsSubmenuButtons() {
         if (!readTouchXY(x, y)) {
             return;
         }
+        ESP_LOGI(TOUCH_TAG, "tools submenu touch raw=(%d,%d) idx=%d", x, y, current_submenu_index);
+        int touchedSlot = -1;
 
-        for (int i = 0; i < active_submenu_size; i++) {
-            int yPos = 30 + i * 30;
-            if (i == active_submenu_size - 1) yPos += 10;
-
-            int button_x1 = 10;
-            int button_y1 = yPos;
-            int button_x2 = 110;
-            int button_y2 = yPos + (i == active_submenu_size - 1 ? 40 : 30);
-
-            if (x >= button_x1 && x <= button_x2 && y >= button_y1 && y <= button_y2) {
-                current_submenu_index = i;
-                last_interaction_time = millis();
-                displaySubmenu();
-                delay(200);
-
-                if (current_submenu_index == TOOLS_IDX_BACK) {
-                    in_sub_menu = false;
-                    feature_active = false;
-                    feature_exit_requested = false;
-                    displayMenu();
-                    handleButtons();
-                    is_main_menu = false;
-                } else {
-                    launchToolsFeature(current_submenu_index);
+        // Keep the list usable on panels where the touch map is still a bit off.
+        // The observed user taps land in the lower-right area, so treat that as
+        // Touch Calibrate first instead of requiring an exact row hit.
+        if (x >= 140 && y >= 170) {
+            touchedSlot = TOOLS_IDX_TOUCH;
+        } else {
+            for (int i = 0; i < active_submenu_size; i++) {
+                int yPos = 30 + i * 30;
+                int button_y1 = yPos - 8;
+                int button_y2 = yPos + (i == active_submenu_size - 1 ? 42 : 32);
+                if (y >= button_y1 && y <= button_y2) {
+                    touchedSlot = i;
+                    break;
                 }
-                break;
             }
+        }
+
+        if (touchedSlot < 0) {
+            return;
+        }
+
+        current_submenu_index = touchedSlot;
+        last_interaction_time = millis();
+        displaySubmenu();
+        delay(200);
+
+        if (current_submenu_index == TOOLS_IDX_BACK) {
+            in_sub_menu = false;
+            feature_active = false;
+            feature_exit_requested = false;
+            displayMenu();
+            handleButtons();
+            is_main_menu = false;
+        } else {
+            launchToolsFeature(current_submenu_index);
         }
     }
 }
@@ -3084,6 +3159,10 @@ void handleAboutPage() {
 
   feature_active = true;
   feature_exit_requested = false;
+  ESP_LOGI(TOUCH_TAG, "enter about page");
+  waitForTouchRelease(800);
+  waitForButtonRelease(BTN_SELECT);
+  waitForButtonRelease(BTN_LEFT);
 
   tft.fillScreen(UI_BG);
   currentBatteryVoltage = readBatteryVoltage();
@@ -3131,6 +3210,7 @@ void handleAboutPage() {
   while (!feature_exit_requested) {
     if (isButtonPressed(BTN_SELECT) || isButtonPressed(BTN_LEFT)) {
       last_interaction_time = millis();
+      ESP_LOGI(TOUCH_TAG, "about exit by button");
       feature_exit_requested = true;
       delay(200);
       break;
@@ -3139,6 +3219,7 @@ void handleAboutPage() {
     int x, y;
     if (readTouchXY(x, y)) {
       last_interaction_time = millis();
+      ESP_LOGI(TOUCH_TAG, "about exit by touch raw=(%d,%d)", x, y);
       feature_exit_requested = true;
       delay(200);
       break;
@@ -3162,6 +3243,9 @@ void handleSettingsSubmenuButtons() {
 
   feature_active = true;
   feature_exit_requested = false;
+  ESP_LOGI(TOUCH_TAG, "enter settings page");
+  waitForTouchRelease(800);
+  waitForButtonRelease(BTN_SELECT);
 
   AppSettingsUI::setup();
   while (!feature_exit_requested) {
@@ -3246,33 +3330,8 @@ void handleButtons() {
         if (isButtonPressed(BTN_SELECT)) {
             last_interaction_time = millis();
             delay(200);
-
-            if (current_menu_index == 3) {
-                handleSettingsSubmenuButtons();
-            } else if (current_menu_index == 7) {
-                handleAboutPage();
-            } else {
-                updateActiveSubmenu();
-
-                if (active_submenu_items && active_submenu_size > 0) {
-                    current_submenu_index = 0;
-                    if (current_menu_index == 2) {
-                        other_layer = OTHER_LAYER_HOME;
-                        other_menu_grid_initialized = false;
-                        last_other_menu_index = -1;
-                    }
-                    in_sub_menu = true;
-                    submenu_initialized = false;
-                    displaySubmenu();
-                }
-
-                if (is_main_menu) {
-                    is_main_menu = false;
-                    displayMenu();
-                } else {
-                    is_main_menu = true;
-                }
-            }
+            waitForButtonRelease(BTN_SELECT);
+            launchCurrentMainMenuItem();
         }
 
         static unsigned long lastTouchTime = 0;
@@ -3288,50 +3347,30 @@ void handleButtons() {
                 int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
                 int y_position = Y_START + row * Y_SPACING;
 
-                int button_x1 = x_position;
-                int button_y1 = y_position;
-                int button_x2 = x_position + 100;
-                int button_y2 = y_position + 60;
+                int button_x1 = x_position - MENU_TOUCH_PAD_X;
+                int button_y1 = y_position - MENU_TOUCH_PAD_Y;
+                int button_x2 = x_position + 100 + MENU_TOUCH_PAD_X;
+                int button_y2 = y_position + 60 + MENU_TOUCH_PAD_Y;
 
                 if (x >= button_x1 && x <= button_x2 && y >= button_y1 && y <= button_y2) {
+                    ESP_LOGI(TOUCH_TAG, "main menu hit idx=%d raw=(%d,%d) box=[%d..%d,%d..%d] main=%d feature=%d",
+                             i, x, y, button_x1, button_x2, button_y1, button_y2,
+                             (int)is_main_menu, (int)feature_active);
                     current_menu_index = i;
                     last_interaction_time = millis();
                     displayMenu();
 
-                    unsigned long startTime = millis();
+                    const unsigned long startTime = millis();
                     while (isTouchDownDismiss() && (millis() - startTime < touchFeedbackDelay)) {
                         delay(10);
                     }
 
                     if (isTouchDownDismiss()) {
-
-                        if (current_menu_index == 3) {
-                            handleSettingsSubmenuButtons();
-                        } else if (current_menu_index == 7) {
-                            handleAboutPage();
-                        } else {
-                            updateActiveSubmenu();
-
-                            if (active_submenu_items && active_submenu_size > 0) {
-                                current_submenu_index = 0;
-                                if (current_menu_index == 2) {
-                                    other_layer = OTHER_LAYER_HOME;
-                                    other_menu_grid_initialized = false;
-                                    last_other_menu_index = -1;
-                                }
-                                in_sub_menu = true;
-                                submenu_initialized = false;
-                                displaySubmenu();
-                            } else {
-                                if (is_main_menu) {
-                                    is_main_menu = false;
-                                    displayMenu();
-                                } else {
-                                    is_main_menu = true;
-                                }
-                            }
-                        }
+                        launchCurrentMainMenuItem();
+                        waitForTouchRelease();
                     }
+
+                    lastTouchTime = millis();
                     delay(200);
                     break;
                 }
@@ -3343,6 +3382,7 @@ void handleButtons() {
 void esp32_div_app_init() {
 
   ESP_LOGI(TAG, "boot start");
+  ESP_LOGI(TAG, "build marker: btn-release-fix v3");
 
   tft.init();
   ESP_LOGI(TAG, "tft init done");
@@ -3410,6 +3450,8 @@ void esp32_div_app_init() {
 
 void esp32_div_app_run_once() {
   applyThemeToPalette(settings().theme);
+  pollPcf8574ScanMode();
+  pollPcf8574SelfTest();
   handleButtons();
   updateStatusBar();
 }

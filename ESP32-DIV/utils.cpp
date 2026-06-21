@@ -7,6 +7,7 @@
 #include "config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "icon.h"
 #include "gps.h"
 #include "shared.h"
@@ -817,39 +818,180 @@ void updateStatusBar() {
 
 #if HAS_PCF8574_BUTTONS
 static uint8_t s_pcf8574Addr = 0;
+static uint8_t s_pcf8574LastSnapshot = 0xFF;
+static uint32_t s_pcf8574LastPollMs = 0;
+static uint32_t s_pcf8574PollCount = 0;
+static uint32_t s_pcf8574ReadFailCount = 0;
+static bool s_pcf8574ScanMode = false;
+static uint8_t s_pcf8574ScanLast = 0xFF;
 
 uint8_t getPcf8574Address() {
   return s_pcf8574Addr;
 }
 
+static bool initPcf8574AtAddress(uint8_t address) {
+  ESP_LOGI("esp32_div", "PCF8574 probe address 0x%02X", address);
+  if (!pcf.begin(address)) {
+    ESP_LOGW("esp32_div", "PCF8574 probe failed at 0x%02X", address);
+    return false;
+  }
+
+  s_pcf8574Addr = address;
+  ESP_LOGI("esp32_div", "PCF8574 using address 0x%02X", s_pcf8574Addr);
+
+  pcf.pinMode(BTN_UP, INPUT_PULLUP);
+  pcf.pinMode(BTN_DOWN, INPUT_PULLUP);
+  pcf.pinMode(BTN_LEFT, INPUT_PULLUP);
+  pcf.pinMode(BTN_RIGHT, INPUT_PULLUP);
+  pcf.pinMode(BTN_SELECT, INPUT_PULLUP);
+
+  for (int pin = 0; pin < 8; pin++) {
+    ESP_LOGI("esp32_div", "PCF8574 pin %d = %s", pin, pcf.digitalRead(pin) ? "Released" : "Pressed");
+  }
+  return true;
+}
+
 bool initPcf8574Buttons() {
   #if PCF8574_ENABLED
-    ESP_LOGI("esp32_div", "PCF8574 fixed address 0x%02X", PCF8574_I2C_ADDR);
-    if (!pcf.begin(PCF8574_I2C_ADDR)) {
-      Serial.printf("[PCF8574] not found at fixed address 0x%02X\n", PCF8574_I2C_ADDR);
-      return false;
+    ESP_LOGI("esp32_div", "PCF8574 init starting");
+    if (initPcf8574AtAddress(PCF8574_I2C_ADDR)) {
+      return true;
     }
-    s_pcf8574Addr = PCF8574_I2C_ADDR;
-    Serial.printf("[PCF8574] using fixed address 0x%02X\n", s_pcf8574Addr);
-
-    pcf.pinMode(BTN_UP, INPUT_PULLUP);
-    pcf.pinMode(BTN_DOWN, INPUT_PULLUP);
-    pcf.pinMode(BTN_LEFT, INPUT_PULLUP);
-    pcf.pinMode(BTN_RIGHT, INPUT_PULLUP);
-    pcf.pinMode(BTN_SELECT, INPUT_PULLUP);
-
-    for (int pin = 0; pin < 8; pin++) {
-      Serial.print("Button ");
-      Serial.print(pin);
-      Serial.print(": ");
-      Serial.println(pcf.digitalRead(pin) ? "Released" : "Pressed");
+    ESP_LOGW("esp32_div", "PCF8574 fixed address 0x%02X not responding, scanning 0x20-0x27", PCF8574_I2C_ADDR);
+    for (uint8_t address = PCF8574_ADDR_MIN; address <= PCF8574_ADDR_MAX; ++address) {
+      if (address == PCF8574_I2C_ADDR) {
+        continue;
+      }
+      if (initPcf8574AtAddress(address)) {
+        return true;
+      }
     }
-    return true;
+    ESP_LOGW("esp32_div", "PCF8574 no device found on 0x20-0x27");
+    return false;
   #else
     ESP_LOGI("esp32_div", "PCF8574 disabled by board config");
     s_pcf8574Addr = 0;
     return false;
   #endif
+}
+
+void logPcf8574ButtonSnapshot(const char* reason, int buttonPin) {
+  if (getPcf8574Address() == 0) {
+    return;
+  }
+
+  uint8_t snapshot = 0xFF;
+  if (!pcf.readPortState(snapshot)) {
+    return;
+  }
+
+  if (snapshot == s_pcf8574LastSnapshot) {
+    return;
+  }
+  s_pcf8574LastSnapshot = snapshot;
+
+  char state[128];
+  snprintf(state, sizeof(state),
+           "P0=%d P1=%d P2=%d P3=%d P4=%d P5=%d P6=%d P7=%d",
+           (snapshot >> 0) & 1, (snapshot >> 1) & 1, (snapshot >> 2) & 1,
+           (snapshot >> 3) & 1, (snapshot >> 4) & 1, (snapshot >> 5) & 1,
+           (snapshot >> 6) & 1, (snapshot >> 7) & 1);
+
+  ESP_LOGI("esp32_div", "PCF8574 self-test reason=%s button=%d addr=0x%02X %s",
+           reason ? reason : "unknown", buttonPin, getPcf8574Address(), state);
+}
+
+static void pcf8574SelfTestTask(void*) {
+  uint8_t last = 0xFF;
+  while (true) {
+    if (getPcf8574Address() != 0) {
+      uint8_t snapshot = 0xFF;
+      if (pcf.readPortState(snapshot) && snapshot != last) {
+        last = snapshot;
+        char state[128];
+        snprintf(state, sizeof(state),
+                 "P0=%d P1=%d P2=%d P3=%d P4=%d P5=%d P6=%d P7=%d",
+                 (snapshot >> 0) & 1, (snapshot >> 1) & 1, (snapshot >> 2) & 1,
+                 (snapshot >> 3) & 1, (snapshot >> 4) & 1, (snapshot >> 5) & 1,
+                 (snapshot >> 6) & 1, (snapshot >> 7) & 1);
+        ESP_LOGI("esp32_div", "PCF8574 poll addr=0x%02X %s", getPcf8574Address(), state);
+      }
+    }
+    vTaskDelay(pdMS_TO_TICKS(200));
+  }
+}
+
+void startPcf8574SelfTest() {
+  s_pcf8574LastPollMs = 0;
+  s_pcf8574PollCount = 0;
+  s_pcf8574ReadFailCount = 0;
+  s_pcf8574ScanMode = false;
+  s_pcf8574ScanLast = 0xFF;
+}
+
+void pollPcf8574SelfTest() {
+  if (getPcf8574Address() == 0) {
+    return;
+  }
+
+  const uint32_t now = millis();
+  if (now - s_pcf8574LastPollMs < 200) {
+    return;
+  }
+  s_pcf8574LastPollMs = now;
+  ++s_pcf8574PollCount;
+
+  uint8_t snapshot = 0xFF;
+  if (!pcf.readPortState(snapshot)) {
+    ++s_pcf8574ReadFailCount;
+    ESP_LOGW("esp32_div", "PCF8574 poll failed addr=0x%02X poll=%lu fail=%lu",
+             getPcf8574Address(), (unsigned long)s_pcf8574PollCount,
+             (unsigned long)s_pcf8574ReadFailCount);
+    return;
+  }
+
+  s_pcf8574LastSnapshot = snapshot;
+
+  char state[128];
+  snprintf(state, sizeof(state),
+           "P0=%d P1=%d P2=%d P3=%d P4=%d P5=%d P6=%d P7=%d",
+           (snapshot >> 0) & 1, (snapshot >> 1) & 1, (snapshot >> 2) & 1,
+           (snapshot >> 3) & 1, (snapshot >> 4) & 1, (snapshot >> 5) & 1,
+           (snapshot >> 6) & 1, (snapshot >> 7) & 1);
+  ESP_LOGI("esp32_div", "PCF8574 poll addr=0x%02X poll=%lu fail=%lu %s",
+           getPcf8574Address(), (unsigned long)s_pcf8574PollCount,
+           (unsigned long)s_pcf8574ReadFailCount, state);
+}
+
+void startPcf8574ScanMode() {
+  s_pcf8574ScanMode = true;
+  s_pcf8574ScanLast = 0xFF;
+  ESP_LOGI("esp32_div", "PCF8574 scan mode enabled addr=0x%02X", getPcf8574Address());
+}
+
+void pollPcf8574ScanMode() {
+  if (!s_pcf8574ScanMode || getPcf8574Address() == 0) {
+    return;
+  }
+
+  uint8_t snapshot = 0xFF;
+  if (!pcf.readPortState(snapshot)) {
+    ESP_LOGW("esp32_div", "PCF8574 scan read failed addr=0x%02X", getPcf8574Address());
+    return;
+  }
+
+  if (snapshot == s_pcf8574ScanLast) {
+    return;
+  }
+  s_pcf8574ScanLast = snapshot;
+
+  char state[128];
+  snprintf(state, sizeof(state),
+           "P0=%d P1=%d P2=%d P3=%d P4=%d P5=%d P6=%d P7=%d",
+           (snapshot >> 0) & 1, (snapshot >> 1) & 1, (snapshot >> 2) & 1,
+           (snapshot >> 3) & 1, (snapshot >> 4) & 1, (snapshot >> 5) & 1,
+           (snapshot >> 6) & 1, (snapshot >> 7) & 1);
+  ESP_LOGI("esp32_div", "PCF8574 scan addr=0x%02X %s", getPcf8574Address(), state);
 }
 #else
 uint8_t getPcf8574Address() {
@@ -859,6 +1001,16 @@ uint8_t getPcf8574Address() {
 bool initPcf8574Buttons() {
   return false;
 }
+
+void logPcf8574ButtonSnapshot(const char* reason, int buttonPin) {
+  UNUSED(reason);
+  UNUSED(buttonPin);
+}
+
+void startPcf8574SelfTest() {}
+void pollPcf8574SelfTest() {}
+void startPcf8574ScanMode() {}
+void pollPcf8574ScanMode() {}
 #endif
 
 #if TOUCH_SHARES_TFT_SPI
@@ -2902,17 +3054,28 @@ static uint16_t xs[4], ys[4];
 static const int pts[4][2] = { {20,20}, {TFT_WIDTH-20,20}, {TFT_WIDTH-20,TFT_HEIGHT-20}, {20,TFT_HEIGHT-20} };
 
 static void drawTarget(int x,int y){
-  tft.fillScreen(UI_BG);
+  tft.fillScreen(TFT_NAVY);
+  tft.drawRect(0, 0, TFT_WIDTH, TFT_HEIGHT, UI_ICON);
   tft.drawCircle(x,y,10,UI_ICON);
+  tft.fillCircle(x,y,3,UI_ICON);
   tft.drawLine(x-14,y, x+14,y, UI_ICON);
   tft.drawLine(x,y-14, x,y+14, UI_ICON);
-  tft.setCursor(70, 8);
+  tft.setTextColor(UI_TEXT, TFT_NAVY);
+  tft.setTextFont(2);
+  tft.setCursor(8, 8);
+  tft.print("Touch Calibration");
+  tft.setTextFont(1);
+  tft.setCursor(8, 28);
+  tft.printf("Step %d / 4", stepIdx + 1);
+  tft.setCursor(8, 42);
   tft.setTextColor(UI_TEXT, UI_BG);
   tft.print("Touch the target");
+  ESP_LOGI("esp32_div_touch", "TouchCalib draw step=%d target=(%d,%d)", stepIdx + 1, x, y);
 }
 
 void setup(){
   stepIdx=0;
+  ESP_LOGI("esp32_div_touch", "TouchCalib setup");
   drawTarget(pts[0][0], pts[0][1]);
 }
 
@@ -2944,6 +3107,7 @@ void loop(){
 
   int16_t rx = 0, ry = 0;
   if (readTouchRawXY(rx, ry)) {
+    ESP_LOGI("esp32_div_touch", "TouchCalib hit step=%d raw=(%d,%d)", stepIdx + 1, (int)rx, (int)ry);
     xs[stepIdx] = (uint16_t)rx;
     ys[stepIdx] = (uint16_t)ry;
     stepIdx++;

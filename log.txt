@@ -1,0 +1,219 @@
+I (24) boot: ESP-IDF v6.0.1 2nd stage bootloader
+I (24) boot: compile time Jun 19 2026 01:12:36
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (27) boot: efuse block revision: v1.3
+I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+I (35) boot.esp32s3: SPI Mode       : DIO
+I (39) boot.esp32s3: SPI Flash Size : 16MB
+I (43) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (50) boot: ## Label            Usage          Type ST Offset   Length
+I (56) boot:  0 nvs              WiFi data        01 02 00009000 00005000
+I (62) boot:  1 otadata          OTA data         01 00 0000e000 00002000
+I (69) boot:  2 app0             OTA app          00 10 00010000 00300000
+I (75) boot:  3 spiffs           Unknown data     01 82 00310000 000e0000
+I (82) boot:  4 coredump         Unknown data     01 03 003f0000 00010000
+I (89) boot: End of partition table
+I (92) boot: No factory image, trying OTA 0
+I (96) esp_image: segment 0: paddr=00010020 vaddr=3c180020 size=5a0c8h (368840) map
+I (169) esp_image: segment 1: paddr=0006a0f0 vaddr=3fc9dd00 size=05e18h ( 24088) load
+I (175) esp_image: segment 2: paddr=0006ff10 vaddr=40374000 size=00108h (   264) load
+I (175) esp_image: segment 3: paddr=00070020 vaddr=42000020 size=1710d4h (1511636) map
+I (452) esp_image: segment 4: paddr=001e10fc vaddr=40374108 size=19b70h (105328) load
+I (475) esp_image: segment 5: paddr=001fac74 vaddr=50000000 size=00024h (    36) load
+I (487) boot: Loaded app from partition at offset 0x10000
+I (491) boot: Set actual ota_seq=1 in otadata[0]
+I (491) boot: Disabling RNG early entropy source...
+I (502) cpu_start: Multicore app
+I (510) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (511) cpu_start: Pro cpu start user code
+I (511) cpu_start: cpu freq: 160000000 Hz
+I (512) app_init: Application information:
+I (516) app_init: Project name:     esp32_div_idf
+I (521) app_init: App version:      6b265ce-dirty
+I (525) app_init: Compile time:     Jun 19 2026 20:25:32
+I (530) app_init: ELF file SHA256:  f2db50a1c...
+I (534) app_init: ESP-IDF:          v6.0.1
+I (538) efuse_init: Min chip rev:     v0.0
+I (542) efuse_init: Max chip rev:     v0.99
+I (546) efuse_init: Chip rev:         v0.2
+I (550) heap_init: Initializing. RAM available for dynamic allocation:
+I (556) heap_init: At 3FCBAAC0 len 0002EC50 (187 KiB): RAM
+I (561) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (566) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (572) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (578) spi_flash: detected chip: generic
+I (581) spi_flash: flash io: dio
+I (587) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (590) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (606) main_task: Started on CPU0
+I (609) main_task: Calling app_main()
+I (612) app_main: starting ESP-IDF application
+I (632) esp32_div: boot start
+I (632) esp32_div: build marker: btn-release-fix v3
+I (905) esp32_div: tft init done
+I (906) esp32_div: backlight ready
+I (3187) esp32_div: loading animation done
+I (3802) esp32_div: logo done
+I (3802) esp32_div: sd init done
+I (3804) esp32_div: settings loaded
+I (3804) esp32_div: PCF8574 init starting
+I (3804) esp32_div: PCF8574 probe address 0x20
+I (3807) pcf8574: init I2C bus port=0 sda=8 scl=9
+I (3813) esp32_div: PCF8574 using address 0x20
+I (3818) esp32_div: PCF8574 pin 0 = Released
+I (3820) esp32_div: PCF8574 pin 1 = Released
+I (3824) esp32_div: PCF8574 pin 2 = Released
+I (3828) esp32_div: PCF8574 pin 3 = Released
+I (3832) esp32_div: PCF8574 pin 4 = Released
+I (3836) esp32_div: PCF8574 pin 5 = Released
+I (3840) esp32_div: PCF8574 pin 6 = Released
+I (3844) esp32_div: PCF8574 pin 7 = Released
+I (3848) esp32_div: BLE init
+I (3851) BLE_INIT: BT controller compile version [b7de11e]
+I (3856) BLE_INIT: Using main XTAL as clock source
+I (3861) BLE_INIT: Feature Config, ADV:1, BLE_50:0, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (3869) BLE_INIT: Bluetooth MAC: e8:f6:0a:a1:04:56
+I (3874) phy_init: phy_version 711,97bcf0a2,Aug 25 2025,19:04:10
+I (4144) esp32_div: BLE init done
+[  3868][E][sd_diskio.cpp:817] sdcard_mount(): f_mount failed: (3) The physical drive cannot work
+I (4755) esp32_div: background tasks
+I (4755) esp32_div: background tasks done
+I (4756) esp32_div: draw menu
+I (4756) temperature_sensor: Range [-10°C ~ 80°C], error < 1°C
+I (4871) esp32_div: menu drawn
+I (4871) xpt2046: begin cs=18 clk=36 mosi=35 miso=37 irq=255
+I (4872) esp32_div: touch ready
+I (4872) esp32_div: ready
+I (4874) esp32_div: PCF8574 poll addr=0x20 poll=1 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=1
+W (5124) esp32_div: PCF8574 poll failed addr=0x20 poll=2 fail=1
+W (5366) esp32_div: PCF8574 poll failed addr=0x20 poll=3 fail=2
+W (5608) esp32_div: PCF8574 poll failed addr=0x20 poll=4 fail=3
+W (5850) esp32_div: PCF8574 poll failed addr=0x20 poll=5 fail=4
+W (6092) esp32_div: PCF8574 poll failed addr=0x20 poll=6 fail=5
+W (6334) esp32_div: PCF8574 poll failed addr=0x20 poll=7 fail=6
+W (6576) esp32_div: PCF8574 poll failed addr=0x20 poll=8 fail=7
+W (6818) esp32_div: PCF8574 poll failed addr=0x20 poll=9 fail=8
+W (7060) esp32_div: PCF8574 poll failed addr=0x20 poll=10 fail=9
+W (7302) esp32_div: PCF8574 poll failed addr=0x20 poll=11 fail=10
+W (7544) esp32_div: PCF8574 poll failed addr=0x20 poll=12 fail=11
+W (7786) esp32_div: PCF8574 poll failed addr=0x20 poll=13 fail=12
+W (8028) esp32_div: PCF8574 poll failed addr=0x20 poll=14 fail=13
+W (8270) esp32_div: PCF8574 poll failed addr=0x20 poll=15 fail=14
+W (8512) esp32_div: PCF8574 poll failed addr=0x20 poll=16 fail=15
+W (8754) esp32_div: PCF8574 poll failed addr=0x20 poll=17 fail=16
+W (8996) esp32_div: PCF8574 poll failed addr=0x20 poll=18 fail=17
+W (9238) esp32_div: PCF8574 poll failed addr=0x20 poll=19 fail=18
+W (9480) esp32_div: PCF8574 poll failed addr=0x20 poll=20 fail=19
+W (9722) esp32_div: PCF8574 poll failed addr=0x20 poll=21 fail=20
+W (9964) esp32_div: PCF8574 poll failed addr=0x20 poll=22 fail=21
+W (10206) esp32_div: PCF8574 poll failed addr=0x20 poll=23 fail=22
+W (10448) esp32_div: PCF8574 poll failed addr=0x20 poll=24 fail=23
+W (10690) esp32_div: PCF8574 poll failed addr=0x20 poll=25 fail=24
+W (10932) esp32_div: PCF8574 poll failed addr=0x20 poll=26 fail=25
+W (11174) esp32_div: PCF8574 poll failed addr=0x20 poll=27 fail=26
+W (11416) esp32_div: PCF8574 poll failed addr=0x20 poll=28 fail=27
+W (11658) esp32_div: PCF8574 poll failed addr=0x20 poll=29 fail=28
+I (11755) pp: pp rom version: e7ae62f
+I (11760) net80211: net80211 rom version: e7ae62f
+I (11763) wifi:wifi driver task: 3fcd12a4, prio:23, stack:6656, core=0
+I (11768) wifi:wifi firmware version: b37c951
+I (11768) wifi:wifi certification version: v7.0
+I (11769) wifi:config NVS flash: enabled
+I (11772) wifi:config nano formatting: disabled
+I (11777) wifi:Init data frame dynamic rx buffer num: 32
+I (11782) wifi:Init static rx mgmt buffer num: 5
+I (11786) wifi:Init management short buffer num: 32
+I (11791) wifi:Init dynamic tx buffer num: 32
+I (11795) wifi:Init static tx FG buffer num: 2
+I (11799) wifi:Init static rx buffer size: 1600
+I (11803) wifi:Init static rx buffer num: 4
+I (11807) wifi:Init dynamic rx buffer num: 32
+I (11814) wifi_init: rx ba win: 6
+I (11815) wifi_init: accept mbox: 6
+I (11817) wifi_init: tcpip mbox: 32
+I (11820) wifi_init: udp mbox: 6
+I (11823) wifi_init: tcp mbox: 6
+I (11826) wifi_init: tcp tx win: 5760
+I (11830) wifi_init: tcp rx win: 5760
+I (11833) wifi_init: tcp mss: 1440
+I (11836) wifi_init: WiFi IRAM OP enabled
+I (11840) wifi_init: WiFi RX IRAM OP enabled
+I (11849) wifi:mode : sta (e8:f6:0a:a1:04:54)
+I (11849) wifi:enable tsf
+I (11853) wifi:Set ps type: 1, coexist: 1
+
+W (11855) wifi:Error! Should use default active scan time parameter for WiFi scan when Bluetooth is enabled!!!!!!
+
+W (11947) esp32_div: PCF8574 poll failed addr=0x20 poll=30 fail=29
+W (12189) esp32_div: PCF8574 poll failed addr=0x20 poll=31 fail=30
+W (12431) esp32_div: PCF8574 poll failed addr=0x20 poll=32 fail=31
+W (12673) esp32_div: PCF8574 poll failed addr=0x20 poll=33 fail=32
+W (12917) esp32_div: PCF8574 poll failed addr=0x20 poll=34 fail=33
+W (13159) esp32_div: PCF8574 poll failed addr=0x20 poll=35 fail=34
+W (13401) esp32_div: PCF8574 poll failed addr=0x20 poll=36 fail=35
+W (13643) esp32_div: PCF8574 poll failed addr=0x20 poll=37 fail=36
+W (13885) esp32_div: PCF8574 poll failed addr=0x20 poll=38 fail=37
+W (14136) esp32_div: PCF8574 poll failed addr=0x20 poll=39 fail=38
+W (14378) esp32_div: PCF8574 poll failed addr=0x20 poll=40 fail=39
+W (14620) esp32_div: PCF8574 poll failed addr=0x20 poll=41 fail=40
+W (14862) esp32_div: PCF8574 poll failed addr=0x20 poll=42 fail=41
+W (15104) esp32_div: PCF8574 poll failed addr=0x20 poll=43 fail=42
+W (15346) esp32_div: PCF8574 poll failed addr=0x20 poll=44 fail=43
+W (15588) esp32_div: PCF8574 poll failed addr=0x20 poll=45 fail=44
+W (15830) esp32_div: PCF8574 poll failed addr=0x20 poll=46 fail=45
+W (16072) esp32_div: PCF8574 poll failed addr=0x20 poll=47 fail=46
+W (16314) esp32_div: PCF8574 poll failed addr=0x20 poll=48 fail=47
+W (16563) esp32_div: PCF8574 poll failed addr=0x20 poll=49 fail=48
+W (16805) esp32_div: PCF8574 poll failed addr=0x20 poll=50 fail=49
+W (17047) esp32_div: PCF8574 poll failed addr=0x20 poll=51 fail=50
+W (17289) esp32_div: PCF8574 poll failed addr=0x20 poll=52 fail=51
+W (17531) esp32_div: PCF8574 poll failed addr=0x20 poll=53 fail=52
+W (17773) esp32_div: PCF8574 poll failed addr=0x20 poll=54 fail=53
+W (18015) esp32_div: PCF8574 poll failed addr=0x20 poll=55 fail=54
+W (18257) esp32_div: PCF8574 poll failed addr=0x20 poll=56 fail=55
+W (18499) esp32_div: PCF8574 poll failed addr=0x20 poll=57 fail=56
+W (18741) esp32_div: PCF8574 poll failed addr=0x20 poll=58 fail=57
+W (18983) esp32_div: PCF8574 poll failed addr=0x20 poll=59 fail=58
+W (19225) esp32_div: PCF8574 poll failed addr=0x20 poll=60 fail=59
+W (19467) esp32_div: PCF8574 poll failed addr=0x20 poll=61 fail=60
+W (19709) esp32_div: PCF8574 poll failed addr=0x20 poll=62 fail=61
+W (19951) esp32_div: PCF8574 poll failed addr=0x20 poll=63 fail=62
+W (20193) esp32_div: PCF8574 poll failed addr=0x20 poll=64 fail=63
+W (20435) esp32_div: PCF8574 poll failed addr=0x20 poll=65 fail=64
+W (20677) esp32_div: PCF8574 poll failed addr=0x20 poll=66 fail=65
+W (20919) esp32_div: PCF8574 poll failed addr=0x20 poll=67 fail=66
+W (21161) esp32_div: PCF8574 poll failed addr=0x20 poll=68 fail=67
+W (21403) esp32_div: PCF8574 poll failed addr=0x20 poll=69 fail=68
+W (21645) esp32_div: PCF8574 poll failed addr=0x20 poll=70 fail=69
+W (21887) esp32_div: PCF8574 poll failed addr=0x20 poll=71 fail=70
+W (22129) esp32_div: PCF8574 poll failed addr=0x20 poll=72 fail=71
+W (22371) esp32_div: PCF8574 poll failed addr=0x20 poll=73 fail=72
+W (22613) esp32_div: PCF8574 poll failed addr=0x20 poll=74 fail=73
+W (22855) esp32_div: PCF8574 poll failed addr=0x20 poll=75 fail=74
+W (23097) esp32_div: PCF8574 poll failed addr=0x20 poll=76 fail=75
+W (23339) esp32_div: PCF8574 poll failed addr=0x20 poll=77 fail=76
+W (23581) esp32_div: PCF8574 poll failed addr=0x20 poll=78 fail=77
+W (23823) esp32_div: PCF8574 poll failed addr=0x20 poll=79 fail=78
+W (24065) esp32_div: PCF8574 poll failed addr=0x20 poll=80 fail=79
+W (24307) esp32_div: PCF8574 poll failed addr=0x20 poll=81 fail=80
+W (24549) esp32_div: PCF8574 poll failed addr=0x20 poll=82 fail=81
+W (24791) esp32_div: PCF8574 poll failed addr=0x20 poll=83 fail=82
+W (25033) esp32_div: PCF8574 poll failed addr=0x20 poll=84 fail=83
+W (25275) esp32_div: PCF8574 poll failed addr=0x20 poll=85 fail=84
+W (25517) esp32_div: PCF8574 poll failed addr=0x20 poll=86 fail=85
+W (25759) esp32_div: PCF8574 poll failed addr=0x20 poll=87 fail=86
+W (26001) esp32_div: PCF8574 poll failed addr=0x20 poll=88 fail=87
+W (26243) esp32_div: PCF8574 poll failed addr=0x20 poll=89 fail=88
+W (26485) esp32_div: PCF8574 poll failed addr=0x20 poll=90 fail=89
+W (26727) esp32_div: PCF8574 poll failed addr=0x20 poll=91 fail=90
+W (26969) esp32_div: PCF8574 poll failed addr=0x20 poll=92 fail=91
+W (27211) esp32_div: PCF8574 poll failed addr=0x20 poll=93 fail=92
+W (27453) esp32_div: PCF8574 poll failed addr=0x20 poll=94 fail=93
+W (27695) esp32_div: PCF8574 poll failed addr=0x20 poll=95 fail=94
+W (27937) esp32_div: PCF8574 poll failed addr=0x20 poll=96 fail=95
+W (28179) esp32_div: PCF8574 poll failed addr=0x20 poll=97 fail=96
+W (28421) esp32_div: PCF8574 poll failed addr=0x20 poll=98 fail=97
+W (28663) esp32_div: PCF8574 poll failed addr=0x20 poll=99 fail=98
+W (28914) esp32_div: PCF8574 poll failed addr=0x20 poll=100 fail=99

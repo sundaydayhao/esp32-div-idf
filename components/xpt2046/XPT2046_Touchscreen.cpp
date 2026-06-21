@@ -12,6 +12,7 @@ namespace {
 static const char* TAG = "xpt2046";
 static constexpr int kSpiClockHz = 1000000;
 static constexpr int kDelayUs = 1;
+static constexpr uint16_t kAdcMax = 4095;
 
 }  // namespace
 
@@ -119,7 +120,14 @@ bool XPT2046_Touchscreen::readRaw(uint16_t& x, uint16_t& y, uint16_t& z) {
 
   x = x1;
   y = y1;
-  z = (z1 > z2) ? (z1 - z2) : (z2 - z1);
+  if ((z1 == 0 && z2 == 0) || (z1 == kAdcMax && z2 == kAdcMax)) {
+    z = 0;
+  } else {
+    int32_t pressure = (int32_t)z1 + kAdcMax - (int32_t)z2;
+    if (pressure < 0) pressure = 0;
+    if (pressure > kAdcMax) pressure = kAdcMax;
+    z = (uint16_t)pressure;
+  }
 
   if (csPin_ < 255) gpio_set_level((gpio_num_t)csPin_, 1);
   return true;
@@ -136,6 +144,11 @@ uint16_t XPT2046_Touchscreen::transfer12(uint8_t cmd) {
     esp_rom_delay_us(kDelayUs);
   }
 
+  gpio_set_level((gpio_num_t)clkPin_, 1);
+  esp_rom_delay_us(kDelayUs);
+  gpio_set_level((gpio_num_t)clkPin_, 0);
+  esp_rom_delay_us(kDelayUs);
+
   for (int i = 0; i < 16; ++i) {
     gpio_set_level((gpio_num_t)clkPin_, 1);
     esp_rom_delay_us(kDelayUs);
@@ -145,5 +158,5 @@ uint16_t XPT2046_Touchscreen::transfer12(uint8_t cmd) {
     esp_rom_delay_us(kDelayUs);
   }
 
-  return (uint16_t)((value >> 3) & 0x0FFF);
+  return (uint16_t)((value >> 4) & 0x0FFF);
 }
