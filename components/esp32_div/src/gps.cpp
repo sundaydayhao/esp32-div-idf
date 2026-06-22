@@ -1,15 +1,15 @@
-#include <HardwareSerial.h>
-#include <TFT_eSPI.h>
+#include "DivSerial.h"
+#include "DivDisplay.h"
 #include <math.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <string.h>
-#include <string>
+#include <DivString.h>
+#include "DivString.h"
 
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
+#include "DivWiFi.h"
+#include "DivWiFi.h"
 #include "mbedtls/base64.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -34,8 +34,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-static HardwareSerial gpsSerial(GPS_UART_NUM);
-static TFT_eSprite gScanPanel(&tft);
+static DivUartSerial gpsSerial(GPS_UART_NUM);
+static DivSprite gScanPanel(&tft);
 static bool gScanPanelReady = false;
 static int gScanPanelAllocW = 0;
 static int gScanPanelAllocH = 0;
@@ -1325,8 +1325,8 @@ static constexpr int kWardBodyY = kWardIconRowY + kWardIconRowH + 4;
 static constexpr int kWardUiRadius = 3;
 static constexpr int kWardInnerPad = 5;
 
-static String wardFitTextWidth(const char* text, int maxW) {
-  String t = text ? text : "";
+static DivString wardFitTextWidth(const char* text, int maxW) {
+  DivString t = text ? text : "";
   if (maxW <= 0) {
     return t;
   }
@@ -1540,12 +1540,12 @@ static WardNavEvt wardPollNavButtons(WardPage page) {
 
 static void wardPrintWrappedPageBg(int x, int y, int maxWidth, const char* text, int lineStepPx,
                                    uint16_t fg, uint16_t bg, int firstLine, int maxLines) {
-  String message = text ? text : "";
+  DivString message = text ? text : "";
   int lineNo = 0;
   int drawn = 0;
   while (message.length() > 0 && drawn < maxLines) {
     int nl = message.indexOf('\n');
-    String paragraph = (nl >= 0) ? message.substring(0, nl) : message;
+    DivString paragraph = (nl >= 0) ? message.substring(0, nl) : message;
     message = (nl >= 0) ? message.substring(nl + 1) : "";
 
     if (paragraph.length() == 0) {
@@ -1927,7 +1927,7 @@ static const char* wardRadioModeShort(WardRadioMode m) {
   }
 }
 
-static void wardAppendCsvString(File& f, const char* s) {
+static void wardAppendCsvString(DivFile& f, const char* s) {
   f.print('"');
   if (s) {
     for (const char* p = s; *p; ++p) {
@@ -2482,7 +2482,7 @@ static void wardWigleLoadEditBuffers() {
   memset(s_wigSsid, 0, sizeof(s_wigSsid));
   memset(s_wigPass, 0, sizeof(s_wigPass));
   s_wigUseSavedWifi = false;
-  File f = SD.open(WARD_WIGLE_CFG_PATH, FILE_READ);
+  DivFile f = DivSd.open(WARD_WIGLE_CFG_PATH, FILE_READ);
   if (!f) {
     s_wigleCfgDirty = true;
     return;
@@ -2545,10 +2545,10 @@ static bool wardWigleEnsureConfigDir() {
   if (!isSDCardAvailable()) {
     return false;
   }
-  if (SD.exists("/config")) {
+  if (DivSd.exists("/config")) {
     return true;
   }
-  return SD.mkdir("/config");
+  return DivSd.mkdir("/config");
 }
 
 static bool wardWigleSaveCfgToSd() {
@@ -2561,10 +2561,10 @@ static bool wardWigleSaveCfgToSd() {
     return false;
   }
   if (!wardWigleEnsureConfigDir()) {
-    wardNotify("WiGLE", "Cannot create /config on SD.");
+    wardNotify("WiGLE", "Cannot create /config on DivSd.");
     return false;
   }
-  File out = SD.open(WARD_WIGLE_CFG_PATH, FILE_WRITE);
+  DivFile out = DivSd.open(WARD_WIGLE_CFG_PATH, FILE_WRITE);
   if (!out) {
     wardNotify("WiGLE", "Cannot write wigle.txt");
     return false;
@@ -2602,7 +2602,7 @@ static void wardWigleRunFieldEditor(const char* title, char* buf, size_t cap, ui
   cfg.enableShuffle = false;
   cfg.requireNonEmpty = requireNonEmpty;
   cfg.emptyErrorMsg = requireNonEmpty ? "Cannot be empty" : "";
-  const String init = String(buf);
+  const DivString init = DivString(buf);
   const OnScreenKeyboardResult r = showOnScreenKeyboard(cfg, init);
   s_fgScanPaused = false;
   if (r.accepted) {
@@ -2834,8 +2834,8 @@ static bool wardDdMmYyToIso(const char* ddmmyy, char* iso, size_t isoSz) {
   return true;
 }
 
-static bool wardConvertWardCsvToWigle(const char* srcPath, File& out) {
-  File in = SD.open(srcPath, FILE_READ);
+static bool wardConvertWardCsvToWigle(const char* srcPath, DivFile& out) {
+  DivFile in = DivSd.open(srcPath, FILE_READ);
   if (!in) {
     return false;
   }
@@ -2925,7 +2925,7 @@ static bool wardConvertWardCsvToWigle(const char* srcPath, File& out) {
   return true;
 }
 
-/** If line 3 is empty, `-`, or `auto`, use `WiFi.begin()` (ESP32 NVS credentials from a prior connect). */
+/** If line 3 is empty, `-`, or `auto`, use `DivWiFi.begin()` (ESP32 NVS credentials from a prior connect). */
 static bool wardReadWigleConfig(char* apiUser, size_t userSz, char* apiTok, size_t tokSz, char* staSsid,
                                 size_t ssidSz, char* staPass, size_t passSz, bool* useStoredWifi) {
   if (!apiUser || !apiTok || !staSsid || !staPass) {
@@ -2935,7 +2935,7 @@ static bool wardReadWigleConfig(char* apiUser, size_t userSz, char* apiTok, size
     *useStoredWifi = false;
   }
   apiUser[0] = apiTok[0] = staSsid[0] = staPass[0] = '\0';
-  File f = SD.open(WARD_WIGLE_CFG_PATH, FILE_READ);
+  DivFile f = DivSd.open(WARD_WIGLE_CFG_PATH, FILE_READ);
   if (!f) {
     return false;
   }
@@ -3008,11 +3008,11 @@ static bool wardBuildBasicAuth(const char* user, const char* token, char* b64, s
   return true;
 }
 
-static bool wardWigleStreamUpload(File& csv, const char* uploadName, const char* b64Auth, char* errBuf, size_t errCap) {
+static bool wardWigleStreamUpload(DivFile& csv, const char* uploadName, const char* b64Auth, char* errBuf, size_t errCap) {
   if (errBuf && errCap) {
     errBuf[0] = '\0';
   }
-  WiFiClientSecure cli;
+  DivTlsClient cli;
   cli.setInsecure();
   if (!cli.connect("api.wigle.net", 443)) {
     if (errBuf && errCap) {
@@ -3029,9 +3029,9 @@ static bool wardWigleStreamUpload(File& csv, const char* uploadName, const char*
            "false\r\n",
            boundary);
 
-  String head2 = String("--") + boundary + "\r\n" + "Content-Disposition: form-data; name=\"file\"; filename=\"" +
-                 String(uploadName) + "\"\r\n" + "Content-Type: text/csv\r\n\r\n";
-  String tail = String("\r\n--") + boundary + "--\r\n";
+  DivString head2 = DivString("--") + boundary + "\r\n" + "Content-Disposition: form-data; name=\"file\"; filename=\"" +
+                 DivString(uploadName) + "\"\r\n" + "Content-Type: text/csv\r\n\r\n";
+  DivString tail = DivString("\r\n--") + boundary + "--\r\n";
 
   const size_t part1Len = strlen(partDonate);
   const size_t head2Len = head2.length();
@@ -3063,7 +3063,7 @@ static bool wardWigleStreamUpload(File& csv, const char* uploadName, const char*
   int code = -1;
   while (cli.connected() && (millis() - t0) < 45000UL) {
     if (cli.available()) {
-      String ln = cli.readStringUntil('\n');
+      DivString ln = cli.readStringUntil('\n');
       ln.trim();
       if (ln.length() > 5 && strncmp(ln.c_str(), "HTTP/", 5) == 0) {
         int c0 = -1;
@@ -3078,7 +3078,7 @@ static bool wardWigleStreamUpload(File& csv, const char* uploadName, const char*
       delay(2);
     }
   }
-  String body;
+  DivString body;
   while (cli.available() && body.length() < 512) {
     body += (char)cli.read();
   }
@@ -3099,7 +3099,7 @@ static bool wardWigleStreamUpload(File& csv, const char* uploadName, const char*
 }
 
 /** Pause scans, join Wi‑Fi, convert CSV to WiGLE v1.6, upload, disconnect. */
-static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
+static void wardPerformWigleUpload(const char* srcCsvPath, DivFile* liveLog) {
   char apiUser[96];
   char apiTok[128];
   char staSsid[80];
@@ -3127,19 +3127,19 @@ static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
     liveLog->flush();
   }
 
-  WiFi.scanDelete();
-  WiFi.disconnect();
+  DivWiFi.scanDelete();
+  DivWiFi.disconnect();
   delay(150);
-  WiFi.mode(WIFI_STA);
+  DivWiFi.mode(WIFI_STA);
   if (useStoredWifi) {
-    WiFi.begin();
+    DivWiFi.begin();
   } else {
-    WiFi.begin(staSsid, staPass);
+    DivWiFi.begin(staSsid, staPass);
   }
 
   bool gotIp = false;
   for (int i = 0; i < 70; i++) {
-    if (WiFi.status() == WL_CONNECTED) {
+    if (DivWiFi.status() == WL_CONNECTED) {
       gotIp = true;
       break;
     }
@@ -3149,17 +3149,17 @@ static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
     wardNotify("WiGLE", useStoredWifi ? "WiFi failed. Connect this device to Wi‑Fi once in another tool, "
                                         "or add SSID + password on lines 3–4 of wigle.txt."
                                       : "WiFi connect failed (check wigle.txt SSID/pass).");
-    WiFi.disconnect();
+    DivWiFi.disconnect();
     delay(100);
     s_fgScanPaused = false;
     return;
   }
 
   wardLogPush("WiGLE: WiFi OK");
-  File out = SD.open(WARD_WIGLE_TMP_CSV, FILE_WRITE);
+  DivFile out = DivSd.open(WARD_WIGLE_TMP_CSV, FILE_WRITE);
   if (!out) {
-    wardNotify("WiGLE", "Could not write temp CSV on SD.");
-    WiFi.disconnect();
+    wardNotify("WiGLE", "Could not write temp CSV on DivSd.");
+    DivWiFi.disconnect();
     delay(100);
     s_fgScanPaused = false;
     return;
@@ -3167,9 +3167,9 @@ static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
   wardLogPush("WiGLE: convert");
   if (!wardConvertWardCsvToWigle(srcCsvPath, out)) {
     out.close();
-    SD.remove(WARD_WIGLE_TMP_CSV);
+    DivSd.remove(WARD_WIGLE_TMP_CSV);
     wardNotify("WiGLE", "Could not read ward CSV or convert.");
-    WiFi.disconnect();
+    DivWiFi.disconnect();
     delay(100);
     s_fgScanPaused = false;
     return;
@@ -3177,14 +3177,14 @@ static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
   out.flush();
   out.close();
 
-  File up = SD.open(WARD_WIGLE_TMP_CSV, FILE_READ);
+  DivFile up = DivSd.open(WARD_WIGLE_TMP_CSV, FILE_READ);
   if (!up || up.size() < 64) {
     if (up) {
       up.close();
     }
-    SD.remove(WARD_WIGLE_TMP_CSV);
+    DivSd.remove(WARD_WIGLE_TMP_CSV);
     wardNotify("WiGLE", "Converted file empty or missing.");
-    WiFi.disconnect();
+    DivWiFi.disconnect();
     delay(100);
     s_fgScanPaused = false;
     return;
@@ -3204,9 +3204,9 @@ static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
   char err[160];
   bool ok = wardWigleStreamUpload(up, uploadName[0] ? uploadName : "wardrive.csv", b64, err, sizeof(err));
   up.close();
-  SD.remove(WARD_WIGLE_TMP_CSV);
+  DivSd.remove(WARD_WIGLE_TMP_CSV);
 
-  WiFi.disconnect();
+  DivWiFi.disconnect();
   delay(120);
 
   s_fgScanPaused = false;
@@ -3218,7 +3218,7 @@ static void wardPerformWigleUpload(const char* srcCsvPath, File* liveLog) {
     }
 }
 
-static void wardPrintCsvGpsPrefix(File& logf, uint32_t now) {
+static void wardPrintCsvGpsPrefix(DivFile& logf, uint32_t now) {
     logf.print((unsigned long)now);
     logf.print(',');
     logf.print(utcStr);
@@ -3246,13 +3246,13 @@ static void wardPrintCsvGpsPrefix(File& logf, uint32_t now) {
     }
 }
 
-static void wardDoWifiScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint32_t* scanCt) {
-  WiFi.scanDelete();
-  const int n = WiFi.scanNetworks(false, true);
+static void wardDoWifiScanLog(DivFile& logf, uint32_t now, uint32_t* linesWr, uint32_t* scanCt) {
+  DivWiFi.scanDelete();
+  const int n = DivWiFi.scanNetworks(false, true);
   (*scanCt)++;
   if (n <= 0) {
     wardLogPush("WiFi: 0 AP");
-    WiFi.scanDelete();
+    DivWiFi.scanDelete();
     return;
   }
   int cap = n;
@@ -3260,9 +3260,9 @@ static void wardDoWifiScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint3
     cap = (int)s_cfgMaxAps;
   }
   for (int i = 0; i < cap; ++i) {
-    const String ss = WiFi.SSID(i);
+    const DivString ss = DivWiFi.SSID(i);
     const char* ssidc = ss.c_str();
-    const uint8_t* bssid = WiFi.BSSID(i);
+    const uint8_t* bssid = DivWiFi.BSSID(i);
     char mac[20];
     if (bssid) {
       snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X", bssid[0], bssid[1], bssid[2],
@@ -3270,22 +3270,22 @@ static void wardDoWifiScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint3
     } else {
       mac[0] = '\0';
     }
-    wardLogPushWifiAp(ssidc, WiFi.channel(i), WiFi.RSSI(i), mac);
+    wardLogPushWifiAp(ssidc, DivWiFi.channel(i), DivWiFi.RSSI(i), mac);
     wardPrintCsvGpsPrefix(logf, now);
     logf.print("WIFI,");
     wardAppendCsvString(logf, ssidc);
     logf.print(',');
     logf.print(mac);
     logf.print(',');
-    logf.print(WiFi.channel(i));
+    logf.print(DivWiFi.channel(i));
     logf.print(',');
-    logf.print(WiFi.RSSI(i));
+    logf.print(DivWiFi.RSSI(i));
     logf.print(',');
-    logf.println(wardAuthLabel(WiFi.encryptionType(i)));
+    logf.println(wardAuthLabel(DivWiFi.encryptionType(i)));
     (*linesWr)++;
   }
   logf.flush();
-  WiFi.scanDelete();
+  DivWiFi.scanDelete();
 }
 
 static bool s_wardBleScanReady = false;
@@ -3304,7 +3304,7 @@ static void wardEnsureBleScan() {
   s_wardBleScanReady = true;
 }
 
-static void wardDoBleScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint32_t* scanCt) {
+static void wardDoBleScanLog(DivFile& logf, uint32_t now, uint32_t* linesWr, uint32_t* scanCt) {
   wardEnsureBleScan();
   BLEScan* scan = BLEDevice::getScan();
   if (!scan) {
@@ -3312,13 +3312,14 @@ static void wardDoBleScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint32
     wardLogPush("BLE: no scan");
     return;
   }
-  BLEScanResults* results = scan->start(2, false);
-  (*scanCt)++;
-  if (!results) {
+  if (!scan->start(2, false)) {
+    (*scanCt)++;
     wardLogPush("BLE: scan fail");
     return;
   }
-  const int n = results->getCount();
+  BLEScanResults results = scan->getResults();
+  (*scanCt)++;
+  const int n = results.getCount();
   if (n <= 0) {
     wardLogPush("BLE: 0 dev");
     logf.flush();
@@ -3329,12 +3330,15 @@ static void wardDoBleScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint32
     cap = (int)s_cfgMaxAps;
   }
   for (int i = 0; i < cap; ++i) {
-    BLEAdvertisedDevice d = results->getDevice(i);
+    const BLEAdvertisedDevice* d = results.getDevice(i);
+    if (!d) {
+      continue;
+    }
     char mac[24];
-    snprintf(mac, sizeof(mac), "%s", d.getAddress().toString().c_str());
-    const String bleName = d.getName();
+    snprintf(mac, sizeof(mac), "%s", d->getAddress().toString().c_str());
+    const DivString bleName = d->getName();
     const char* namec = bleName.length() ? bleName.c_str() : "";
-    wardLogPushBleDev(namec, d.getRSSI(), mac);
+    wardLogPushBleDev(namec, d->getRSSI(), mac);
     wardPrintCsvGpsPrefix(logf, now);
     logf.print("BLE,");
     wardAppendCsvString(logf, namec);
@@ -3343,7 +3347,7 @@ static void wardDoBleScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint32
     logf.print(',');
     logf.print(0);
     logf.print(',');
-    logf.print(d.getRSSI());
+    logf.print(d->getRSSI());
     logf.print(',');
     logf.println("");
     (*linesWr)++;
@@ -3351,7 +3355,7 @@ static void wardDoBleScanLog(File& logf, uint32_t now, uint32_t* linesWr, uint32
   logf.flush();
 }
 
-static void wardRunScansForMode(File& logf, uint32_t now, uint32_t* linesWr, uint32_t* scanCt) {
+static void wardRunScansForMode(DivFile& logf, uint32_t now, uint32_t* linesWr, uint32_t* scanCt) {
   const WardRadioMode mode = (WardRadioMode)s_cfgRadioMode;
   if (mode == WardRadioMode::WiFi || mode == WardRadioMode::Both) {
     wardDoWifiScanLog(logf, now, linesWr, scanCt);
@@ -3362,7 +3366,7 @@ static void wardRunScansForMode(File& logf, uint32_t now, uint32_t* linesWr, uin
 }
 
 static void wardFgScanTask(void* param) {
-  File* logf = (File*)param;
+  DivFile* logf = (DivFile*)param;
   uint32_t lines = 0;
   uint32_t scans = 0;
   uint32_t lastScan = millis();
@@ -3388,7 +3392,7 @@ static void wardFgScanTask(void* param) {
   vTaskDelete(nullptr);
 }
 
-static bool wardStartForegroundScanTask(File& logf) {
+static bool wardStartForegroundScanTask(DivFile& logf) {
   if (s_fgScanTask) {
     return true;
   }
@@ -3430,15 +3434,15 @@ static void wardBgTask(void* /*param*/) {
 
   gpsSerial.end();
   gpsSerial.begin(GPS_UART_BAUD, SERIAL_8N1, GPS_UART_RX, GPS_UART_TX);
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect();
   delay(80);
 
   char path[48];
   snprintf(path, sizeof(path), "/wd_%lu.csv", (unsigned long)millis());
   strncpy(s_bgPath, path, sizeof(s_bgPath));
 
-  File logf = SD.open(path, FILE_WRITE);
+  DivFile logf = DivSd.open(path, FILE_WRITE);
   if (!logf) {
     s_bgPath[0] = '\0';
     gpsSerial.end();
@@ -3473,8 +3477,8 @@ static void wardBgTask(void* /*param*/) {
   }
   logf.flush();
   logf.close();
-  WiFi.scanDelete();
-  WiFi.disconnect();
+  DivWiFi.scanDelete();
+  DivWiFi.disconnect();
   gpsSerial.end();
   s_bgPath[0] = '\0';
   s_bgTask = nullptr;
@@ -3624,7 +3628,7 @@ void session() {
   uint32_t lastUiMs = 0;
   char path[48] = "";
 
-  File logf;
+  DivFile logf;
   bool fgFile = false;
 
   if (!bgWas) {
@@ -3644,12 +3648,12 @@ void session() {
 
     gpsSerial.end();
     gpsSerial.begin(GPS_UART_BAUD, SERIAL_8N1, GPS_UART_RX, GPS_UART_TX);
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
+    DivWiFi.mode(WIFI_STA);
+    DivWiFi.disconnect();
     delay(80);
 
     snprintf(path, sizeof(path), "/wd_%lu.csv", (unsigned long)millis());
-    logf = SD.open(path, FILE_WRITE);
+    logf = DivSd.open(path, FILE_WRITE);
     if (!logf) {
       if (wardWaitStartupFailureDismiss("Wardriver", "Could not create log file on SD.")) {
         s_wardRetrySession = true;
@@ -3939,7 +3943,7 @@ void session() {
               logf.flush();
               logf.close();
               fgFile = false;
-              WiFi.scanDelete();
+              DivWiFi.scanDelete();
               gpsSerial.end();
               wardStartBackground();
               s_wardFgSessionForStatusBar = false;
@@ -4014,8 +4018,8 @@ void session() {
     wardStopForegroundScanTask();
     logf.flush();
     logf.close();
-    WiFi.scanDelete();
-    WiFi.disconnect();
+    DivWiFi.scanDelete();
+    DivWiFi.disconnect();
     gpsSerial.end();
   }
 

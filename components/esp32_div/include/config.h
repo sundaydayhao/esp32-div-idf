@@ -2,8 +2,9 @@
 // config.h — merged from bleconfig.h, wificonfig.h, subconfig.h
 
 /* ───────────── Common includes ───────────── */
-#include <TFT_eSPI.h>
-#include <EEPROM.h>
+#include "DivDisplay.h"
+#include "DivNvStore.h"
+#include "DivSerial.h"
 #include <nRF24L01.h>
 #include <RF24.h>
 #include <RCSwitch.h>
@@ -12,6 +13,7 @@
 #include <esp_system.h>
 #include <esp_event.h>
 #include <esp_event_loop.h>
+#include <soc/soc_caps.h>
 #include <nvs_flash.h>
 
 // Use NimBLE for all BLE functionality, via the BleCompat shim which
@@ -19,9 +21,11 @@
 #include "BleCompat.h"
 #include "XPT2046_Touchscreen.h"
 
+#if defined(SOC_BT_CLASSIC_SUPPORTED) && SOC_BT_CLASSIC_SUPPORTED
 #include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp_gap_bt_api.h"
+#endif
 
 #include "ELECHOUSE_CC1101_SRC_DRV.h"
 #include "PCF8574.h"
@@ -29,7 +33,7 @@
 #include "shared.h"
 
 /* ───────────── Common externs ───────────── */
-extern TFT_eSPI tft;
+extern DivDisplay tft;
 extern PCF8574 pcf;
 
 /* ───────────── BLE namespaces ───────────── */

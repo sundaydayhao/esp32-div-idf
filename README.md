@@ -3,7 +3,7 @@
 This tree is organized as an ESP-IDF application. The firmware entry point is
 `main/app_main`, application code lives in `components/esp32_div`, board
 selection lives in `components/esp32_div_board/include/BoardConfig.h`, and
-legacy Arduino source materials are archived under `archive/`.
+platform services live in `components/esp32_div_platform`.
 
 ```bash
 idf.py set-target esp32s3
@@ -11,10 +11,9 @@ idf.py build
 idf.py flash monitor
 ```
 
-The current port still carries Arduino-compatible third-party components in
-`third_party/` while UI, storage, and radio modules are being migrated toward
-native ESP-IDF APIs. New code should prefer ESP-IDF drivers, `esp_event`,
-`esp_wifi`, NVS, VFS/FATFS, and FreeRTOS APIs over Arduino wrappers.
+The codebase uses ESP-IDF drivers, `esp_event`, `esp_wifi`, NVS, VFS/FATFS,
+FreeRTOS, and project-local platform abstractions. Managed dependencies are
+declared through IDF Component Manager where practical.
 
 <div align="center">
 

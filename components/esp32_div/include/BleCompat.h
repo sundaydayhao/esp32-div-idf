@@ -7,4 +7,4 @@
 #define CONFIG_NIMBLE_ENABLED 1
 #endif
 
-#include <BLEDevice.h>
+#include <NimBLEDevice.h>

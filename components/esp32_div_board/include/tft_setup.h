@@ -2,7 +2,7 @@
 
 #include "BoardConfig.h"
 
-// Tell TFT_eSPI to stop after this board-specific setup.
+// Mark the board display setup as loaded for code that checks this guard.
 #define USER_SETUP_LOADED
 
 // TFT_config.h may have already selected a Kconfig driver. Clear panel driver

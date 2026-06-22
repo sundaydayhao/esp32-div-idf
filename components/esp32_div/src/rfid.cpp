@@ -1,7 +1,8 @@
 #include "rfid.h"
 
 #include <Adafruit_PN532.h>
-#include <SPI.h>
+#include "DivSerial.h"
+#include "DivSpi.h"
 #include <cstdio>
 #include <cstring>
 
@@ -40,7 +41,7 @@ enum CardType { UNKNOWN, MIFARE_CLASSIC, MIFARE_ULTRALIGHT, NTAG, MIFARE_DESFIRE
 enum class RfidUiEvt { None, Back, Primary };
 
 static void rfidAttachBus() {
-  SPI.begin(PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
+  DivSpi.begin(PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
   if (s_hwOk) {
     s_nfc.begin();
     s_nfc.SAMConfig();
@@ -51,7 +52,7 @@ static void rfidAttachBus() {
 /** Return shared SPI to SD wiring without remounting (fast). Call restoreSdAfterSharedSpi once when leaving RFID. */
 static void rfidRestoreBus() {
 #if defined(SD_SCLK) && defined(SD_MISO) && defined(SD_MOSI) && defined(SD_CS)
-  SPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
+  DivSpi.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
 #endif
 }
 
@@ -254,10 +255,10 @@ static char s_featureInfoTitle[32];
 static char s_featureInfoBody[640];
 static bool s_featureInfoAvailable = false;
 static char s_listenCenterLabel[24];
-static String s_rfidLogBuffer[kRfidMaxLogLines];
+static DivString s_rfidLogBuffer[kRfidMaxLogLines];
 static uint16_t s_rfidLogColor[kRfidMaxLogLines];
 static int s_rfidLogIndex = 0;
-static String s_rfidStatusLineText[kRfidStatusLineCount];
+static DivString s_rfidStatusLineText[kRfidStatusLineCount];
 static uint16_t s_rfidStatusLineColor[kRfidStatusLineCount];
 
 static void rfidPrintWrappedPageBg(int x, int y, int maxWidth, const char* text, int lineStepPx,
@@ -312,11 +313,11 @@ static void rfidDrawInfoPill(int x, int y, int w, const char* label) {
   tft.print(label);
 }
 
-static String rfidFitInfoTitle(const char* title) {
+static DivString rfidFitInfoTitle(const char* title) {
   if (!title || !title[0]) {
-    return String();
+    return DivString();
   }
-  String t = title;
+  DivString t = title;
   const int maxW = TFT_WIDTH - RF_PAD_X * 2;
   const bool needsEllipsis = tft.textWidth(t) > maxW;
   while (t.length() > 0 && tft.textWidth(needsEllipsis ? t + "..." : t) > maxW) {
@@ -345,7 +346,7 @@ static void rfidDrawInfoOverlay(const char* featureTitle, const char* body, int 
   tft.drawString("Info", RF_PAD_X, headerY);
 
   if (pageCount > 1) {
-    String pageLabel = String(page + 1) + "/" + String(pageCount);
+    DivString pageLabel = DivString(page + 1) + "/" + DivString(pageCount);
     const int pw = (int)tft.textWidth(pageLabel) + 14;
     rfidDrawInfoPill(TFT_WIDTH - RF_PAD_X - pw, headerY, pw, pageLabel.c_str());
   }
@@ -401,8 +402,8 @@ static void rfidWaitTwoBoxDismiss();
 static void rfidRunToolbar(const char* title);
 static void rfidDrawTextBoxes();
 static void rfidResetUiState();
-static void rfidPrint(const String& text, uint16_t color, bool extraSpace = false);
-static void rfidDrawStatusLineIfChanged(int line, const String& text, uint16_t color);
+static void rfidPrint(const DivString& text, uint16_t color, bool extraSpace = false);
+static void rfidDrawStatusLineIfChanged(int line, const DivString& text, uint16_t color);
 
 /** Dim one-line caption for NFC Status (listen/progress); cleared in rfidFeatureSetup. */
 static char s_rfidBandAux[72];
@@ -493,7 +494,7 @@ static void rfidRunToolbar(const char* title) {
   if (title && title[0]) {
     const int titleX = 35;
     const int maxTitleW = TFT_WIDTH - titleX - 8;
-    String t = title;
+    DivString t = title;
     const bool needsEllipsis = tft.textWidth(t) > maxTitleW;
     while (t.length() > 0 && tft.textWidth(needsEllipsis ? t + "..." : t) > maxTitleW) {
       t.remove(t.length() - 1);
@@ -516,7 +517,7 @@ static void rfidUpdateToolbarTitle(const char* title) {
 
 static void rfidPrintWrappedStepBg(int x, int y, int maxWidth, const char* text, int lineStepPx,
                                    uint16_t fg, uint16_t bg, int bottomY = TFT_HEIGHT) {
-  String message = text ? text : "";
+  DivString message = text ? text : "";
   int cursorY = y;
   bool clipped = false;
 
@@ -527,7 +528,7 @@ static void rfidPrintWrappedStepBg(int x, int y, int maxWidth, const char* text,
     }
 
     int nl = message.indexOf('\n');
-    String paragraph = (nl >= 0) ? message.substring(0, nl) : message;
+    DivString paragraph = (nl >= 0) ? message.substring(0, nl) : message;
     message = (nl >= 0) ? message.substring(nl + 1) : "";
 
     if (paragraph.length() == 0) {
@@ -573,11 +574,11 @@ static void rfidPrintWrappedStep(int x, int y, int maxWidth, const char* text, i
 }
 
 static int rfidCountWrappedLines(int maxWidth, const char* text) {
-  String message = text ? text : "";
+  DivString message = text ? text : "";
   int total = 0;
   while (message.length() > 0) {
     int nl = message.indexOf('\n');
-    String paragraph = (nl >= 0) ? message.substring(0, nl) : message;
+    DivString paragraph = (nl >= 0) ? message.substring(0, nl) : message;
     message = (nl >= 0) ? message.substring(nl + 1) : "";
 
     if (paragraph.length() == 0) {
@@ -606,12 +607,12 @@ static int rfidCountWrappedLines(int maxWidth, const char* text) {
 
 static void rfidPrintWrappedPageBg(int x, int y, int maxWidth, const char* text, int lineStepPx,
                                    uint16_t fg, uint16_t bg, int firstLine, int maxLines) {
-  String message = text ? text : "";
+  DivString message = text ? text : "";
   int lineNo = 0;
   int drawn = 0;
   while (message.length() > 0 && drawn < maxLines) {
     int nl = message.indexOf('\n');
-    String paragraph = (nl >= 0) ? message.substring(0, nl) : message;
+    DivString paragraph = (nl >= 0) ? message.substring(0, nl) : message;
     message = (nl >= 0) ? message.substring(nl + 1) : "";
 
     if (paragraph.length() == 0) {
@@ -647,13 +648,13 @@ static void rfidPrintWrappedPageBg(int x, int y, int maxWidth, const char* text,
   }
 }
 
-static String rfidFitStatusText(const String& text) {
+static DivString rfidFitStatusText(const DivString& text) {
   const int maxWidth = TFT_WIDTH - 16;
   tft.setTextSize(1);
   if (tft.textWidth(text) <= maxWidth) {
     return text;
   }
-  String out = text;
+  DivString out = text;
   while (out.length() > 1 && tft.textWidth(out + "...") > maxWidth) {
     out.remove(out.length() - 1);
   }
@@ -666,12 +667,12 @@ static String rfidFitStatusText(const String& text) {
 static constexpr int kRfidLogTextX = 10;
 static constexpr int kRfidLogTextW = TFT_WIDTH - kRfidLogTextX * 2;
 
-static String rfidFitLogText(const String& text) {
+static DivString rfidFitLogText(const DivString& text) {
   tft.setTextSize(1);
   if (tft.textWidth(text) <= kRfidLogTextW) {
     return text;
   }
-  String out = text;
+  DivString out = text;
   while (out.length() > 1 && tft.textWidth(out + "...") > kRfidLogTextW) {
     out.remove(out.length() - 1);
   }
@@ -743,7 +744,7 @@ static void rfidRedrawActivityLog() {
   }
 }
 
-static void rfidAppendLogLine(const String& line, uint16_t color) {
+static void rfidAppendLogLine(const DivString& line, uint16_t color) {
   if (line.length() == 0) {
     return;
   }
@@ -756,9 +757,9 @@ static void rfidAppendLogLine(const String& line, uint16_t color) {
   s_rfidLogIndex++;
 }
 
-static void rfidPrint(const String& text, uint16_t color, bool extraSpace) {
+static void rfidPrint(const DivString& text, uint16_t color, bool extraSpace) {
   tft.setTextSize(1);
-  String remaining = text;
+  DivString remaining = text;
   while (remaining.length() > 0) {
     const int nl = remaining.indexOf('\n');
     if (nl >= 0) {
@@ -780,7 +781,7 @@ static void rfidPrint(const String& text, uint16_t color, bool extraSpace) {
         end = sp;
       }
     }
-    String line = remaining.substring(0, end);
+    DivString line = remaining.substring(0, end);
     line.trim();
     remaining = remaining.substring(end);
     remaining.trim();
@@ -798,9 +799,9 @@ static void rfidPrint(const String& text, uint16_t color, bool extraSpace) {
   rfidRedrawActivityLog();
 }
 
-static void rfidDrawStatusLine(int line, const String& text, uint16_t color) {
+static void rfidDrawStatusLine(int line, const DivString& text, uint16_t color) {
   const int y = kRfidStatusTextY + line * kRfidLineHeight;
-  const String fitted = rfidFitStatusText(text);
+  const DivString fitted = rfidFitStatusText(text);
   tft.fillRect(8, y, TFT_WIDTH - 16, kRfidLineHeight, TFT_BLACK);
   tft.setTextSize(1);
   tft.setTextColor(color, TFT_BLACK);
@@ -808,7 +809,7 @@ static void rfidDrawStatusLine(int line, const String& text, uint16_t color) {
   tft.print(fitted);
 }
 
-static void rfidDrawStatusLineIfChanged(int line, const String& text, uint16_t color) {
+static void rfidDrawStatusLineIfChanged(int line, const DivString& text, uint16_t color) {
   if (line < 0 || line >= kRfidStatusLineCount) {
     return;
   }
@@ -861,7 +862,7 @@ static void rfidDrawStaticStatusLines() {
   }
   rfidDrawStatusLineIfChanged(4, "Protocol: ISO14443A", UI_DIM_TEXT);
   if (s_pn532VerStr[0] != '\0') {
-    rfidDrawStatusLineIfChanged(5, String("Reader: ") + s_pn532VerStr, UI_DIM_TEXT);
+    rfidDrawStatusLineIfChanged(5, DivString("Reader: ") + s_pn532VerStr, UI_DIM_TEXT);
   } else {
     rfidDrawStatusLineIfChanged(5, "Reader: PN532", UI_DIM_TEXT);
   }
@@ -1004,7 +1005,7 @@ static void rfidDynamicBand(int topY, const char* line1, const char* line2) {
   }
 
   rfidDrawStaticStatusLines();
-  const String modeLine = String("Mode: ") + s_dynPillLabel;
+  const DivString modeLine = DivString("Mode: ") + s_dynPillLabel;
   rfidDrawStatusLineIfChanged(0, modeLine, s_dynPillColor);
   rfidDrawStatusLineIfChanged(1, l1, UI_TEXT);
   rfidDrawStatusLineIfChanged(2, l2, UI_DIM_TEXT);
@@ -1094,12 +1095,12 @@ static bool rfidDismissTimeoutPanel(const char* statusLine, const char* message)
   rfidDynClearPrev();
   rfidDynamicBand(0, statusLine, "No tag detected");
 
-  String logLine = message;
+  DivString logLine = message;
   const int nl = logLine.indexOf('\n');
   if (nl >= 0) {
     logLine = logLine.substring(0, nl);
   }
-  rfidPrint(String("[!] ") + logLine, UI_WARN, false);
+  rfidPrint(DivString("[!] ") + logLine, UI_WARN, false);
   return rfidWaitTimeoutDismiss();
 }
 
@@ -1241,7 +1242,7 @@ static void rfidShellProgress(const char* mainTitle, const char* stepLine, const
   rfidDrawHint(false);
   rfidDrawStaticStatusLines();
   rfidDynamicBand(0, stepLine, "");
-  rfidPrint(String("[!] ") + stepLine, UI_TEXT, false);
+  rfidPrint(DivString("[!] ") + stepLine, UI_TEXT, false);
   rfidRedrawNavChrome();
 }
 
@@ -1261,7 +1262,7 @@ static void rfidTransitionToProgress(const char* title, const char* stepLine, co
   rfidDrawTextBoxes();
   rfidDrawStaticStatusLines();
   rfidDynamicBand(0, stepLine, "");
-  rfidPrint(String("[!] ") + stepLine, UI_TEXT, false);
+  rfidPrint(DivString("[!] ") + stepLine, UI_TEXT, false);
 }
 
 static void rfidLayoutFull(const char* title, const char* subtitleOrNull, const char* body,
@@ -1290,7 +1291,7 @@ static void rfidLayoutFull(const char* title, const char* subtitleOrNull, const 
     if (hasSub) {
       tft.setTextFont(1);
       tft.setTextColor(UI_DIM_TEXT, TFT_BLACK);
-      String sub = subtitleOrNull;
+      DivString sub = subtitleOrNull;
       const bool wasLong = tft.textWidth(sub) > innerW;
       while (sub.length() > 0 && tft.textWidth(wasLong ? sub + "..." : sub) > innerW) {
         sub.remove(sub.length() - 1);
@@ -1367,14 +1368,14 @@ static void rfidPresentResult(const char* title, const char* sub, const char* bo
   rfidDrawStaticStatusLines();
   rfidDynamicBand(0, title ? title : "Done", sub && sub[0] ? sub : "Complete");
   if (sub && sub[0]) {
-    rfidPrint(String("[") + (failed ? "!" : "+") + "] " + sub, failed ? UI_WARN : UI_OK, false);
+    rfidPrint(DivString("[") + (failed ? "!" : "+") + "] " + sub, failed ? UI_WARN : UI_OK, false);
   }
   if (body && body[0]) {
-    String remaining = body;
+    DivString remaining = body;
     int lines = 0;
     while (remaining.length() > 0 && lines < 8) {
       const int nl = remaining.indexOf('\n');
-      String line = (nl >= 0) ? remaining.substring(0, nl) : remaining;
+      DivString line = (nl >= 0) ? remaining.substring(0, nl) : remaining;
       remaining = (nl >= 0) ? remaining.substring(nl + 1) : "";
       line.trim();
       if (line.length() > 0) {
@@ -1701,7 +1702,7 @@ void sessionErase() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Tag detected", uidStr);
-  rfidPrint(String("[+] Tag detected ") + uidStr, UI_OK, false);
+  rfidPrint(DivString("[+] Tag detected ") + uidStr, UI_OK, false);
 
   CardType ct = detectCardType(uid, uidLength);
   if (ct != MIFARE_CLASSIC) {
@@ -1732,7 +1733,7 @@ void sessionErase() {
 void sessionDump() {
   static const char kIntro[] =
       "Reads Classic blocks 0–63 or UL/NTAG user pages.\n\n"
-      "Summary here; full hex prints on Serial Console.\n\n"
+      "Summary here; full HEX prints on Serial Console.\n\n"
       "Present tag on the coil.";
 
   rfidAttachBus();
@@ -1750,7 +1751,7 @@ void sessionDump() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Tag detected", uidStr);
-  rfidPrint(String("[+] Tag detected ") + uidStr, UI_OK, false);
+  rfidPrint(DivString("[+] Tag detected ") + uidStr, UI_OK, false);
 
   uint8_t keyA[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   uint8_t data[16];
@@ -1761,14 +1762,14 @@ void sessionDump() {
   if (ct == MIFARE_CLASSIC) {
     segmentsExpected = 64;
     rfidTransitionToProgress("Dump", "Reading Classic blocks", "Cancel",
-                             "Reading MIFARE Classic blocks 0–63.\nFull hex on Serial Console.");
-    Serial.println(F("\n--- RFID Dump Classic ---"));
+                             "Reading MIFARE Classic blocks 0–63.\nFull HEX on Serial Console.");
+    DivSerial.println(F("\n--- RFID Dump Classic ---"));
     for (uint8_t block = 0; block < 64; block++) {
       char l2[48];
       snprintf(l2, sizeof(l2), "Block %u / 63", (unsigned)block);
       rfidDynamicBand(RF_DYN_TOP_PROG, "Dumping MIFARE Classic", l2);
       char infoLine[72];
-      snprintf(infoLine, sizeof(infoLine), "Reading block %u of 63.\nFull hex on Serial Console.",
+      snprintf(infoLine, sizeof(infoLine), "Reading block %u of 63.\nFull HEX on Serial Console.",
                (unsigned)block);
       rfidRefreshInfoPanel("PROGRESS", infoLine);
       if (rfidPollCancel()) {
@@ -1791,11 +1792,11 @@ void sessionDump() {
         if (nz) {
           blocksWithData++;
         }
-        Serial.printf("B%u:", (unsigned)block);
+        DivSerial.printf("B%u:", (unsigned)block);
         for (int i = 0; i < 16; i++) {
-          Serial.printf(" %02X", data[i]);
+          DivSerial.printf(" %02X", data[i]);
         }
-        Serial.println();
+        DivSerial.println();
       } else if (rfidDumpTagLost(uid, uidLength, (unsigned)block)) {
         return;
       }
@@ -1805,14 +1806,14 @@ void sessionDump() {
     uint8_t maxPages = (ct == MIFARE_ULTRALIGHT) ? 16u : 36u;
     segmentsExpected = (int)maxPages - 4;
     rfidTransitionToProgress("Dump", "Reading user pages", "Cancel",
-                             "Reading Ultralight / NTAG user pages.\nFull hex on Serial Console.");
-    Serial.println(F("\n--- RFID Dump Ultralight / NTAG ---"));
+                             "Reading Ultralight / NTAG user pages.\nFull HEX on Serial Console.");
+    DivSerial.println(F("\n--- RFID Dump Ultralight / NTAG ---"));
     for (uint8_t page = 4; page < maxPages; page++) {
       char l2[48];
       snprintf(l2, sizeof(l2), "Page %u / %u", (unsigned)page, (unsigned)(maxPages - 1));
       rfidDynamicBand(RF_DYN_TOP_PROG, "Dumping pages", l2);
       char infoLine[72];
-      snprintf(infoLine, sizeof(infoLine), "Reading page %u of %u.\nFull hex on Serial Console.",
+      snprintf(infoLine, sizeof(infoLine), "Reading page %u of %u.\nFull HEX on Serial Console.",
                (unsigned)page, (unsigned)(maxPages - 1));
       rfidRefreshInfoPanel("PROGRESS", infoLine);
       if (rfidPollCancel()) {
@@ -1834,11 +1835,11 @@ void sessionDump() {
         if (nz) {
           blocksWithData++;
         }
-        Serial.printf("P%u:", (unsigned)page);
+        DivSerial.printf("P%u:", (unsigned)page);
         for (int i = 0; i < 4; i++) {
-          Serial.printf(" %02X", pg[i]);
+          DivSerial.printf(" %02X", pg[i]);
         }
-        Serial.println();
+        DivSerial.println();
       } else if (rfidDumpTagLost(uid, uidLength, (unsigned)page)) {
         return;
       }
@@ -1875,7 +1876,7 @@ void sessionDump() {
   snprintf(body, sizeof(body),
            "UID: %s\nType: %s\n\n"
            "Segments read OK: %d%s\nBlocks/pages with any non-zero byte: %d\n\n"
-           "%sOpen Serial Console for full hex.",
+           "%sOpen Serial Console for full HEX.",
            uidStr, cardTypeStr(ct), blocksRead,
            partial ? " (partial — some blocks need other keys)" : "",
            blocksWithData, partial ? "Some blocks were skipped (auth/key).\n" : "");
@@ -1902,7 +1903,7 @@ void sessionDecodeAccess() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Tag detected", uidStr);
-  rfidPrint(String("[+] Tag detected ") + uidStr, UI_OK, false);
+  rfidPrint(DivString("[+] Tag detected ") + uidStr, UI_OK, false);
 
   CardType ct = detectCardType(uid, uidLength);
   if (ct != MIFARE_CLASSIC) {
@@ -2178,7 +2179,7 @@ void sessionCardReader() {
   char body[640];
   snprintf(body, sizeof(body),
            "Reader IC: %s\n\n"
-           "UID (hex): %s\n"
+           "UID (HEX): %s\n"
            "UID length: %u bytes\n"
            "Detected type: %s\n"
            "Type code (internal): %d\n",
@@ -2209,7 +2210,7 @@ void sessionCardReader() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Tag detected", uidStr);
-  rfidPrint(String("[+] ") + cardTypeStr(ct) + "  " + uidStr, UI_OK, false);
+  rfidPrint(DivString("[+] ") + cardTypeStr(ct) + "  " + uidStr, UI_OK, false);
   if (ct == MIFARE_CLASSIC && classicBlk[0]) {
     rfidPrint(classicBlk, UI_DIM_TEXT, false);
   }
@@ -2256,7 +2257,7 @@ void sessionClone() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Source tag detected", uidStr);
-  rfidPrint(String("[+] Source ") + uidStr, UI_OK, false);
+  rfidPrint(DivString("[+] Source ") + uidStr, UI_OK, false);
 
   CardType srcType = detectCardType(uid, uidLength);
   if (srcType == UNKNOWN) {
@@ -2371,7 +2372,7 @@ void sessionClone() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Blank tag detected", blankUidStr);
-  rfidPrint(String("[+] Blank ") + blankUidStr, UI_OK, false);
+  rfidPrint(DivString("[+] Blank ") + blankUidStr, UI_OK, false);
 
   CardType blankType = detectCardType(uid, uidLength);
   if (blankType != srcType) {
@@ -2555,7 +2556,7 @@ void sessionTagDisrupt() {
   rfidSetDynamicPill("OK", UI_OK);
   rfidSetBandAux(nullptr);
   rfidDynamicBand(0, "Tag detected", uidStr);
-  rfidPrint(String("[+] Tag detected ") + uidStr, UI_OK, false);
+  rfidPrint(DivString("[+] Tag detected ") + uidStr, UI_OK, false);
 
   if (ct != MIFARE_CLASSIC) {
     rfidRestoreBus();

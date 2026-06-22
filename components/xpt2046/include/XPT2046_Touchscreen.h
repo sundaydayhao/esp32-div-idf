@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "driver/spi_master.h"
+
 struct TS_Point {
   int16_t x;
   int16_t y;
@@ -32,4 +34,6 @@ class XPT2046_Touchscreen {
   uint8_t clkPin_;
   uint8_t mosiPin_;
   uint8_t misoPin_;
+  spi_device_handle_t spi_;
+  bool spiReady_;
 };

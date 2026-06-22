@@ -1,18 +1,18 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <SD.h>
-#include <SPI.h>
-#include <TFT_eSPI.h>
-#include <WiFi.h>
+#include "DivSd.h"
+#include "DivSpi.h"
+#include "DivDisplay.h"
+#include "DivWiFi.h"
 #include <XPT2046_Touchscreen.h>
 #include "SettingsStore.h"
 #include "Touchscreen.h"
 #include "shared.h"
 
-extern TFT_eSPI tft;
+extern DivDisplay tft;
 
-// Obfuscated-string helpers (XOR decode, then print).
+// Obfuscated string helpers (XOR decode, then print).
 void tftPrintObf(const uint8_t* data, size_t len, uint8_t key = k0());
 void tftPrintlnObf(const uint8_t* data, size_t len, uint8_t key = k0());
 void serialPrintObf(const uint8_t* data, size_t len, bool newline = false, uint8_t key = k0());
@@ -23,7 +23,7 @@ void pauseBackgroundRadioTasks();
 float readBatteryVoltage();
 float readInternalTemperature();
 bool isSDCardAvailable();
-/** After SPI is used for another device (e.g. PN532 RFID), restore pins and remount SD. */
+/** After SPI is used for another device (e.g. PN532 RFID), restore pins and remount DivSd. */
 void restoreSdAfterSharedSpi();
 void drawStatusBar(float batteryVoltage, bool forceUpdate = false, bool bottomSeparator = false);
 void startStatusBarTask();

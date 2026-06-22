@@ -3,10 +3,10 @@
 #include <IRsend.h>
 #include <IRutils.h>
 #include <cJSON.h>
-#include <SD.h>
+#include "DivSd.h"
 #include <algorithm>
 #include <vector>
-#include <string>
+#include "DivString.h"
 #include "KeyboardUI.h"
 #include "Touchscreen.h"
 #include "icon.h"
@@ -100,10 +100,10 @@ struct IrPlotLayout {
 static IrPlotLayout s_irPlot;
 static bool s_irBoxesDrawn = false;
 static bool s_irGraphChromeDrawn = false;
-static String s_irLogBuffer[kIrMaxLogLines];
+static DivString s_irLogBuffer[kIrMaxLogLines];
 static uint16_t s_irLogColor[kIrMaxLogLines];
 static int s_irLogIndex = 0;
-static String s_irStatusLineText[kIrStatusLineCount];
+static DivString s_irStatusLineText[kIrStatusLineCount];
 static uint16_t s_irStatusLineColor[kIrStatusLineCount];
 static bool s_irStatusStaticDrawn = false;
 static uint32_t s_irLastStatusDrawMs = 0;
@@ -140,7 +140,7 @@ static uint32_t s_lastStableHash = 0;
 static bool s_hasParsedKey = false;
 static uint64_t s_keyAddr = 0;
 static uint64_t s_keyCmd  = 0;
-static String s_keyText   = "";
+static DivString s_keyText   = "";
 
 static uint8_t s_waveZoomIdx = 0;
 static uint32_t s_wavePanUs = 0;
@@ -189,20 +189,20 @@ static void irWaveClampPan() {
   }
 }
 
-static String irGraphTitle() {
+static DivString irGraphTitle() {
   if (!s_hasCapture) {
     return "Live IR Scope";
   }
-  String title = "Waveform " + String(zoomLabel());
+  DivString title = "Waveform " + DivString(zoomLabel());
   if (s_waveZoomIdx != 0 && s_wavePanUs > 0) {
-    title += " @+" + String(s_wavePanUs / 1000) + "ms";
+    title += " @+" + DivString(s_wavePanUs / 1000) + "ms";
   }
   return title;
 }
 
 static void irDrawGraphChrome();
 static void redrawWaveformPlotOnly();
-static void irPrint(const String& text, uint16_t color, bool extraSpace);
+static void irPrint(const DivString& text, uint16_t color, bool extraSpace);
 static void irEnsurePlotLayout();
 static void redrawGraphTitleOnly(bool captured);
 
@@ -299,7 +299,7 @@ static void irHandleGraphTouch(int x, int y) {
     irPrint("[*] Graph pan +", UI_DIM_TEXT, false);
   } else {
     irWaveCycleZoom();
-    irPrint(String("[*] Zoom ") + zoomLabel(), UI_DIM_TEXT, false);
+    irPrint(DivString("[*] Zoom ") + zoomLabel(), UI_DIM_TEXT, false);
   }
   s_lastActionMs = now;
 }
@@ -316,13 +316,13 @@ static void irEnsurePlotLayout() {
   s_irPlot.valid = s_irPlot.plotWidth >= 32 && s_irPlot.plotHeight >= 10;
 }
 
-static String irFitStatusText(const String& text) {
+static DivString irFitStatusText(const DivString& text) {
   const int maxWidth = tft.width() - 16;
   tft.setTextSize(1);
   if (tft.textWidth(text) <= maxWidth) {
     return text;
   }
-  String out = text;
+  DivString out = text;
   while (out.length() > 1 && tft.textWidth(out + "...") > maxWidth) {
     out.remove(out.length() - 1);
   }
@@ -371,7 +371,7 @@ static void irRedrawActivityLog() {
   }
 }
 
-static void irPrint(const String& text, uint16_t color, bool extraSpace = false) {
+static void irPrint(const DivString& text, uint16_t color, bool extraSpace = false) {
   if (s_irLogIndex >= kIrMaxLogLines) {
     irScrollLog();
     s_irLogIndex = kIrMaxLogLines - 1;
@@ -390,9 +390,9 @@ static void irPrint(const String& text, uint16_t color, bool extraSpace = false)
   irRedrawActivityLog();
 }
 
-static void irDrawStatusLine(int line, const String& text, uint16_t color) {
+static void irDrawStatusLine(int line, const DivString& text, uint16_t color) {
   const int y = kIrStatusTextY + line * kIrLineHeight;
-  const String fitted = irFitStatusText(text);
+  const DivString fitted = irFitStatusText(text);
   tft.fillRect(8, y, tft.width() - 16, kIrLineHeight, TFT_BLACK);
   tft.setTextSize(1);
   tft.setTextColor(color, TFT_BLACK);
@@ -400,7 +400,7 @@ static void irDrawStatusLine(int line, const String& text, uint16_t color) {
   tft.print(fitted);
 }
 
-static void irDrawStatusLineIfChanged(int line, const String& text, uint16_t color) {
+static void irDrawStatusLineIfChanged(int line, const DivString& text, uint16_t color) {
   if (line < 0 || line >= kIrStatusLineCount) {
     return;
   }
@@ -428,7 +428,7 @@ static void irDrawStaticStatusLines() {
   if (s_irStatusStaticDrawn) {
     return;
   }
-  irDrawStatusLineIfChanged(5, "Carrier: " + String(kKhz) + " kHz IR", UI_DIM_TEXT);
+  irDrawStatusLineIfChanged(5, "Carrier: " + DivString(kKhz) + " kHz IR", UI_DIM_TEXT);
   s_irStatusStaticDrawn = true;
 }
 
@@ -438,7 +438,7 @@ static void irUpdateGraphHintLine() {
   } else {
     s_irStatusLineText[5] = "";
     s_irStatusLineColor[5] = 0;
-    irDrawStatusLineIfChanged(5, "Carrier: " + String(kKhz) + " kHz IR", UI_DIM_TEXT);
+    irDrawStatusLineIfChanged(5, "Carrier: " + DivString(kKhz) + " kHz IR", UI_DIM_TEXT);
   }
 }
 
@@ -450,8 +450,8 @@ static void irUpdateStatusPanel(bool force = false) {
   s_irLastStatusDrawMs = now;
 
   irDrawStaticStatusLines();
-  irDrawStatusLineIfChanged(4, "Repeat: " + String((unsigned)s_repeat) +
-                            "   Auto: " + String(s_autoTx ? "ON" : "OFF"),
+  irDrawStatusLineIfChanged(4, "Repeat: " + DivString((unsigned)s_repeat) +
+                            "   Auto: " + DivString(s_autoTx ? "ON" : "OFF"),
                             s_autoTx ? UI_WARN : UI_DIM_TEXT);
 
   if (!s_hasCapture) {
@@ -464,14 +464,14 @@ static void irUpdateStatusPanel(bool force = false) {
   }
 
   irDrawStatusLineIfChanged(0, "State: Captured", UI_OK);
-  irDrawStatusLineIfChanged(1, "Type: " + String(typeToString(s_decodeType)), UI_TEXT);
-  String keyLine = s_keyText;
+  irDrawStatusLineIfChanged(1, "Type: " + DivString(typeToString(s_decodeType)), UI_TEXT);
+  DivString keyLine = s_keyText;
   if (keyLine.length() > 28) {
     keyLine = keyLine.substring(0, 28);
   }
   irDrawStatusLineIfChanged(2, "Key: " + keyLine, UI_TEXT);
-  irDrawStatusLineIfChanged(3, "Raw: " + String((unsigned)s_rawLen) +
-                            " pulses  Bits: " + String((unsigned)s_bits), UI_TEXT);
+  irDrawStatusLineIfChanged(3, "Raw: " + DivString((unsigned)s_rawLen) +
+                            " pulses  Bits: " + DivString((unsigned)s_bits), UI_TEXT);
   irUpdateGraphHintLine();
 }
 
@@ -502,7 +502,7 @@ static void irDrawGraphChrome() {
   tft.setTextSize(1);
   tft.setTextColor(UI_DIM_TEXT, TFT_BLACK);
   if (s_hasCapture) {
-    const String title = irGraphTitle();
+    const DivString title = irGraphTitle();
     tft.drawString(title, (screenW - tft.textWidth(title)) / 2, s_irPlot.graphTop + 2);
   } else {
     tft.drawString("Live IR Scope", (screenW - 66) / 2, s_irPlot.graphTop + 2);
@@ -538,7 +538,7 @@ static void redrawGraphTitleOnly(bool captured) {
     tft.setTextSize(1);
     tft.setTextColor(UI_DIM_TEXT, TFT_BLACK);
     if (s_hasCapture) {
-      const String title = irGraphTitle();
+      const DivString title = irGraphTitle();
       tft.drawString(title, (screenW - tft.textWidth(title)) / 2, s_irPlot.graphTop + 2);
     } else {
       tft.drawString("Live IR Scope", (screenW - 66) / 2, s_irPlot.graphTop + 2);
@@ -778,7 +778,7 @@ static void irRestoreChrome() {
   tft.drawFastHLine(0, kToolbarY + kToolbarH, 240, UI_LINE);
 }
 
-static String getUserInputName() {
+static DivString getUserInputName() {
   OnScreenKeyboardConfig cfg;
   cfg.titleLine1      = "[!] Name this IR capture";
   cfg.titleLine2      = "(max 15 chars, ^ caps, # sym)";
@@ -820,17 +820,17 @@ namespace {
   };
 
   static bool irEnsureDir(const char* dirPath) {
-    if (SD.exists(dirPath)) return true;
-    if (SD.mkdir(dirPath)) return true;
-    if (dirPath && dirPath[0] == '/') return SD.mkdir(dirPath + 1);
+    if (DivSd.exists(dirPath)) return true;
+    if (DivSd.mkdir(dirPath)) return true;
+    if (dirPath && dirPath[0] == '/') return DivSd.mkdir(dirPath + 1);
     return false;
   }
 
-  static bool makeNextIrPath(String& outPath) {
+  static bool makeNextIrPath(DivString& outPath) {
     char buf[32];
     for (uint16_t i = 0; i < 10000; i++) {
       snprintf(buf, sizeof(buf), "%s%04u.bin", IR_FILE_PREFIX, (unsigned)i);
-      if (!SD.exists(buf)) { outPath = String(buf); return true; }
+      if (!DivSd.exists(buf)) { outPath = DivString(buf); return true; }
     }
     return false;
   }
@@ -915,18 +915,18 @@ static void runUI() {
       switch (activeIcon) {
         case 0:
           irWaveZoomOut();
-          irPrint("[*] Zoom " + String(zoomLabel()), UI_DIM_TEXT, false);
+          irPrint("[*] Zoom " + DivString(zoomLabel()), UI_DIM_TEXT, false);
           break;
         case 1:
           irWaveZoomIn();
-          irPrint("[*] Zoom " + String(zoomLabel()), UI_DIM_TEXT, false);
+          irPrint("[*] Zoom " + DivString(zoomLabel()), UI_DIM_TEXT, false);
           break;
         case 2:
           if (s_hasCapture) {
             s_autoTx = !s_autoTx;
             s_lastAutoMs = 0;
             s_contentDirty = true;
-            irPrint(String("[*] Auto ") + (s_autoTx ? "ON" : "OFF"), s_autoTx ? UI_WARN : UI_DIM_TEXT, false);
+            irPrint(DivString("[*] Auto ") + (s_autoTx ? "ON" : "OFF"), s_autoTx ? UI_WARN : UI_DIM_TEXT, false);
             irUpdateStatusPanel(true);
           } else {
             irPrint("[!] No capture for auto", UI_DIM_TEXT, false);
@@ -1015,14 +1015,14 @@ static void saveCapture() {
     return;
   }
 
-  String name = getUserInputName();
+  DivString name = getUserInputName();
   if (name.length() == 0) {
     return;
   }
 
   irPrint("[!] Saving...", UI_TEXT, false);
 
-  String path;
+  DivString path;
   if (!makeNextIrPath(path)) {
     showNotification("IR", "Too many files in /ir");
     return;
@@ -1040,7 +1040,7 @@ static void saveCapture() {
   memset(h.name, 0, sizeof(h.name));
   strncpy(h.name, name.c_str(), sizeof(h.name) - 1);
 
-  File f = SD.open(path, FILE_WRITE);
+  DivFile f = DivSd.open(path, FILE_WRITE);
   if (!f) {
     showNotification("IR", "Open file failed");
     return;
@@ -1058,7 +1058,7 @@ static void saveCapture() {
   irPrint("[+] Saved " + name, UI_OK, false);
 }
 
-static bool extractHexAfterLabel(const String& s, const char* label, uint64_t& out) {
+static bool extractHexAfterLabel(const DivString& s, const char* label, uint64_t& out) {
   int li = s.indexOf(label);
   if (li < 0) return false;
   int ox = s.indexOf("0x", li);
@@ -1137,7 +1137,7 @@ static void pollCapture() {
     s_keyCmd = 0;
     s_keyText = "";
     {
-      String human = resultToHumanReadableBasic(&s_results);
+      DivString human = resultToHumanReadableBasic(&s_results);
       uint64_t addr = 0, cmd = 0;
       const bool hasAddr = extractHexAfterLabel(human, "Address", addr) || extractHexAfterLabel(human, "Addr", addr);
       const bool hasCmd  = extractHexAfterLabel(human, "Command", cmd)  || extractHexAfterLabel(human, "Cmd", cmd);
@@ -1145,10 +1145,10 @@ static void pollCapture() {
         s_hasParsedKey = true;
         s_keyAddr = addr;
         s_keyCmd  = cmd;
-        s_keyText = String(typeToString(s_decodeType)) + " A:0x" + uint64ToString(addr, 16) + " C:0x" + uint64ToString(cmd, 16);
+        s_keyText = DivString(typeToString(s_decodeType)) + " A:0x" + uint64ToString(addr, 16) + " C:0x" + uint64ToString(cmd, 16);
       } else {
 
-        s_keyText = String(typeToString(s_decodeType)) + " V:0x" + uint64ToString(s_value, 16);
+        s_keyText = DivString(typeToString(s_decodeType)) + " V:0x" + uint64ToString(s_value, 16);
       }
     }
 
@@ -1384,12 +1384,12 @@ static int detailsY() {
   return areaTop + (areaH - DETAIL_CONTENT_H) / 2;
 }
 
-static std::vector<String> irFiles;
+static std::vector<DivString> irFiles;
 static uint16_t irTotal = 0;
 static uint16_t currentIndex = 0;
-static String sdLastErr = "";
+static DivString sdLastErr = "";
 
-static String selectedPath = "";
+static DivString selectedPath = "";
 static IrCaptureHeader selectedHeader{};
 static bool selectedValid = false;
 
@@ -1408,20 +1408,20 @@ static IRsend irsend(IR_TX_PIN);
 static void transmitProfile(uint16_t idx);
 static void deleteProfile(uint16_t idx);
 
-static bool endsWith(const String& s, const char* suf) {
+static bool endsWith(const DivString& s, const char* suf) {
   int sl = s.length();
   int tl = (int)strlen(suf);
   if (tl > sl) return false;
   return s.substring(sl - tl) == suf;
 }
 
-static String baseName(const String& path) {
+static DivString baseName(const DivString& path) {
   int slash = path.lastIndexOf('/');
   return (slash >= 0) ? path.substring(slash + 1) : path;
 }
 
-static bool readHeader(const String& path, IrCaptureHeader& out, String* errOut = nullptr) {
-  File f = SD.open(path, FILE_READ);
+static bool readHeader(const DivString& path, IrCaptureHeader& out, DivString* errOut = nullptr) {
+  DivFile f = DivSd.open(path, FILE_READ);
   if (!f) { if (errOut) *errOut = "Open failed"; return false; }
   if (f.read((uint8_t*)&out, sizeof(out)) != (int)sizeof(out)) { f.close(); if (errOut) *errOut="Read hdr failed"; return false; }
   f.close();
@@ -1432,8 +1432,8 @@ static bool readHeader(const String& path, IrCaptureHeader& out, String* errOut 
   return true;
 }
 
-static bool readRaw(const String& path, const IrCaptureHeader& h, uint16_t* outRaw, String* errOut = nullptr) {
-  File f = SD.open(path, FILE_READ);
+static bool readRaw(const DivString& path, const IrCaptureHeader& h, uint16_t* outRaw, DivString* errOut = nullptr) {
+  DivFile f = DivSd.open(path, FILE_READ);
   if (!f) { if (errOut) *errOut = "Open failed"; return false; }
 
   if (!f.seek(sizeof(IrCaptureHeader))) { f.close(); if (errOut) *errOut="Seek failed"; return false; }
@@ -1448,7 +1448,7 @@ static uint16_t pageStartForIndex(uint16_t idx) {
 }
 
 static void refreshSdIndex(bool keepSelection = true) {
-  String oldSel = keepSelection && irTotal > 0 ? irFiles[currentIndex] : String("");
+  DivString oldSel = keepSelection && irTotal > 0 ? irFiles[currentIndex] : DivString("");
 
   irFiles.clear();
   irTotal = 0;
@@ -1462,7 +1462,7 @@ static void refreshSdIndex(bool keepSelection = true) {
     return;
   }
 
-  if (!SD.exists(IR_DIR)) {
+  if (!DivSd.exists(IR_DIR)) {
     sdLastErr = "No /ir";
     currentIndex = 0;
     selectedValid = false;
@@ -1470,7 +1470,7 @@ static void refreshSdIndex(bool keepSelection = true) {
     return;
   }
 
-  File d = SD.open(IR_DIR);
+  DivFile d = DivSd.open(IR_DIR);
   if (!d) {
     sdLastErr = "Open /ir failed";
     currentIndex = 0;
@@ -1480,13 +1480,13 @@ static void refreshSdIndex(bool keepSelection = true) {
   }
 
   for (;;) {
-    File f = d.openNextFile();
+    DivFile f = d.openNextFile();
     if (!f) break;
     if (!f.isDirectory()) {
-      String name = String(f.name());
+      DivString name = DivString(f.name());
 
-      if (endsWith(name, ".bin") && (name.startsWith("ir_") || name.startsWith("/ir/ir_") || name.startsWith(String(IR_DIR) + "/ir_"))) {
-        String full = name.startsWith("/") ? name : (String(IR_DIR) + "/" + name);
+      if (endsWith(name, ".bin") && (name.startsWith("ir_") || name.startsWith("/ir/ir_") || name.startsWith(DivString(IR_DIR) + "/ir_"))) {
+        DivString full = name.startsWith("/") ? name : (DivString(IR_DIR) + "/" + name);
         irFiles.push_back(full);
       }
     }
@@ -1502,7 +1502,7 @@ static void refreshSdIndex(bool keepSelection = true) {
     return;
   }
 
-  std::sort(irFiles.begin(), irFiles.end(), [](const String& a, const String& b) {
+  std::sort(irFiles.begin(), irFiles.end(), [](const DivString& a, const DivString& b) {
     return baseName(a) < baseName(b);
   });
 
@@ -1518,7 +1518,7 @@ static void refreshSdIndex(bool keepSelection = true) {
   cacheDirty = true;
 }
 
-static bool loadSelected(String* errOut = nullptr) {
+static bool loadSelected(DivString* errOut = nullptr) {
   if (irTotal == 0) { selectedValid = false; return false; }
   selectedPath = irFiles[currentIndex];
   IrCaptureHeader h{};
@@ -1537,7 +1537,7 @@ static void ensurePageCache() {
     cachedOk[i] = false;
     uint16_t idx = (uint16_t)(start + i);
     if (idx >= irTotal) continue;
-    String err;
+    DivString err;
     cachedOk[i] = readHeader(irFiles[idx], cachedPage[i], &err);
     if (!cachedOk[i]) memset(&cachedPage[i], 0, sizeof(IrCaptureHeader));
   }
@@ -1568,13 +1568,13 @@ static void drawRow(uint16_t pageStart, uint8_t row) {
     char nameBuf[17];
     memcpy(nameBuf, cachedPage[row].name, 16);
     nameBuf[16] = '\0';
-    String nm = String(nameBuf);
+    DivString nm = DivString(nameBuf);
     if (nm.length() == 0) nm = baseName(irFiles[idx]);
     if (nm.length() > 10) nm = nm.substring(0, 10);
     tft.print(nm);
 
     decode_type_t dt = (decode_type_t)cachedPage[row].decodeType;
-    String ty = String(typeToString(dt));
+    DivString ty = DivString(typeToString(dt));
     if (ty.length() > 6) ty = ty.substring(0, 6);
     int tw = tft.textWidth(ty, 1);
     tft.setCursor(LIST_X + LIST_W - 4 - tw, y + 4);
@@ -1602,7 +1602,7 @@ static void drawDetails() {
   }
   tft.drawFastHLine(LIST_X, listBottomY(), LIST_W, UI_LINE);
 
-  String err;
+  DivString err;
   if (!selectedValid) loadSelected(&err);
   tft.setTextColor(UI_TEXT, FEATURE_BG);
   if (!selectedValid) {
@@ -1617,7 +1617,7 @@ static void drawDetails() {
   tft.setCursor(DETAIL_LABEL_X, dy);
   tft.print("Type:");
   tft.setCursor(DETAIL_VALUE_X, dy);
-  tft.print(String(typeToString(dt)));
+  tft.print(DivString(typeToString(dt)));
   tft.setCursor(DETAIL_COL2_LABEL_X, dy);
   tft.print("kHz:");
   tft.setCursor(DETAIL_COL2_VALUE_X, dy);
@@ -1724,7 +1724,7 @@ static void updateDisplay() {
   if (irTotal == 0) {
     tft.setCursor(LIST_X, HEADER_Y + DETAIL_LINE_H);
     tft.setTextColor(UI_TEXT, FEATURE_BG);
-    tft.print(sdLastErr.length() ? sdLastErr : "No profiles on SD.");
+    tft.print(sdLastErr.length() ? sdLastErr : "No profiles on DivSd.");
     return;
   }
   drawListPage(pageStartForIndex(currentIndex));
@@ -1734,8 +1734,8 @@ static void updateDisplay() {
 static void transmitProfile(uint16_t idx) {
   if (irTotal == 0 || idx >= irTotal) return;
 
-  String path = irFiles[idx];
-  String err;
+  DivString path = irFiles[idx];
+  DivString err;
   IrCaptureHeader h{};
   if (!readHeader(path, h, &err)) {
     showNotification("IR", "Read failed");
@@ -1780,8 +1780,8 @@ static void deleteProfile(uint16_t idx) {
 
   deleteArmed = false;
 
-  String path = irFiles[idx];
-  if (!SD.remove(path)) {
+  DivString path = irFiles[idx];
+  if (!DivSd.remove(path)) {
     irClearContentFrom(40, FEATURE_BG);
     tft.setCursor(10, 30 + yshift);
     tft.setTextColor(UI_WARN, FEATURE_BG);
@@ -1969,7 +1969,7 @@ void loop() {
   } else {
     tft.setCursor(10, 50 + yshift);
     tft.setTextColor(UI_TEXT, FEATURE_BG);
-    tft.print(sdLastErr.length() ? sdLastErr : "No profiles on SD.");
+    tft.print(sdLastErr.length() ? sdLastErr : "No profiles on DivSd.");
   }
 
   prevUp = prevPressed;
@@ -2058,13 +2058,13 @@ static const char* keyLabel(KeyId k) {
 }
 
 struct Profile {
-  String name;
-  String category;
-  String brand;
+  DivString name;
+  DivString category;
+  DivString brand;
   decode_type_t proto = decode_type_t::UNKNOWN;
   uint16_t bits = 0;
   // Keep as 64-bit so we can support protocols like RC6 (36-bit), Panasonic (48-bit),
-  // Pioneer (64-bit), etc. Avoid ArduinoJson's 64-bit requirement by only parsing
+  // Pioneer (64-bit), etc. Avoid the legacy JSON parser's 64-bit requirement by only parsing
   // 64-bit values from strings (not Variant::as<uint64_t>).
   uint64_t code[KeyCount]{};
   bool has[KeyCount]{};
@@ -2073,7 +2073,7 @@ struct Profile {
 static std::vector<Profile> s_profiles;
 static int s_profileIdx = 0;
 static bool s_uiDrawn = false;
-static String s_lastErr = "";
+static DivString s_lastErr = "";
 static bool s_loadedFromSd = false;
 
 static FeatureUI::Button s_keyBtns[KeyCount];
@@ -2081,11 +2081,11 @@ static FeatureUI::Button s_keyBtns[KeyCount];
 // Browser state.
 enum class Screen : uint8_t { Remote, Category, Brand, Profile };
 static Screen s_screen = Screen::Remote;
-static std::vector<String> s_categories;
-static std::vector<String> s_brands;
+static std::vector<DivString> s_categories;
+static std::vector<DivString> s_brands;
 static std::vector<int> s_filteredProfileIdx;   
-static String s_selectedCategory = "";
-static String s_selectedBrand = "";
+static DivString s_selectedCategory = "";
+static DivString s_selectedBrand = "";
 static int s_listSel = 0;
 static uint32_t s_browseVersion = 0;
 
@@ -2127,24 +2127,24 @@ static void drawKeyButton(KeyId k, bool pressed = false) {
   }
 }
 
-static String shortStatusLine(const String& s, int maxLen = 32) {
+static DivString shortStatusLine(const DivString& s, int maxLen = 32) {
   if ((int)s.length() <= maxLen) return s;
   return s.substring(0, maxLen);
 }
 
-static String truncateWithEllipsis(const String& s, int maxPx) {
+static DivString truncateWithEllipsis(const DivString& s, int maxPx) {
   if (maxPx <= 0 || s.length() == 0) return s;
   if ((int)tft.textWidth(s, 1) <= maxPx) return s;
   const int ellW = tft.textWidth("...", 1);
-  String out = s;
+  DivString out = s;
   while (out.length() > 0 && (int)tft.textWidth(out, 1) + ellW > maxPx) {
     out.remove(out.length() - 1);
   }
   return out + "...";
 }
 
-static String normalizeToken(const String& in) {
-  String s;
+static DivString normalizeToken(const DivString& in) {
+  DivString s;
   s.reserve(in.length());
   for (int i = 0; i < (int)in.length(); i++) {
     char c = in[i];
@@ -2154,8 +2154,8 @@ static String normalizeToken(const String& in) {
   return s;
 }
 
-static bool keyFromToken(const String& tok, KeyId& out) {
-  String k = normalizeToken(tok);
+static bool keyFromToken(const DivString& tok, KeyId& out) {
+  DivString k = normalizeToken(tok);
   if (k == "POWER" || k == "PWR") { out = Power; return true; }
   if (k == "MUTE") { out = Mute; return true; }
   if (k == "VOLUP" || k == "VOLUMEUP" || k == "VOLPLUS" || k == "VUP" || k == "VOLP") { out = VolUp; return true; }
@@ -2171,8 +2171,8 @@ static bool keyFromToken(const String& tok, KeyId& out) {
   return false;
 }
 
-static bool protoFromToken(const String& tok, decode_type_t& out) {
-  String p = normalizeToken(tok);
+static bool protoFromToken(const DivString& tok, decode_type_t& out) {
+  DivString p = normalizeToken(tok);
   if (p == "NEC") { out = decode_type_t::NEC; return true; }
   if (p == "NECLIKE") { out = decode_type_t::NEC_LIKE; return true; }
   if (p == "SONY" || p == "SIRC") { out = decode_type_t::SONY; return true; }
@@ -2192,8 +2192,8 @@ static bool protoFromToken(const String& tok, decode_type_t& out) {
   return false;
 }
 
-static String inferCategoryFromName(const String& name) {
-  String n = name;
+static DivString inferCategoryFromName(const DivString& name) {
+  DivString n = name;
   n.toUpperCase();
   if (n.indexOf("TV") >= 0) return "TV";
   if (n.indexOf("AVR") >= 0 || n.indexOf("RECEIVER") >= 0 || n.indexOf("SOUNDBAR") >= 0) return "AVR";
@@ -2204,9 +2204,9 @@ static String inferCategoryFromName(const String& name) {
   return "OTHER";
 }
 
-static String inferBrandFromName(const String& name) {
+static DivString inferBrandFromName(const DivString& name) {
   int par = name.indexOf('(');
-  String s = (par > 0) ? name.substring(0, par) : name;
+  DivString s = (par > 0) ? name.substring(0, par) : name;
   s.trim();
   int sp = s.indexOf(' ');
   if (sp > 0) s = s.substring(0, sp);
@@ -2357,7 +2357,7 @@ static void loadBuiltinProfiles() {
   s_lastErr = "Built-in profiles";
 }
 
-static bool endsWith(const String& s, const char* suf) {
+static bool endsWith(const DivString& s, const char* suf) {
   int sl = s.length();
   int tl = (int)strlen(suf);
   if (tl > sl) return false;
@@ -2388,7 +2388,7 @@ static bool cjsonParseCodeValue(cJSON* value, uint64_t& code) {
     return true;
   }
   if (cJSON_IsString(value) && value->valuestring != nullptr) {
-    String s(value->valuestring);
+    DivString s(value->valuestring);
     s.trim();
     if (!s.length()) {
       return false;
@@ -2403,7 +2403,7 @@ static bool cjsonParseCodeValue(cJSON* value, uint64_t& code) {
   return false;
 }
 
-static bool cjsonFillProfileFromObject(cJSON* obj, Profile& p, String* errOut) {
+static bool cjsonFillProfileFromObject(cJSON* obj, Profile& p, DivString* errOut) {
   const char* nm = "";
   const char* pr = "";
   const char* cat = "";
@@ -2414,16 +2414,16 @@ static bool cjsonFillProfileFromObject(cJSON* obj, Profile& p, String* errOut) {
   cjsonGetString(obj, "brand", br);
 
   decode_type_t proto = decode_type_t::UNKNOWN;
-  if (!protoFromToken(String(pr), proto)) {
+  if (!protoFromToken(DivString(pr), proto)) {
     if (errOut) *errOut = "Bad protocol";
     return false;
   }
 
   p = Profile{};
-  p.name = String(nm);
-  if (!p.name.length()) p.name = String(pr);
-  p.category = String(cat);
-  p.brand = String(br);
+  p.name = DivString(nm);
+  if (!p.name.length()) p.name = DivString(pr);
+  p.category = DivString(cat);
+  p.brand = DivString(br);
   if (!p.category.length()) p.category = inferCategoryFromName(p.name);
   if (!p.brand.length()) p.brand = inferBrandFromName(p.name);
   p.proto = proto;
@@ -2435,7 +2435,7 @@ static bool cjsonFillProfileFromObject(cJSON* obj, Profile& p, String* errOut) {
     cJSON_ArrayForEach(kv, codes) {
       if (kv->string == nullptr) continue;
       KeyId kid;
-      if (!keyFromToken(String(kv->string), kid)) continue;
+      if (!keyFromToken(DivString(kv->string), kid)) continue;
       uint64_t code = 0;
       if (!cjsonParseCodeValue(kv, code)) continue;
       p.code[kid] = code;
@@ -2446,7 +2446,7 @@ static bool cjsonFillProfileFromObject(cJSON* obj, Profile& p, String* errOut) {
   return true;
 }
 
-static bool parseProfilesJson(File& f, size_t docCapacity, String* errOut = nullptr) {
+static bool parseProfilesJson(DivFile& f, size_t docCapacity, DivString* errOut = nullptr) {
   (void)docCapacity;
   std::string json;
   json.reserve(4096);
@@ -2489,34 +2489,34 @@ static bool parseProfilesJson(File& f, size_t docCapacity, String* errOut = null
   return false;
 }
 
-static bool loadProfilesFromSd(String* errOut = nullptr) {
+static bool loadProfilesFromSd(DivString* errOut = nullptr) {
   if (!isSDCardAvailable()) { if (errOut) *errOut = "SD not available"; return false; }
   s_profiles.clear();
 
-  if (SD.exists(PROFILES_PATH)) {
-    File f = SD.open(PROFILES_PATH, FILE_READ);
+  if (DivSd.exists(PROFILES_PATH)) {
+    DivFile f = DivSd.open(PROFILES_PATH, FILE_READ);
     if (!f) { if (errOut) *errOut = "Open /ir_profiles.json failed"; return false; }
-    String perr;
+    DivString perr;
 
     bool ok = parseProfilesJson(f, 8192, &perr);
     f.close();
     if (!ok) { if (errOut) *errOut = perr; return false; }
-    if (errOut) *errOut = String("Loaded ") + String((int)s_profiles.size()) + " profiles";
+    if (errOut) *errOut = DivString("Loaded ") + DivString((int)s_profiles.size()) + " profiles";
     return true;
   }
 
-  if (!SD.exists(PROFILES_DIR)) { if (errOut) *errOut = "No /ir_profiles.json or /ir_profiles/"; return false; }
-  File d = SD.open(PROFILES_DIR);
+  if (!DivSd.exists(PROFILES_DIR)) { if (errOut) *errOut = "No /ir_profiles.json or /ir_profiles/"; return false; }
+  DivFile d = DivSd.open(PROFILES_DIR);
   if (!d) { if (errOut) *errOut = "Open /ir_profiles failed"; return false; }
 
   uint16_t loaded = 0;
   for (;;) {
-    File f = d.openNextFile();
+    DivFile f = d.openNextFile();
     if (!f) break;
     if (!f.isDirectory()) {
-      String name = String(f.name());
+      DivString name = DivString(f.name());
       if (endsWith(name, ".json")) {
-        String perr;
+        DivString perr;
         if (parseProfilesJson(f, 2048, &perr)) {
           loaded++;
           if ((int)s_profiles.size() >= (int)kMaxProfiles) { f.close(); break; }
@@ -2528,7 +2528,7 @@ static bool loadProfilesFromSd(String* errOut = nullptr) {
   d.close();
 
   if (s_profiles.empty()) { if (errOut) *errOut = "No profiles in /ir_profiles/"; return false; }
-  if (errOut) *errOut = String("Loaded ") + String((int)s_profiles.size()) + " profiles";
+  if (errOut) *errOut = DivString("Loaded ") + DivString((int)s_profiles.size()) + " profiles";
   return true;
 }
 
@@ -2536,10 +2536,10 @@ static void refreshProfiles() {
   s_lastErr = "";
   s_loadedFromSd = false;
 
-  String err;
+  DivString err;
   if (loadProfilesFromSd(&err)) {
     s_loadedFromSd = true;
-    s_lastErr = String("SD: ") + (err.length() ? err : String((int)s_profiles.size()));
+    s_lastErr = DivString("SD: ") + (err.length() ? err : DivString((int)s_profiles.size()));
   } else {
     loadBuiltinProfiles();
     s_loadedFromSd = false;
@@ -2607,7 +2607,7 @@ static void drawInfoPanel() {
   tft.setTextColor(UI_TEXT, FEATURE_BG);
   tft.setCursor(kDetailValueX, kInfoTextY + kDetailLineStep);
   const int typeMaxW = kDetailCol2LabelX - kDetailValueX - 4;
-  tft.print(truncateWithEllipsis(String(typeToString(p.proto)), typeMaxW));
+  tft.print(truncateWithEllipsis(DivString(typeToString(p.proto)), typeMaxW));
   tft.setTextColor(UI_DIM_TEXT, FEATURE_BG);
   tft.setCursor(kDetailCol2LabelX, kInfoTextY + kDetailLineStep);
   tft.print("Bits:");
@@ -2635,14 +2635,14 @@ static void drawBrowseHeader() {
     tft.print("Brand:");
     tft.setTextColor(UI_TEXT, FEATURE_BG);
     tft.setCursor(kDetailValueX, kBrowseHeaderY);
-    String cat = s_selectedCategory.length() ? s_selectedCategory : "ALL";
+    DivString cat = s_selectedCategory.length() ? s_selectedCategory : "ALL";
     if (cat.length() > 18) cat = cat.substring(0, 18);
     tft.print(cat);
   } else if (s_screen == Screen::Profile) {
     tft.print("Profile:");
     tft.setTextColor(UI_TEXT, FEATURE_BG);
     tft.setCursor(kDetailValueX, kBrowseHeaderY);
-    String br = s_selectedBrand.length() ? s_selectedBrand : "ALL";
+    DivString br = s_selectedBrand.length() ? s_selectedBrand : "ALL";
     if (br.length() > 18) br = br.substring(0, 18);
     tft.print(br);
   }
@@ -2680,28 +2680,28 @@ static void rebuildCategoriesAndBrands() {
   s_brands.clear();
   if (s_profiles.empty()) return;
 
-  auto addUnique = [](std::vector<String>& v, const String& s) {
+  auto addUnique = [](std::vector<DivString>& v, const DivString& s) {
     for (auto& x : v) if (x == s) return;
     v.push_back(s);
   };
 
   for (auto& p : s_profiles) {
-    addUnique(s_categories, p.category.length() ? p.category : String("OTHER"));
+    addUnique(s_categories, p.category.length() ? p.category : DivString("OTHER"));
   }
   std::sort(s_categories.begin(), s_categories.end());
   s_browseVersion++;
 }
 
-static void rebuildBrandsForCategory(const String& cat) {
+static void rebuildBrandsForCategory(const DivString& cat) {
   s_brands.clear();
   if (s_profiles.empty()) return;
-  auto addUnique = [](std::vector<String>& v, const String& s) {
+  auto addUnique = [](std::vector<DivString>& v, const DivString& s) {
     for (auto& x : v) if (x == s) return;
     v.push_back(s);
   };
   addUnique(s_brands, "ALL");
   for (auto& p : s_profiles) {
-    if (p.category == cat) addUnique(s_brands, p.brand.length() ? p.brand : String("UNKNOWN"));
+    if (p.category == cat) addUnique(s_brands, p.brand.length() ? p.brand : DivString("UNKNOWN"));
   }
   std::sort(s_brands.begin() + 1, s_brands.end());
   s_browseVersion++;
@@ -2732,7 +2732,7 @@ static int listRowsVisible() {
   return rows;
 }
 
-static void drawListRow(int y, const String& left, const String& right, bool selected) {
+static void drawListRow(int y, const DivString& left, const DivString& right, bool selected) {
   uint16_t bg = selected ? UI_FG : FEATURE_BG;
   uint16_t fg = selected ? UI_ICON : UI_TEXT;
   tft.fillRect(kPadX, y, kListW, LIST_ROW_H - 1, bg);
@@ -2747,7 +2747,7 @@ static void drawListRow(int y, const String& left, const String& right, bool sel
   }
 }
 
-static void drawListScreen(const std::vector<String>& items) {
+static void drawListScreen(const std::vector<DivString>& items) {
   static Screen s_lastListScreen = Screen::Remote;
   static int s_lastSel = -1;
   static int s_lastPageStart = -1;
@@ -2799,8 +2799,8 @@ static int browseItemCount() {
   return 0;
 }
 
-static std::vector<String> profileBrowseNames() {
-  std::vector<String> names;
+static std::vector<DivString> profileBrowseNames() {
+  std::vector<DivString> names;
   names.reserve(s_filteredProfileIdx.size());
   for (int idx : s_filteredProfileIdx) {
     if (idx < 0 || idx >= (int)s_profiles.size()) continue;

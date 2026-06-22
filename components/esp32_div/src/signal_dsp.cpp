@@ -1,7 +1,7 @@
 #include "signal_dsp.h"
 
 #include <math.h>
-#include <string.h>
+#include <DivString.h>
 
 #include "esp_dsp.h"
 #include "esp_log.h"

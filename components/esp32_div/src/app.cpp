@@ -1,4 +1,4 @@
-#include <TFT_eSPI.h>
+#include "DivDisplay.h"
 #include "PCF8574.h"
 #include "app.h"
 #include "SettingsStore.h"
@@ -19,7 +19,7 @@
 static void drawTouchNavBar();
 void handleButtons();
 
-TFT_eSPI tft = TFT_eSPI();
+DivDisplay tft = DivDisplay();
 
 PCF8574 pcf(PCF8574_I2C_ADDR);
 
@@ -457,11 +457,11 @@ static void layoutTouchNavBtns() {
   }
 }
 
-static String fitTouchNavLabel(const char* label, int maxWidth) {
+static DivString fitTouchNavLabel(const char* label, int maxWidth) {
   if (!label || !label[0]) {
-    return String();
+    return DivString();
   }
-  String out = label;
+  DivString out = label;
   if (tft.textWidth(out) <= maxWidth) {
     return out;
   }
@@ -500,7 +500,7 @@ static void drawTouchNavBar() {
       tft.setTextDatum(MC_DATUM);
       const uint16_t txtColor = (i == 2) ? UI_ICON : UI_TEXT;
       tft.setTextColor(txtColor, UI_FG);
-      const String fit = fitTouchNavLabel(s_touchNavLabels[i], b.w - 8);
+      const DivString fit = fitTouchNavLabel(s_touchNavLabels[i], b.w - 8);
       tft.drawString(fit, b.x + b.w / 2, b.y + b.h / 2, 1);
     } else {
       const int ix = b.x + (b.w - kIconSize) / 2;

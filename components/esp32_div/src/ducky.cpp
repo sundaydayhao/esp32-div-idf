@@ -1,8 +1,8 @@
 #include <NimBLEDevice.h>
 #include <NimBLEHIDDevice.h>
-#include <SD.h>
-#include <SPI.h>
-#include <TFT_eSPI.h>
+#include "DivSd.h"
+#include "DivSpi.h"
+#include "DivDisplay.h"
 #include "PCF8574.h"
 #include <vector>
 #include "Touchscreen.h"
@@ -14,7 +14,7 @@ extern PCF8574 pcf;
 
 extern bool feature_exit_requested;
 
-extern TFT_eSPI tft;
+extern DivDisplay tft;
 
 #ifdef TFT_BLACK
 #undef TFT_BLACK
@@ -128,7 +128,7 @@ static NimBLECharacteristic* inputChr = nullptr;
 static NimBLECharacteristic* outputChr = nullptr;
 static volatile bool         bleConnected = false;
 
-struct ScriptItem { String path, name, desc; uint32_t size = 0; };
+struct ScriptItem { DivString path, name, desc; uint32_t size = 0; };
 static std::vector<ScriptItem> items;
 static int  sel = 0;
 
@@ -153,17 +153,17 @@ enum class Dialog { None, ConfirmDelete };
 static Dialog dialog = Dialog::None;
 
 static uint32_t defaultDelay = 0;
-static String   lastError;
+static DivString   lastError;
 
-static String trimCR(const String& s) {
-  String x = s; if (x.endsWith("\r")) x.remove(x.length() - 1); return x;
+static DivString trimCR(const DivString& s) {
+  DivString x = s; if (x.endsWith("\r")) x.remove(x.length() - 1); return x;
 }
 static void clampSel() {
   int last = (int)items.size() - 1; if (last < 0) last = 0;
   if (sel > last) sel = last; if (sel < 0) sel = 0;
 }
-static String fitText(const String& s, int pixWidth, int font = 2) {
-  String out = s;
+static DivString fitText(const DivString& s, int pixWidth, int font = 2) {
+  DivString out = s;
   while (tft.textWidth(out, font) > pixWidth && out.length() > 1) {
     out.remove(out.length() - 1);
   }
@@ -171,12 +171,12 @@ static String fitText(const String& s, int pixWidth, int font = 2) {
   return out;
 }
 
-static int wrapLineNoEllipsis(const String& s, int pixWidth, int font, String& outLine) {
+static int wrapLineNoEllipsis(const DivString& s, int pixWidth, int font, DivString& outLine) {
   if (s.length() == 0) { outLine = ""; return 0; }
 
   int nl = s.indexOf('\n');
   if (nl >= 0) {
-    String pre = s.substring(0, nl);
+    DivString pre = s.substring(0, nl);
     if (tft.textWidth(pre, font) <= pixWidth) {
       outLine = pre;
       outLine.trim();
@@ -187,7 +187,7 @@ static int wrapLineNoEllipsis(const String& s, int pixWidth, int font, String& o
   int best = 0;
   int len = (int)s.length();
   for (int i = 1; i <= len; i++) {
-    String sub = s.substring(0, i);
+    DivString sub = s.substring(0, i);
     if (tft.textWidth(sub, font) <= pixWidth) best = i;
     else break;
   }
@@ -257,7 +257,7 @@ static bool isDoubleTap(const Tap& tap) {
   return (timeDiff < DOUBLE_TAP_MS && dist < 50);
 }
 
-static bool execFile(const String& path);
+static bool execFile(const DivString& path);
 static void drawListPage(bool forceReload = false);
 static void updateListSelection(int newSel);
 static void drawDetailsPage();
@@ -329,27 +329,27 @@ static void updateIconAnimation() {
 }
 
 static bool mountSD() {
-  if (sd_mounted && SD.exists("/")) return true;
+  if (sd_mounted && DivSd.exists("/")) return true;
   sd_mounted = isSDCardAvailable();
   return sd_mounted;
 }
 static bool ensureDuckyDir() {
   if (!mountSD()) return false;
-  if (!SD.exists(DUCKY_DIR)) return SD.mkdir(DUCKY_DIR);
+  if (!DivSd.exists(DUCKY_DIR)) return DivSd.mkdir(DUCKY_DIR);
   return true;
 }
-static void parseMeta(File& f, ScriptItem& it) {
+static void parseMeta(DivFile& f, ScriptItem& it) {
   it.desc = "";
   f.seek(0);
   for (int i = 0; i < 10 && f.available(); ++i) {
-    String line = trimCR(f.readStringUntil('\n'));
+    DivString line = trimCR(f.readStringUntil('\n'));
     if (!line.startsWith("REM")) continue;
-    String body = line.substring(3); body.trim();
+    DivString body = line.substring(3); body.trim();
     if (body.startsWith("Name:"))        { it.name = body.substring(5); it.name.trim(); }
     else if (body.startsWith("Description:")) { it.desc = body.substring(12); it.desc.trim(); }
   }
   if (!it.name.length()) {
-    String fn = it.path.substring(it.path.lastIndexOf('/') + 1);
+    DivString fn = it.path.substring(it.path.lastIndexOf('/') + 1);
     int dot = fn.lastIndexOf('.'); if (dot > 0) fn.remove(dot);
     it.name = fn;
   }
@@ -357,12 +357,12 @@ static void parseMeta(File& f, ScriptItem& it) {
 static void reloadList() {
   items.clear();
   if (!ensureDuckyDir()) return;
-  File d = SD.open(DUCKY_DIR); if (!d) return;
+  DivFile d = DivSd.open(DUCKY_DIR); if (!d) return;
   for (;;) {
-    File f = d.openNextFile(); if (!f) break;
+    DivFile f = d.openNextFile(); if (!f) break;
     if (f.isDirectory()) { f.close(); continue; }
-    String p = String(DUCKY_DIR) + "/" + f.name();
-    String ext = p.substring(p.lastIndexOf('.') + 1); ext.toLowerCase();
+    DivString p = DivString(DUCKY_DIR) + "/" + f.name();
+    DivString ext = p.substring(p.lastIndexOf('.') + 1); ext.toLowerCase();
     if (!(ext == "duck" || ext == "txt")) { f.close(); continue; }
     ScriptItem it; it.path = p; it.size = f.size();
     parseMeta(f, it);
@@ -389,8 +389,8 @@ enum : uint8_t { MOD_CTRL=0x01, MOD_SHIFT=0x02, MOD_ALT=0x04, MOD_GUI=0x08 };
 struct __attribute__((packed)) KbdReport { uint8_t modifiers; uint8_t reserved; uint8_t keys[6]; };
 
 class ServerCB : public NimBLEServerCallbacks {
-  void onConnect(NimBLEServer*) override { bleConnected = true; }
-  void onDisconnect(NimBLEServer*) override {
+  void onConnect(NimBLEServer*, NimBLEConnInfo&) override { bleConnected = true; }
+  void onDisconnect(NimBLEServer*, NimBLEConnInfo&, int) override {
     bleConnected = false;
 
     if (ducky_active) {
@@ -399,7 +399,7 @@ class ServerCB : public NimBLEServerCallbacks {
   }
 };
 class OutputCB : public NimBLECharacteristicCallbacks {
-  void onWrite(NimBLECharacteristic* c) override { (void)c; }
+  void onWrite(NimBLECharacteristic* c, NimBLEConnInfo&) override { (void)c; }
 };
 
 static void sendKey(uint8_t usage, uint8_t mods = 0, uint16_t downMs = 10) {
@@ -433,12 +433,12 @@ static uint8_t keyFromChar(char c, bool& needShift) {
   return 0;
 }
 
-static void typeASCII(const String& s, uint16_t charDown = 10) {
+static void typeASCII(const DivString& s, uint16_t charDown = 10) {
   for (size_t i=0;i<s.length();++i){ bool shift=false; uint8_t u=keyFromChar(s[i],shift); if(u) sendKey(u, shift?MOD_SHIFT:0, charDown); }
 }
 
-static bool resolveKeyWord(const String& kw, uint8_t& usage, uint8_t& mods) {
-  String k=kw; k.toUpperCase(); usage=0; mods=0;
+static bool resolveKeyWord(const DivString& kw, uint8_t& usage, uint8_t& mods) {
+  DivString k=kw; k.toUpperCase(); usage=0; mods=0;
   if (k=="ENTER"||k=="RETURN") usage=KEY_ENTER;
   else if (k=="ESC"||k=="ESCAPE") usage=KEY_ESC;
   else if (k=="TAB") usage=KEY_TAB;
@@ -457,10 +457,10 @@ static bool resolveKeyWord(const String& kw, uint8_t& usage, uint8_t& mods) {
   if (k.length()==1){ char c=k[0]; bool sh=false; uint8_t u=keyFromChar(c,sh); if(u){usage=u; mods=sh?MOD_SHIFT:0; return true;} }
   return false;
 }
-static uint8_t modsFromTokens(const std::vector<String>& toks, size_t& i) {
+static uint8_t modsFromTokens(const std::vector<DivString>& toks, size_t& i) {
   uint8_t m=0;
   while(i<toks.size()){
-    String t=toks[i]; t.toUpperCase();
+    DivString t=toks[i]; t.toUpperCase();
     if(t=="CTRL"||t=="CONTROL") m|=MOD_CTRL;
     else if(t=="ALT") m|=MOD_ALT;
     else if(t=="SHIFT") m|=MOD_SHIFT;
@@ -478,31 +478,31 @@ static void pressCombo(uint8_t usage, uint8_t mods, uint16_t downMs=50){
   inputChr->setValue((uint8_t*)&rpt,sizeof(rpt)); inputChr->notify(); delay(downMs);
   inputChr->setValue((uint8_t*)&idle,sizeof(idle)); inputChr->notify(); delay(5);
 }
-static bool execLine(const String& raw, uint32_t& interDelay, String& err){
-  String line=raw; line.trim(); if(!line.length()) return true;
+static bool execLine(const DivString& raw, uint32_t& interDelay, DivString& err){
+  DivString line=raw; line.trim(); if(!line.length()) return true;
   if(line.startsWith("REM")) return true;
 
-  std::vector<String> tok; { String tmp; for(size_t i=0;i<line.length();++i){ char c=line[i]; if(c==' '||c=='\t'){ if(tmp.length()){tok.push_back(tmp); tmp="";}} else tmp+=c;} if(tmp.length()) tok.push_back(tmp); }
+  std::vector<DivString> tok; { DivString tmp; for(size_t i=0;i<line.length();++i){ char c=line[i]; if(c==' '||c=='\t'){ if(tmp.length()){tok.push_back(tmp); tmp="";}} else tmp+=c;} if(tmp.length()) tok.push_back(tmp); }
   if(tok.empty()) return true;
 
-  String cmd=tok[0]; String rest=line.substring(cmd.length()); rest.trim();
-  String ucmd=cmd; ucmd.toUpperCase();
+  DivString cmd=tok[0]; DivString rest=line.substring(cmd.length()); rest.trim();
+  DivString ucmd=cmd; ucmd.toUpperCase();
 
   if(ucmd=="DELAY"){ interDelay=clampDelay(rest.toInt()); delay(interDelay); return true; }
   if(ucmd=="DEFAULT_DELAY"||ucmd=="DEFAULTDELAY"){ defaultDelay=clampDelay(rest.toInt()); return true; }
   if(ucmd=="WAIT_FOR"){ delay(clampDelay(rest.toInt())); return true; }
-  if(ucmd=="STRING"){ typeASCII(rest); if(defaultDelay) delay(defaultDelay); return true; }
+  if(ucmd=="DivString"){ typeASCII(rest); if(defaultDelay) delay(defaultDelay); return true; }
   if(ucmd=="ENTER"){ sendKey(KEY_ENTER); if(defaultDelay) delay(defaultDelay); return true; }
 
   if(ucmd=="GUI"||ucmd=="WINDOWS"||ucmd=="WIN"){
-    uint8_t usage=0; if(rest.length()){ uint8_t m=0; if(!resolveKeyWord(rest,usage,m)){ err=String("Unknown key: ")+rest; return false; } }
+    uint8_t usage=0; if(rest.length()){ uint8_t m=0; if(!resolveKeyWord(rest,usage,m)){ err=DivString("Unknown key: ")+rest; return false; } }
     if(!usage) usage=KEY_R; pressCombo(usage, MOD_GUI); if(defaultDelay) delay(defaultDelay); return true;
   }
   if(ucmd=="CTRL"||ucmd=="CONTROL"||ucmd=="ALT"||ucmd=="SHIFT"){
-    size_t i=0; std::vector<String> tokens; { String s=line; String t; for(size_t j=0;j<s.length();++j){ char ch=s[j]; if(ch==' '||ch=='\t'){ if(t.length()){tokens.push_back(t); t="";}} else t+=ch;} if(t.length()) tokens.push_back(t); }
+    size_t i=0; std::vector<DivString> tokens; { DivString s=line; DivString t; for(size_t j=0;j<s.length();++j){ char ch=s[j]; if(ch==' '||ch=='\t'){ if(t.length()){tokens.push_back(t); t="";}} else t+=ch;} if(t.length()) tokens.push_back(t); }
     i=0; uint8_t mods=modsFromTokens(tokens,i);
     if(i>=tokens.size()){ err="Missing key after modifiers"; return false; }
-    uint8_t usage=0,dummy=0; if(!resolveKeyWord(tokens[i],usage,dummy)){ err=String("Unknown key: ")+tokens[i]; return false; }
+    uint8_t usage=0,dummy=0; if(!resolveKeyWord(tokens[i],usage,dummy)){ err=DivString("Unknown key: ")+tokens[i]; return false; }
     pressCombo(usage,mods); if(defaultDelay) delay(defaultDelay); return true;
   }
   if(ucmd=="TAB"||ucmd=="ESC"||ucmd=="SPACE"||ucmd=="BACKSPACE"||ucmd=="DELETE"||
@@ -510,21 +510,21 @@ static bool execLine(const String& raw, uint32_t& interDelay, String& err){
      ucmd=="HOME"||ucmd=="END"||ucmd=="PGUP"||ucmd=="PAGEUP"||ucmd=="PGDN"||ucmd=="PAGEDOWN"||
      (ucmd.length()==2&&ucmd[0]=='F'&&isDigit(ucmd[1]))||
      (ucmd.length()==3&&ucmd[0]=='F'&&isDigit(ucmd[1])&&isDigit(ucmd[2]))){
-    uint8_t usage=0,m=0; if(!resolveKeyWord(ucmd,usage,m)){ err=String("Unknown key: ")+ucmd; return false; }
+    uint8_t usage=0,m=0; if(!resolveKeyWord(ucmd,usage,m)){ err=DivString("Unknown key: ")+ucmd; return false; }
     pressCombo(usage,m); if(defaultDelay) delay(defaultDelay); return true;
   }
   if(ucmd=="REPEAT"){
     int n=(int)rest.toInt(); if(n<0)n=0; while(n--){ sendKey(KEY_ENTER); if(defaultDelay) delay(defaultDelay); }
     return true;
   }
-  err=String("Unknown command: ")+cmd; return false;
+  err=DivString("Unknown command: ")+cmd; return false;
 }
 
-static bool execFile(const String& path) {
+static bool execFile(const DivString& path) {
   lastError = "";
   if (!bleConnected) { lastError="BLE not connected"; return false; }
   if (!mountSD())    { lastError="SD not mounted";   return false; }
-  File f = SD.open(path, FILE_READ); if(!f){ lastError="Open failed"; return false; }
+  DivFile f = DivSd.open(path, FILE_READ); if(!f){ lastError="Open failed"; return false; }
 
   defaultDelay = 0; uint32_t interDelay = 0;
 
@@ -543,8 +543,8 @@ static bool execFile(const String& path) {
   ui_busy = true;
 
   while (f.available()) {
-    String line = trimCR(f.readStringUntil('\n'));
-    String err;
+    DivString line = trimCR(f.readStringUntil('\n'));
+    DivString err;
     if (!execLine(line, interDelay, err)) {
       lastError = err; f.close();
       if (bleConnected) { KbdReport idle{}; inputChr->setValue((uint8_t*)&idle,sizeof(idle)); inputChr->notify(); delay(10); }
@@ -554,7 +554,7 @@ static bool execFile(const String& path) {
     if (defaultDelay) delay(defaultDelay);
 
     if (y < yMax) {
-      String disp = fitText(line, DISPLAY_WIDTH - 2*PADDING, 2);
+      DivString disp = fitText(line, DISPLAY_WIDTH - 2*PADDING, 2);
       tft.drawString(disp, PADDING, y, 2); y += 18;
     }
     yield();
@@ -579,7 +579,7 @@ static FeatureUI::Button infoBtn;
 
 enum class HeaderType { TextOnly, IconBar, TextWithInfo };
 
-static void drawHeader(HeaderType type, const String& title = "", bool drawFooterBg = true) {
+static void drawHeader(HeaderType type, const DivString& title = "", bool drawFooterBg = true) {
   int currentY = TOOLBAR_Y;
 
   if (type == HeaderType::IconBar) {
@@ -740,7 +740,7 @@ static void drawListHints(int hintY) {
   tft.setTextFont(1);
   tft.setTextColor(UI_TEXT, COL_BG);
 
-  String counter = String(sel + 1) + "/" + String((int)items.size());
+  DivString counter = DivString(sel + 1) + "/" + DivString((int)items.size());
   int counterWidth = tft.textWidth(counter, 1);
   tft.drawString(counter, DISPLAY_WIDTH - counterWidth - PADDING, hintY, 1);
 
@@ -783,7 +783,7 @@ static void drawListRow(int i, int startItem, int listTop, int rowStride,
 
   tft.setTextColor(COL_FG, body);
   tft.setTextFont(2);
-  String name = fitText(items[i].name, rw - 40, 2);
+  DivString name = fitText(items[i].name, rw - 40, 2);
   tft.drawString(name, rx + 12, y + 6, 2);
 
   uint32_t kb = (items[i].size + 1023) / 1024;
@@ -795,7 +795,7 @@ static void drawListRow(int i, int startItem, int listTop, int rowStride,
   tft.drawString(sbuf, sx, y + 8, 1);
 
   tft.setTextFont(1);
-  String desc = items[i].desc.length() ? items[i].desc : "(no description)";
+  DivString desc = items[i].desc.length() ? items[i].desc : "(no description)";
   desc = fitText(desc, rw - 24, 1);
   tft.setTextColor(UI_TEXT, body);
   tft.drawString(desc, rx + 12, y + 26, 1);
@@ -829,7 +829,7 @@ static void drawListContentFull() {
 
     tft.setTextColor(COL_FG, body);
     tft.setTextFont(2);
-    String name = fitText(items[i].name, rw - 40, 2);
+    DivString name = fitText(items[i].name, rw - 40, 2);
     tft.drawString(name, rx + 12, y + 6, 2);
 
     uint32_t kb = (items[i].size + 1023) / 1024;
@@ -841,7 +841,7 @@ static void drawListContentFull() {
     tft.drawString(sbuf, sx, y + 8, 1);
 
     tft.setTextFont(1);
-    String desc = items[i].desc.length() ? items[i].desc : "(no description)";
+    DivString desc = items[i].desc.length() ? items[i].desc : "(no description)";
     desc = fitText(desc, rw - 24, 1);
     tft.setTextColor(UI_TEXT, body);
     tft.drawString(desc, rx + 12, y + 26, 1);
@@ -961,7 +961,7 @@ static void drawDetailsPage() {
     tft.setTextFont(2);
 
     tft.setTextColor(UI_TEXT, COL_BG);
-    String displayName = fitText(it.name, DISPLAY_WIDTH - 2*PADDING, 2);
+    DivString displayName = fitText(it.name, DISPLAY_WIDTH - 2*PADDING, 2);
     tft.drawString(displayName, PADDING, y, 2);
     y += 24;
 
@@ -978,7 +978,7 @@ static void drawDetailsPage() {
 
     tft.drawString("Path:", PADDING, y, 2);
     tft.setTextFont(1);
-    String path = fitText(it.path, DISPLAY_WIDTH - 100 - PADDING, 1);
+    DivString path = fitText(it.path, DISPLAY_WIDTH - 100 - PADDING, 1);
     tft.drawString(path, 100, y + 2, 1);
     y += 28;
 
@@ -987,14 +987,14 @@ static void drawDetailsPage() {
     y += 24;
 
     tft.setTextFont(1);
-    String desc = it.desc.length() ? it.desc : "No description available";
+    DivString desc = it.desc.length() ? it.desc : "No description available";
 
     int descY = y;
     int maxWidth = DISPLAY_WIDTH - 2*PADDING;
-    String remaining = desc;
+    DivString remaining = desc;
     const int bottomY = DISPLAY_HEIGHT - duckyFooterReserve() - 6;
     while (remaining.length() > 0 && descY < bottomY) {
-      String line;
+      DivString line;
       int consumed = wrapLineNoEllipsis(remaining, maxWidth, 1, line);
       if (consumed <= 0) break;
       tft.drawString(line, PADDING, descY, 1);
@@ -1104,14 +1104,14 @@ static void drawConfirmDelete() {
 
 static void startBleKeyboard(const char* devName) {
 
-  NimBLEDevice::setPower(ESP_PWR_LVL_P9);
+  NimBLEDevice::setPower(9);
 
   NimBLEServer* server = NimBLEDevice::createServer();
   server->setCallbacks(new ServerCB());
 
   hid = new NimBLEHIDDevice(server);
-  inputChr  = hid->inputReport(1);
-  outputChr = hid->outputReport(1);
+  inputChr  = hid->getInputReport(1);
+  outputChr = hid->getOutputReport(1);
   outputChr->setCallbacks(new OutputCB());
 
   static const uint8_t REPORT_MAP[] = {
@@ -1125,16 +1125,15 @@ static void startBleKeyboard(const char* devName) {
     0xC0
   };
 
-  hid->manufacturer()->setValue("ESP32 Community");
-  hid->pnp(0x02, 0xE502, 0xA111, 0x0210);
-  hid->hidInfo(0x00, 0x02);
-  hid->reportMap((uint8_t*)REPORT_MAP, sizeof(REPORT_MAP));
+  hid->setManufacturer("ESP32 Community");
+  hid->setPnp(0x02, 0xE502, 0xA111, 0x0210);
+  hid->setHidInfo(0x00, 0x02);
+  hid->setReportMap((uint8_t*)REPORT_MAP, sizeof(REPORT_MAP));
   hid->startServices();
   hid->setBatteryLevel(100);
 
-  auto* sec = new NimBLESecurity();
-  sec->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
-  sec->setCapability(ESP_IO_CAP_NONE);
+  NimBLEDevice::setSecurityAuth(true, false, true);
+  NimBLEDevice::setSecurityIOCap(BLE_HS_IO_NO_INPUT_OUTPUT);
 
   NimBLEAdvertisementData advData;
   advData.setFlags(0x06);
@@ -1143,7 +1142,7 @@ static void startBleKeyboard(const char* devName) {
   advData.setName(devName);
 
   char msd[] = { (char)0x06, (char)0x00, (char)0x00, (char)0x00, (char)0x80 };
-  advData.addData(msd, sizeof(msd));
+  advData.addData(reinterpret_cast<const uint8_t*>(msd), sizeof(msd));
 
   NimBLEAdvertisementData scanRsp; scanRsp.setName(devName);
 
@@ -1151,7 +1150,7 @@ static void startBleKeyboard(const char* devName) {
   if (adv) adv->stop();
   adv->setAdvertisementData(advData);
   adv->setScanResponseData(scanRsp);
-  adv->setAdvertisementType(ADV_TYPE_IND);
+  adv->setConnectableMode(BLE_GAP_CONN_MODE_UND);
   adv->setMinInterval(0x00A0);
   adv->setMaxInterval(0x0140);
   adv->start();
@@ -1190,7 +1189,7 @@ void enter() {
     advData.setAppearance(0x03C1);
     advData.setName(DEV_NAME);
     char msd[] = { (char)0x06, (char)0x00, (char)0x00, (char)0x00, (char)0x80 };
-    advData.setManufacturerData(String(msd, sizeof(msd)));
+    advData.setManufacturerData(reinterpret_cast<const uint8_t*>(msd), sizeof(msd));
     NimBLEAdvertisementData scanRsp; scanRsp.setName(DEV_NAME);
 
     NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
@@ -1198,7 +1197,7 @@ void enter() {
       adv->stop();
       adv->setAdvertisementData(advData);
       adv->setScanResponseData(scanRsp);
-      adv->setAdvertisementType(ADV_TYPE_IND);
+      adv->setConnectableMode(BLE_GAP_CONN_MODE_UND);
       adv->setMinInterval(0x00A0);
       adv->setMaxInterval(0x0140);
       adv->start();
@@ -1329,7 +1328,7 @@ void loop() {
             if (!ok) {
               tft.fillRoundRect(PADDING, duckyToastTop(), DISPLAY_WIDTH - 2*PADDING, 22, 6, COL_WARN);
               tft.setTextColor(COL_BG, COL_WARN);
-              tft.drawCentreString(String("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
+              tft.drawCentreString(DivString("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
             }
           }
           return;
@@ -1347,7 +1346,7 @@ void loop() {
             if (!ok) {
               tft.fillRoundRect(PADDING, duckyToastTop(), DISPLAY_WIDTH - 2*PADDING, 22, 6, COL_WARN);
               tft.setTextColor(COL_BG, COL_WARN);
-              tft.drawCentreString(String("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
+              tft.drawCentreString(DivString("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
             }
           }
           return;
@@ -1364,8 +1363,8 @@ Tap tap = readTap();
   if (dialog == Dialog::ConfirmDelete) {
     int id = FeatureUI::hit(confirmBtns, 2, tap.x, tap.y);
     if (id == 0) {
-      if (!items.empty() && mountSD() && SD.exists(items[sel].path)) {
-        SD.remove(items[sel].path.c_str());
+      if (!items.empty() && mountSD() && DivSd.exists(items[sel].path)) {
+        DivSd.remove(items[sel].path.c_str());
         reloadList();
         page = Page::List;
         dialog = Dialog::None;
@@ -1423,7 +1422,7 @@ Tap tap = readTap();
             if (!ok) {
               tft.fillRoundRect(PADDING, duckyToastTop(), DISPLAY_WIDTH - 2*PADDING, 22, 6, COL_WARN);
               tft.setTextColor(COL_BG, COL_WARN);
-              tft.drawCentreString(String("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
+              tft.drawCentreString(DivString("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
             }
           } else {
             updateListSelection(actualIdx);
@@ -1446,7 +1445,7 @@ Tap tap = readTap();
           if (!ok) {
             tft.fillRoundRect(PADDING, duckyToastTop(), DISPLAY_WIDTH - 2*PADDING, 22, 6, COL_WARN);
             tft.setTextColor(COL_BG, COL_WARN);
-            tft.drawCentreString(String("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
+            tft.drawCentreString(DivString("Error: ") + lastError, DISPLAY_WIDTH/2, duckyToastCenterY(), 2);
           }
         }
       } else if (id == 1) {

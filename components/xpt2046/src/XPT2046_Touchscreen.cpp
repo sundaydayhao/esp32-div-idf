@@ -4,14 +4,14 @@
 
 #include "shared.h"
 #include "driver/gpio.h"
+#include "driver/spi_master.h"
+#include "esp_err.h"
 #include "esp_log.h"
-#include "esp_rom_sys.h"
 
 namespace {
 
 static const char* TAG = "xpt2046";
 static constexpr int kSpiClockHz = 1000000;
-static constexpr int kDelayUs = 1;
 static constexpr uint16_t kAdcMax = 4095;
 
 }  // namespace
@@ -22,24 +22,12 @@ XPT2046_Touchscreen::XPT2046_Touchscreen(uint8_t csPin, uint8_t irqPin)
       rotation_(0),
       clkPin_(XPT2046_CLK),
       mosiPin_(XPT2046_MOSI),
-      misoPin_(XPT2046_MISO) {}
+      misoPin_(XPT2046_MISO),
+      spi_(nullptr),
+      spiReady_(false) {}
 
 void XPT2046_Touchscreen::configurePins() {
   gpio_config_t io = {};
-
-  io.pin_bit_mask = (1ULL << csPin_) | (1ULL << clkPin_) | (1ULL << mosiPin_);
-  io.mode = GPIO_MODE_OUTPUT;
-  io.pull_up_en = GPIO_PULLUP_DISABLE;
-  io.pull_down_en = GPIO_PULLDOWN_DISABLE;
-  io.intr_type = GPIO_INTR_DISABLE;
-  gpio_config(&io);
-
-  io.pin_bit_mask = 1ULL << misoPin_;
-  io.mode = GPIO_MODE_INPUT;
-  io.pull_up_en = GPIO_PULLUP_DISABLE;
-  io.pull_down_en = GPIO_PULLDOWN_DISABLE;
-  io.intr_type = GPIO_INTR_DISABLE;
-  gpio_config(&io);
 
   if (irqPin_ < 255) {
     io.pin_bit_mask = 1ULL << irqPin_;
@@ -50,9 +38,37 @@ void XPT2046_Touchscreen::configurePins() {
     gpio_config(&io);
   }
 
-  gpio_set_level((gpio_num_t)csPin_, 1);
-  gpio_set_level((gpio_num_t)clkPin_, 0);
-  gpio_set_level((gpio_num_t)mosiPin_, 0);
+  if (spiReady_) {
+    return;
+  }
+
+  spi_bus_config_t bus = {};
+  bus.mosi_io_num = mosiPin_;
+  bus.miso_io_num = misoPin_;
+  bus.sclk_io_num = clkPin_;
+  bus.quadwp_io_num = -1;
+  bus.quadhd_io_num = -1;
+  bus.max_transfer_sz = 8;
+
+  esp_err_t err = spi_bus_initialize(XPT2046_HOST, &bus, SPI_DMA_CH_AUTO);
+  if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+    ESP_LOGW(TAG, "SPI bus init failed: %s", esp_err_to_name(err));
+    return;
+  }
+
+  spi_device_interface_config_t dev = {};
+  dev.clock_speed_hz = kSpiClockHz;
+  dev.mode = 0;
+  dev.spics_io_num = csPin_;
+  dev.queue_size = 1;
+
+  err = spi_bus_add_device(XPT2046_HOST, &dev, &spi_);
+  if (err != ESP_OK) {
+    ESP_LOGW(TAG, "SPI device add failed: %s", esp_err_to_name(err));
+    spi_ = nullptr;
+    return;
+  }
+  spiReady_ = true;
 }
 
 void XPT2046_Touchscreen::begin() {
@@ -115,13 +131,14 @@ TS_Point XPT2046_Touchscreen::getPoint() {
 
 bool XPT2046_Touchscreen::readRaw(uint16_t& x, uint16_t& y, uint16_t& z) {
   configurePins();
-  if (csPin_ < 255) gpio_set_level((gpio_num_t)csPin_, 0);
-  esp_rom_delay_us(kDelayUs);
+  if (!spiReady_) {
+    return false;
+  }
+
   uint16_t x1 = transfer12(0xD0);
   uint16_t y1 = transfer12(0x90);
   uint16_t z1 = transfer12(0xB0);
   uint16_t z2 = transfer12(0xC0);
-  esp_rom_delay_us(kDelayUs);
 
   x = x1;
   y = y1;
@@ -134,34 +151,23 @@ bool XPT2046_Touchscreen::readRaw(uint16_t& x, uint16_t& y, uint16_t& z) {
     z = (uint16_t)pressure;
   }
 
-  if (csPin_ < 255) gpio_set_level((gpio_num_t)csPin_, 1);
   return true;
 }
 
 uint16_t XPT2046_Touchscreen::transfer12(uint8_t cmd) {
-  uint16_t value = 0;
-
-  for (int8_t bit = 7; bit >= 0; --bit) {
-    gpio_set_level((gpio_num_t)mosiPin_, (cmd >> bit) & 0x1);
-    gpio_set_level((gpio_num_t)clkPin_, 1);
-    esp_rom_delay_us(kDelayUs);
-    gpio_set_level((gpio_num_t)clkPin_, 0);
-    esp_rom_delay_us(kDelayUs);
+  if (!spi_) {
+    return 0;
   }
 
-  gpio_set_level((gpio_num_t)clkPin_, 1);
-  esp_rom_delay_us(kDelayUs);
-  gpio_set_level((gpio_num_t)clkPin_, 0);
-  esp_rom_delay_us(kDelayUs);
-
-  for (int i = 0; i < 16; ++i) {
-    gpio_set_level((gpio_num_t)clkPin_, 1);
-    esp_rom_delay_us(kDelayUs);
-    value <<= 1;
-    value |= (uint16_t)gpio_get_level((gpio_num_t)misoPin_) & 0x1;
-    gpio_set_level((gpio_num_t)clkPin_, 0);
-    esp_rom_delay_us(kDelayUs);
+  uint8_t tx[3] = {cmd, 0, 0};
+  uint8_t rx[3] = {};
+  spi_transaction_t t = {};
+  t.length = sizeof(tx) * 8;
+  t.tx_buffer = tx;
+  t.rx_buffer = rx;
+  esp_err_t err = spi_device_polling_transmit(spi_, &t);
+  if (err != ESP_OK) {
+    return 0;
   }
-
-  return (uint16_t)((value >> 4) & 0x0FFF);
+  return (uint16_t)((((uint16_t)rx[1] << 8) | rx[2]) >> 3) & 0x0FFF;
 }

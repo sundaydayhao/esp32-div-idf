@@ -1,11 +1,11 @@
 #include "SettingsStore.h"
 #include "Touchscreen.h"
 #include <algorithm>
-#include <TFT_eSPI.h>
+#include "DivDisplay.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 
-extern TFT_eSPI tft;
+extern DivDisplay tft;
 
 static void setOutputHigh(int pin) {
   if (pin < 0 || pin >= GPIO_NUM_MAX) {
@@ -52,9 +52,6 @@ void restoreTftSpiAfterTouchIfNeeded() {
     return;
   }
 
-  SPIClass& spi = TFT_eSPI::getSPIinstance();
-  spi.end();
-  spi.begin(TFT_SCLK, TFT_MISO, TFT_MOSI, -1);
 #if defined(XPT2046_CS)
   if (XPT2046_CS < 255) {
     setOutputHigh(XPT2046_CS);

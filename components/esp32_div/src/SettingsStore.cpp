@@ -1,6 +1,6 @@
 #include "SettingsStore.h"
 
-#include <string.h>
+#include <DivString.h>
 
 #include "esp_log.h"
 #include "nvs.h"

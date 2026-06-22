@@ -1,5 +1,3 @@
 #pragma once
 
-#include <BLEHIDDevice.h>
-
-using NimBLEHIDDevice = BLEHIDDevice;
+#include "../../esp-nimble-cpp/src/NimBLEHIDDevice.h"

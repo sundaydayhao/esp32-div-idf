@@ -4,5 +4,6 @@ idf_component_register(
     INCLUDE_DIRS
         "include"
     REQUIRES
-        arduino
+        esp32_div_platform
+        esp_driver_gpio
 )

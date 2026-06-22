@@ -129,8 +129,8 @@ static void dismissKeyboardTouch() {
   resetTouchNavHeldState();
 }
 
-static String kbInputVisibleText(const String& value, bool cursorOn, int maxPixelW) {
-  String tail = value;
+static DivString kbInputVisibleText(const DivString& value, bool cursorOn, int maxPixelW) {
+  DivString tail = value;
   if (cursorOn) {
     tail += "|";
   }
@@ -142,7 +142,7 @@ static String kbInputVisibleText(const String& value, bool cursorOn, int maxPixe
   return tail;
 }
 
-void drawInputField(const String& value, bool cursorOn) {
+void drawInputField(const DivString& value, bool cursorOn) {
   constexpr int padX = 5;
   constexpr int padY = 5;
   const int innerW = INPUT_W - padX * 2;
@@ -224,7 +224,7 @@ void showEmptyError(const OnScreenKeyboardConfig& cfg) {
   tft.print(cfg.emptyErrorMsg);
 }
 
-bool handleKeyPress(char c, String& text, uint8_t maxLen,
+bool handleKeyPress(char c, DivString& text, uint8_t maxLen,
                     bool& upperCase, bool& symbolMode,
                     uint8_t row, size_t col, size_t rowLen) {
   if (kbIsCapsKey(row, col, rowLen, c)) {
@@ -268,7 +268,7 @@ void osKeyboardUseStandardLayout(OnScreenKeyboardConfig& cfg) {
 }
 
 OnScreenKeyboardResult showOnScreenKeyboard(const OnScreenKeyboardConfig& cfg,
-                                            const String& initial) {
+                                            const DivString& initial) {
   OnScreenKeyboardResult res;
   res.text      = initial;
   res.accepted  = false;

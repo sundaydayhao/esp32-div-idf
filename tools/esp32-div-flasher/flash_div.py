@@ -2,8 +2,8 @@
 """
 ESP32-DIV firmware flasher (GUI + CLI).
 
-Uses esptool.py under the hood. It understands ESP-IDF build folders,
-manifest.json firmware bundles, and legacy Arduino-style binary exports.
+Uses esptool.py under the hood. It understands ESP-IDF build folders and
+manifest.json firmware bundles.
 """
 
 from __future__ import annotations
@@ -252,7 +252,7 @@ def _fh_apply_clam_theme(root: object, style: object, pal: dict[str, str]) -> tu
     return "FHPrimary.TButton", "FHSecondary.TButton", ui
 
 
-# Arduino ESP32 boot_app0.bin (8192 bytes), zlib+base64 so flashing works even when
+# OTA selector image (8192 bytes), zlib+base64 so flashing works even when
 # the user copies only flash_div.py and not bundled/boot_app0.bin.
 _EMBEDDED_BOOT_APP0_ZB64 = (
     "eNrt18ERABAQBLBVm4cWjWZPBfyZpIu0JHWwZh8FAAAAPC+X/wMAAAB//H8DFETXmw=="
@@ -430,7 +430,7 @@ def bundled_boot_app0() -> Path:
 
 
 def _materialize_embedded_boot_app0() -> Path:
-    """Write Arduino boot_app0.bin to the user's temp dir (cached path)."""
+    """Write the embedded OTA selector image to the user's temp dir (cached path)."""
     global _materialized_boot_app0_path
     if _materialized_boot_app0_path is not None and _materialized_boot_app0_path.is_file():
         return _materialized_boot_app0_path
@@ -750,7 +750,7 @@ def resolve_firmware_dir(fw_dir: Path, preset_key: str) -> ResolvedImages:
     raise FileNotFoundError(
         "Could not identify bootloader + partitions + app .bin files.\n"
         "Choose an ESP-IDF build folder, an ESP-IDF project root with build/, "
-        "or add manifest.json next to the binaries. Legacy Arduino exports are still accepted.\n\n"
+        "or add manifest.json next to the binaries.\n\n"
         + detail
     )
 
@@ -1171,7 +1171,7 @@ def flash_firmware(
         on_line(format_available_ports_hint())
         on_line(
             "Tips: click Refresh ports and pick the CP210x/USB-SERIAL port; "
-            "close ESP-IDF monitor, Arduino Serial Monitor, or any serial terminal using that COM port."
+            "close ESP-IDF monitor or any serial terminal using that COM port."
         )
         return 2
 
@@ -2393,7 +2393,7 @@ def main() -> None:
         "--firmware-folder",
         "-d",
         type=Path,
-        help="ESP-IDF project/build folder, manifest bundle, or legacy Arduino export",
+        help="ESP-IDF project/build folder or manifest bundle",
     )
     fw_src.add_argument(
         "--bundled-app-bin",

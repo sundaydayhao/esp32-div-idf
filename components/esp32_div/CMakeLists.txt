@@ -18,14 +18,12 @@ idf_component_register(
         "include"
     REQUIRES
         esp32_div_board
-        arduino
-        TFT_eSPI
+        esp32_div_platform
         cjson
         thirdparty_compat
         pcf8574
         xpt2046
         nimble_compat
-        eeprom_compat
         nvs_flash
         esp_event
         esp_system

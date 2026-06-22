@@ -1,7 +1,7 @@
 #ifndef KEYBOARD_UI_H
 #define KEYBOARD_UI_H
 
-#include <WString.h>
+#include "DivString.h"
 
 /** Rows in the standard on-screen layout (set cfg.rows = nullptr to use it). */
 #define OS_KEYBOARD_ROW_COUNT 4
@@ -33,7 +33,7 @@ struct OnScreenKeyboardConfig {
 };
 
 struct OnScreenKeyboardResult {
-  String text;
+  DivString text;
   bool accepted;
   bool cancelled;
 };
@@ -42,6 +42,6 @@ struct OnScreenKeyboardResult {
 void osKeyboardUseStandardLayout(OnScreenKeyboardConfig& cfg);
 
 OnScreenKeyboardResult showOnScreenKeyboard(const OnScreenKeyboardConfig& cfg,
-                                            const String& initial);
+                                            const DivString& initial);
 
 #endif

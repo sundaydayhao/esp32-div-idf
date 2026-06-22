@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include "KeyboardUI.h"
 #include "Touchscreen.h"
@@ -9,6 +10,7 @@
 #include "utils.h"
 #include "driver/ledc.h"
 #include "driver/gpio.h"
+#include "esp_random.h"
 
 
 namespace {
@@ -55,7 +57,7 @@ namespace {
   static bool subghz_sd_mounted = false;
   static bool subghzMountSD() {
     if (subghz_sd_mounted) {
-      if (SD.exists("/")) return true;
+      if (DivSd.exists("/")) return true;
       subghz_sd_mounted = false;
     }
 
@@ -65,51 +67,51 @@ namespace {
 
   static bool subghzEnsureDir(const char* dirPath) {
     if (!subghzMountSD()) return false;
-    if (SD.exists(dirPath)) return true;
-    if (SD.mkdir(dirPath)) return true;
-    if (dirPath && dirPath[0] == '/') return SD.mkdir(dirPath + 1);
+    if (DivSd.exists(dirPath)) return true;
+    if (DivSd.mkdir(dirPath)) return true;
+    if (dirPath && dirPath[0] == '/') return DivSd.mkdir(dirPath + 1);
     return false;
   }
 
   static void clearProfilesInEeprom() {
 
     uint16_t zero = 0;
-    EEPROM.put(ADDR_PROFILE_COUNT, zero);
+    DivNvStore.put(ADDR_PROFILE_COUNT, zero);
     SubGhzProfile empty{};
     for (uint16_t i = 0; i < MAX_PROFILES; i++) {
-      EEPROM.put(ADDR_PROFILE_START + (i * PROFILE_SIZE), empty);
+      DivNvStore.put(ADDR_PROFILE_START + (i * PROFILE_SIZE), empty);
     }
-    EEPROM.commit();
+    DivNvStore.commit();
   }
 
-  static bool makeNextExportPath(String& outPath) {
+  static bool makeNextExportPath(DivString& outPath) {
 
     for (uint16_t i = 0; i < 10000; i++) {
       char buf[48];
       snprintf(buf, sizeof(buf), "%s%04u.bin", SUBGHZ_EXPORT_PREFIX, (unsigned)i);
-      if (!SD.exists(buf)) { outPath = String(buf); return true; }
+      if (!DivSd.exists(buf)) { outPath = DivString(buf); return true; }
     }
     return false;
   }
 
-  static bool findLatestExportPath(String& outPath) {
+  static bool findLatestExportPath(DivString& outPath) {
 
     for (int i = 9999; i >= 0; i--) {
       char buf[48];
       snprintf(buf, sizeof(buf), "%s%04u.bin", SUBGHZ_EXPORT_PREFIX, (unsigned)i);
-      if (SD.exists(buf)) { outPath = String(buf); return true; }
+      if (DivSd.exists(buf)) { outPath = DivString(buf); return true; }
     }
     return false;
   }
 
-  static bool exportProfilesToSD(String& outPath, String* errOut = nullptr) {
+  static bool exportProfilesToSD(DivString& outPath, DivString* errOut = nullptr) {
     if (!subghzEnsureDir(SUBGHZ_DIR)) {
       if (errOut) *errOut = "SD not mounted";
       return false;
     }
 
     uint16_t count = 0;
-    EEPROM.get(ADDR_PROFILE_COUNT, count);
+    DivNvStore.get(ADDR_PROFILE_COUNT, count);
     if (count > MAX_PROFILES) count = MAX_PROFILES;
 
     if (!makeNextExportPath(outPath)) {
@@ -117,7 +119,7 @@ namespace {
       return false;
     }
 
-    File f = SD.open(outPath.c_str(), FILE_WRITE);
+    DivFile f = DivSd.open(outPath.c_str(), FILE_WRITE);
     if (!f) {
       if (errOut) *errOut = "Open failed";
       return false;
@@ -134,7 +136,7 @@ namespace {
     for (uint16_t i = 0; ok && i < count; i++) {
       SubGhzProfile p{};
       int addr = ADDR_PROFILE_START + (i * PROFILE_SIZE);
-      EEPROM.get(addr, p);
+      DivNvStore.get(addr, p);
       ok = (f.write((const uint8_t*)&p, sizeof(p)) == sizeof(p));
     }
     f.close();
@@ -143,7 +145,7 @@ namespace {
     return ok;
   }
 
-  static bool syncCurrentProfilesToSD(String* errOut = nullptr) {
+  static bool syncCurrentProfilesToSD(DivString* errOut = nullptr) {
 
     if (!subghzEnsureDir(SUBGHZ_DIR)) {
       if (errOut) *errOut = "SD not mounted";
@@ -151,11 +153,11 @@ namespace {
     }
 
     uint16_t count = 0;
-    EEPROM.get(ADDR_PROFILE_COUNT, count);
+    DivNvStore.get(ADDR_PROFILE_COUNT, count);
     if (count > MAX_PROFILES) count = MAX_PROFILES;
 
-    if (SD.exists(SUBGHZ_CURRENT_PATH)) SD.remove(SUBGHZ_CURRENT_PATH);
-    File f = SD.open(SUBGHZ_CURRENT_PATH, FILE_WRITE);
+    if (DivSd.exists(SUBGHZ_CURRENT_PATH)) DivSd.remove(SUBGHZ_CURRENT_PATH);
+    DivFile f = DivSd.open(SUBGHZ_CURRENT_PATH, FILE_WRITE);
     if (!f) {
       if (errOut) *errOut = "Open failed";
       return false;
@@ -172,7 +174,7 @@ namespace {
     for (uint16_t i = 0; ok && i < count; i++) {
       SubGhzProfile p{};
       int addr = ADDR_PROFILE_START + (i * PROFILE_SIZE);
-      EEPROM.get(addr, p);
+      DivNvStore.get(addr, p);
       ok = (f.write((const uint8_t*)&p, sizeof(p)) == sizeof(p));
     }
     f.close();
@@ -180,17 +182,17 @@ namespace {
     return ok;
   }
 
-  static bool importProfilesFromSD(const String& path, String* errOut = nullptr) {
+  static bool importProfilesFromSD(const DivString& path, DivString* errOut = nullptr) {
     if (!subghzMountSD()) {
       if (errOut) *errOut = "SD not mounted";
       return false;
     }
-    if (path.isEmpty() || !SD.exists(path.c_str())) {
+    if (path.isEmpty() || !DivSd.exists(path.c_str())) {
       if (errOut) *errOut = "File not found";
       return false;
     }
 
-    File f = SD.open(path.c_str(), FILE_READ);
+    DivFile f = DivSd.open(path.c_str(), FILE_READ);
     if (!f) {
       if (errOut) *errOut = "Open failed";
       return false;
@@ -209,30 +211,30 @@ namespace {
       SubGhzProfile p{};
       if (f.read((uint8_t*)&p, sizeof(p)) != sizeof(p)) { f.close(); if (errOut) *errOut="Read failed"; return false; }
       p.name[MAX_NAME_LENGTH - 1] = '\0';
-      EEPROM.put(ADDR_PROFILE_START + (i * PROFILE_SIZE), p);
+      DivNvStore.put(ADDR_PROFILE_START + (i * PROFILE_SIZE), p);
     }
-    EEPROM.put(ADDR_PROFILE_COUNT, count);
-    EEPROM.commit();
+    DivNvStore.put(ADDR_PROFILE_COUNT, count);
+    DivNvStore.commit();
     f.close();
     return true;
   }
 
   struct SubGhzFileEntry {
-    String path;
+    DivString path;
     uint16_t count = 0;
     bool isCurrent = false;
   };
 
-  static bool readExportHeader(File& f, SubGhzExportHeader& out, String* errOut = nullptr) {
+  static bool readExportHeader(DivFile& f, SubGhzExportHeader& out, DivString* errOut = nullptr) {
     if (f.read((uint8_t*)&out, sizeof(out)) != sizeof(out)) { if (errOut) *errOut="Bad header"; return false; }
     if (out.magic != SUBGHZ_EXPORT_MAGIC || out.version != 1) { if (errOut) *errOut="Wrong file"; return false; }
     if (out.profileSize != PROFILE_SIZE) { if (errOut) *errOut="Size mismatch"; return false; }
     return true;
   }
 
-  static bool readProfileAt(const String& path, uint16_t localIndex, SubGhzProfile& out, String* errOut = nullptr) {
+  static bool readProfileAt(const DivString& path, uint16_t localIndex, SubGhzProfile& out, DivString* errOut = nullptr) {
     if (!subghzMountSD()) { if (errOut) *errOut="SD not mounted"; return false; }
-    File f = SD.open(path.c_str(), FILE_READ);
+    DivFile f = DivSd.open(path.c_str(), FILE_READ);
     if (!f) { if (errOut) *errOut="Open failed"; return false; }
     SubGhzExportHeader h{};
     if (!readExportHeader(f, h, errOut)) { f.close(); return false; }
@@ -246,27 +248,27 @@ namespace {
     return true;
   }
 
-  static bool listAllProfileFiles(std::vector<SubGhzFileEntry>& out, String* errOut = nullptr) {
+  static bool listAllProfileFiles(std::vector<SubGhzFileEntry>& out, DivString* errOut = nullptr) {
     out.clear();
     if (!subghzMountSD()) { if (errOut) *errOut="SD not mounted"; return false; }
-    if (!SD.exists(SUBGHZ_DIR)) { if (errOut) *errOut="No /subghz"; return false; }
-    File d = SD.open(SUBGHZ_DIR);
+    if (!DivSd.exists(SUBGHZ_DIR)) { if (errOut) *errOut="No /subghz"; return false; }
+    DivFile d = DivSd.open(SUBGHZ_DIR);
     if (!d) { if (errOut) *errOut="Open dir failed"; return false; }
 
     for (;;) {
-      File f = d.openNextFile();
+      DivFile f = d.openNextFile();
       if (!f) break;
       if (f.isDirectory()) { f.close(); continue; }
-      String name = String(f.name());
+      DivString name = DivString(f.name());
 
-      String fullPath = String(SUBGHZ_DIR) + "/" + name;
+      DivString fullPath = DivString(SUBGHZ_DIR) + "/" + name;
 
       bool isCurrent = (name == "profiles_current.bin");
       bool isArchive = name.startsWith("profiles_") && name.endsWith(".bin") && !isCurrent;
       if (!isCurrent && !isArchive) { f.close(); continue; }
 
       SubGhzExportHeader h{};
-      String herr;
+      DivString herr;
       bool ok = readExportHeader(f, h, &herr);
       f.close();
       if (!ok) continue;
@@ -298,7 +300,7 @@ namespace {
   }
 
   static bool locateGlobalIndex(const std::vector<SubGhzFileEntry>& files, uint16_t globalIndex,
-                                String& outPath, uint16_t& outLocalIdx) {
+                                DivString& outPath, uint16_t& outLocalIdx) {
     uint32_t idx = globalIndex;
     for (auto& fe : files) {
       if (idx < fe.count) {
@@ -311,9 +313,9 @@ namespace {
     return false;
   }
 
-  static bool deleteProfileFromFile(const String& path, uint16_t localIndex, String* errOut = nullptr) {
+  static bool deleteProfileFromFile(const DivString& path, uint16_t localIndex, DivString* errOut = nullptr) {
     if (!subghzMountSD()) { if (errOut) *errOut="SD not mounted"; return false; }
-    File f = SD.open(path.c_str(), FILE_READ);
+    DivFile f = DivSd.open(path.c_str(), FILE_READ);
     if (!f) { if (errOut) *errOut="Open failed"; return false; }
     SubGhzExportHeader h{};
     if (!readExportHeader(f, h, errOut)) { f.close(); return false; }
@@ -330,8 +332,8 @@ namespace {
     for (uint16_t i = localIndex; i + 1 < count; i++) buf[i] = buf[i + 1];
     count--;
 
-    if (SD.exists(path.c_str())) SD.remove(path.c_str());
-    File w = SD.open(path.c_str(), FILE_WRITE);
+    if (DivSd.exists(path.c_str())) DivSd.remove(path.c_str());
+    DivFile w = DivSd.open(path.c_str(), FILE_WRITE);
     if (!w) { if (errOut) *errOut="Open write failed"; return false; }
 
     SubGhzExportHeader nh{};
@@ -445,7 +447,7 @@ namespace SavedProfile { void profileHandleNavButtons(); }
 
 namespace replayat {
 
-#define EEPROM_SIZE 1440
+#define NVSTORE_SIZE 1440
 
 #define ADDR_VALUE         1280
 #define ADDR_BITLEN        1284
@@ -639,7 +641,7 @@ static void replayBeepPoll() {
   buzzerArmed = false;
 }
 
-static void replayShowDetectNotice(const String& reason, int rssi = 0) {
+static void replayShowDetectNotice(const DivString& reason, int rssi = 0) {
   uint32_t now = millis();
 
   if (now - lastDetectAlertMs < 1200 && lastDetectAlertFreq == currentFrequencyIndex) return;
@@ -709,8 +711,8 @@ static void tuneToIndex(uint16_t idx, bool persist = true) {
   ELECHOUSE_cc1101.setMHZ(subghz_frequency_list[currentFrequencyIndex] / 1000000.0);
   ELECHOUSE_cc1101.SetRx();
   if (persist) {
-    EEPROM.put(ADDR_FREQ, currentFrequencyIndex);
-    EEPROM.commit();
+    DivNvStore.put(ADDR_FREQ, currentFrequencyIndex);
+    DivNvStore.commit();
   }
 }
 
@@ -788,8 +790,8 @@ static void replaySampleRssiForScan(uint32_t now) {
     if (!rssiHot && rssiDetectStreak >= detectHits) {
       rssiHot = true;
       lockUntilMs = now + RSSI_LOCK_MS;
-      EEPROM.put(ADDR_FREQ, currentFrequencyIndex);
-      EEPROM.commit();
+      DivNvStore.put(ADDR_FREQ, currentFrequencyIndex);
+      DivNvStore.commit();
       replayShowDetectNotice("RSSI", rssi);
     }
   } else {
@@ -874,7 +876,7 @@ static void replayDrawStatusSeparator() {
   tft.drawFastHLine(0, kReplayStatusLineY, 240, UI_LINE);
 }
 
-static void replayDrawValueCell(int x, int y, int w, int h, const String& text, uint16_t color) {
+static void replayDrawValueCell(int x, int y, int w, int h, const DivString& text, uint16_t color) {
   const int maxH = kReplayStatusLineY - y;
   if (maxH <= 0) {
     return;
@@ -1003,7 +1005,7 @@ void updateDisplay() {
     }
 }
 
-String getUserInputName() {
+DivString getUserInputName() {
   OnScreenKeyboardConfig cfg;
   cfg.titleLine1     = "[!] Set a name for the saved profile.";
   cfg.titleLine2     = "(max 15 chars, ^ caps, # sym)";
@@ -1136,7 +1138,7 @@ for (int j = 0; j < samplesSUB >> 1; j++) {
 }
 
 void readProfileCount() {
-    EEPROM.get(ADDR_PROFILE_COUNT, profileCount);
+    DivNvStore.get(ADDR_PROFILE_COUNT, profileCount);
     if (profileCount > MAX_PROFILES) profileCount = 0;
 }
 
@@ -1145,7 +1147,7 @@ void saveProfile() {
 
     if (profileCount >= MAX_PROFILES) {
 
-        String err, outPath;
+        DivString err, outPath;
         if (exportProfilesToSD(outPath, &err)) {
             clearProfilesInEeprom();
             profileCount = 0;
@@ -1180,7 +1182,7 @@ void saveProfile() {
 
     if (profileCount < MAX_PROFILES) {
 
-        String customName = getUserInputName();
+        DivString customName = getUserInputName();
 
         tft.setTextSize(1);
 
@@ -1193,13 +1195,13 @@ void saveProfile() {
         newProfile.name[MAX_NAME_LENGTH - 1] = '\0';
 
         int addr = ADDR_PROFILE_START + (profileCount * PROFILE_SIZE);
-        EEPROM.put(addr, newProfile);
-        EEPROM.commit();
+        DivNvStore.put(addr, newProfile);
+        DivNvStore.commit();
 
         profileCount++;
 
-        EEPROM.put(ADDR_PROFILE_COUNT, profileCount);
-        EEPROM.commit();
+        DivNvStore.put(ADDR_PROFILE_COUNT, profileCount);
+        DivNvStore.commit();
 
         syncCurrentProfilesToSD(nullptr);
 
@@ -1348,7 +1350,7 @@ void runUI() {
 }
 
 void ReplayAttackSetup() {
-  Serial.begin(115200);
+  DivSerial.begin(115200);
   setTouchButtonInputEnabled(true);
   subghzSetReplayNavLabels();
 
@@ -1366,13 +1368,13 @@ void ReplayAttackSetup() {
   mySwitch.enableTransmit(REPLAY_TX_PIN);
   mySwitch.setRepeatTransmit(8);
 
-  EEPROM.begin(EEPROM_SIZE);
+  DivNvStore.begin(NVSTORE_SIZE);
   readProfileCount();
 
-  EEPROM.get(ADDR_VALUE, receivedValue);
-  EEPROM.get(ADDR_BITLEN, receivedBitLength);
-  EEPROM.get(ADDR_PROTO, receivedProtocol);
-  EEPROM.get(ADDR_FREQ, currentFrequencyIndex);
+  DivNvStore.get(ADDR_VALUE, receivedValue);
+  DivNvStore.get(ADDR_BITLEN, receivedBitLength);
+  DivNvStore.get(ADDR_PROTO, receivedProtocol);
+  DivNvStore.get(ADDR_FREQ, currentFrequencyIndex);
 
   const uint16_t freqCount = (uint16_t)(sizeof(subghz_frequency_list) / sizeof(subghz_frequency_list[0]));
   if (currentFrequencyIndex >= freqCount) currentFrequencyIndex = 0;
@@ -1394,7 +1396,7 @@ void ReplayAttackSetup() {
   pcf.pinMode(BTN_SELECT, INPUT_PULLUP);
 #endif
 
-  sampling_period = round(1000000*(1.0/FrequencySUB));
+  sampling_period = std::round(1000000*(1.0/FrequencySUB));
 
   for (int i = 0; i < 32; i++) {
     red[i] = i / 2;
@@ -1582,10 +1584,10 @@ void ReplayAttackLoop() {
           receivedBitLength = bits;
           receivedProtocol = proto;
 
-          EEPROM.put(ADDR_VALUE, receivedValue);
-          EEPROM.put(ADDR_BITLEN, receivedBitLength);
-          EEPROM.put(ADDR_PROTO, receivedProtocol);
-          EEPROM.commit();
+          DivNvStore.put(ADDR_VALUE, receivedValue);
+          DivNvStore.put(ADDR_BITLEN, receivedBitLength);
+          DivNvStore.put(ADDR_PROTO, receivedProtocol);
+          DivNvStore.commit();
 
           updateDisplay();
 
@@ -1595,8 +1597,8 @@ void ReplayAttackLoop() {
             rssiHot = false;
             rssiDetectStreak = 0;
 
-            EEPROM.put(ADDR_FREQ, currentFrequencyIndex);
-            EEPROM.commit();
+            DivNvStore.put(ADDR_FREQ, currentFrequencyIndex);
+            DivNvStore.commit();
             replayShowDetectNotice("DECODE", ELECHOUSE_cc1101.getRssi());
           }
         }
@@ -1614,7 +1616,7 @@ void deleteProfile(int index);
 
 static bool uiDrawn = false;
 
-#define EEPROM_SIZE 1440
+#define NVSTORE_SIZE 1440
 
 #define ADDR_PROFILE_COUNT 1296
 #define ADDR_PROFILE_START 1300
@@ -1642,8 +1644,8 @@ int yshift = 16;
 
 static std::vector<SubGhzFileEntry> sdFiles;
 static uint16_t sdTotalProfiles = 0;
-static String sdLastErr = "";
-static String selectedPath = "";
+static DivString sdLastErr = "";
+static DivString selectedPath = "";
 static uint16_t selectedLocalIdx = 0;
 static Profile selectedProfile{};
 static bool selectedValid = false;
@@ -1716,7 +1718,7 @@ static uint32_t deleteArmUntilMs = 0;
 
 static void refreshSdIndex(bool keepSelection = true) {
     uint16_t oldIdx = currentProfileIndex;
-    String err;
+    DivString err;
     if (!listAllProfileFiles(sdFiles, &err)) {
         sdFiles.clear();
         sdTotalProfiles = 0;
@@ -1741,7 +1743,7 @@ static void refreshSdIndex(bool keepSelection = true) {
     cacheDirty = true;
 }
 
-static bool loadSelectedFromSd(String* errOut = nullptr) {
+static bool loadSelectedFromSd(DivString* errOut = nullptr) {
     if (sdTotalProfiles == 0) { selectedValid = false; return false; }
     if (!locateGlobalIndex(sdFiles, currentProfileIndex, selectedPath, selectedLocalIdx)) {
         selectedValid = false; if (errOut) *errOut="Locate failed"; return false;
@@ -1774,9 +1776,9 @@ static void ensurePageCache() {
     cachedOk[i] = false;
     uint16_t globalIdx = (uint16_t)(start + i);
     if (globalIdx >= sdTotalProfiles) continue;
-    String pth; uint16_t li = 0;
+    DivString pth; uint16_t li = 0;
     if (!locateGlobalIndex(sdFiles, globalIdx, pth, li)) continue;
-    String err;
+    DivString err;
     cachedOk[i] = readProfileAt(pth, li, cachedPage[i], &err);
     if (!cachedOk[i]) memset(&cachedPage[i], 0, sizeof(SubGhzProfile));
   }
@@ -1870,7 +1872,7 @@ static void drawRow(uint16_t pageStart, uint8_t row) {
     char nameBuf[17];
     memcpy(nameBuf, cachedPage[row].name, 16);
     nameBuf[16] = '\0';
-    String nm = String(nameBuf);
+    DivString nm = DivString(nameBuf);
     if (nm.length() > 10) nm = nm.substring(0, 10);
     tft.print(nm);
 
@@ -1903,7 +1905,7 @@ static void drawDetails() {
   }
   tft.drawFastHLine(LIST_X, profileListBottom(), LIST_W, UI_LINE);
 
-  String err;
+  DivString err;
   if (!selectedValid) {
     loadSelectedFromSd(&err);
   }
@@ -2002,7 +2004,7 @@ void updateDisplay() {
         if (sdLastErr.indexOf("SD not mounted") >= 0) {
           tft.print("SD card not inserted.");
         } else {
-          tft.print("No profiles on SD.");
+          tft.print("No profiles on DivSd.");
         }
         if (sdLastErr.length()) {
           tft.setCursor(PROFILE_LABEL_X, PROFILE_HEADER_Y + (PROFILE_LINE_H * 2));
@@ -2021,7 +2023,7 @@ void updateDisplay() {
 
 void transmitProfile(int index) {
     (void)index;
-    String err;
+    DivString err;
     loadSelectedFromSd(&err);
     if (!selectedValid) return;
     Profile profileToSend = selectedProfile;
@@ -2067,30 +2069,30 @@ void loadProfileCount() {
 }
 
 void printProfiles() {
-    Serial.println("Saved Profiles (SD index):");
-    String err;
+    DivSerial.println("Saved Profiles (SD index):");
+    DivString err;
     refreshSdIndex(false);
-    Serial.printf("Total profiles: %d\n", (int)sdTotalProfiles);
+    DivSerial.printf("Total profiles: %d\n", (int)sdTotalProfiles);
     if (!sdTotalProfiles) return;
 
     uint16_t n = sdTotalProfiles > 10 ? 10 : sdTotalProfiles;
     for (uint16_t i = 0; i < n; i++) {
-      String pth; uint16_t li = 0;
+      DivString pth; uint16_t li = 0;
       if (!locateGlobalIndex(sdFiles, i, pth, li)) continue;
       SubGhzProfile p{};
       if (!readProfileAt(pth, li, p, &err)) continue;
-      Serial.printf("  [%d] %s @ %.2f MHz (val=%lu)\n", (int)i, p.name, p.frequency/1000000.0, (unsigned long)p.value);
+      DivSerial.printf("  [%d] %s @ %.2f MHz (val=%lu)\n", (int)i, p.name, p.frequency/1000000.0, (unsigned long)p.value);
     }
 }
 
 void deleteProfile(int index) {
     (void)index;
     if (sdTotalProfiles == 0) return;
-    String err;
+    DivString err;
     loadSelectedFromSd(&err);
     if (!selectedValid) return;
 
-    String path = selectedPath;
+    DivString path = selectedPath;
     uint16_t local = selectedLocalIdx;
 
     uint32_t now = millis();
@@ -2232,13 +2234,13 @@ void runUI() {
 }
 
 void saveSetup() {
-    Serial.begin(115200);
+    DivSerial.begin(115200);
     setTouchButtonInputEnabled(true);
     subghzSetProfileNavLabels();
 
     ELECHOUSE_cc1101.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
 
-    EEPROM.begin(EEPROM_SIZE);
+    DivNvStore.begin(NVSTORE_SIZE);
     loadProfileCount();
     printProfiles();
 
@@ -2390,11 +2392,11 @@ static void jammerInvalidateDisplay() {
 static void subjammerToggleJam() {
   jammingRunning = !jammingRunning;
   if (jammingRunning) {
-    Serial.println("Jamming started");
+    DivSerial.println("Jamming started");
     ELECHOUSE_cc1101.setMHZ(targetFrequency);
     ELECHOUSE_cc1101.SetTx();
   } else {
-    Serial.println("Jamming stopped");
+    DivSerial.println("Jamming stopped");
     ELECHOUSE_cc1101.setSidle();
     gpioOutputWrite(TX_PIN, false);
   }
@@ -2448,8 +2450,8 @@ static void subjammerAutoSweepIfDue() {
 
 static void subjammerToggleAuto() {
   autoMode = !autoMode;
-  Serial.print("Frequency mode: ");
-  Serial.println(autoMode ? "Automatic" : "Manual");
+  DivSerial.print("Frequency mode: ");
+  DivSerial.println(autoMode ? "Automatic" : "Manual");
   if (autoMode) {
     currentFrequencyIndex = 0;
     targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
@@ -2488,7 +2490,7 @@ static void jammerDrawStatusSeparator() {
   tft.drawFastHLine(0, kJammerStatusLineY, 240, UI_LINE);
 }
 
-static void jammerDrawValueCell(int x, int y, int w, int h, const String& text, uint16_t color) {
+static void jammerDrawValueCell(int x, int y, int w, int h, const DivString& text, uint16_t color) {
   const int maxH = kJammerStatusLineY - y;
   if (maxH <= 0) {
     return;
@@ -2657,11 +2659,11 @@ void runUI() {
                 case 0:
                   jammingRunning = !jammingRunning;
                     if (jammingRunning) {
-                        Serial.println("Jamming started");
+                        DivSerial.println("Jamming started");
                         ELECHOUSE_cc1101.setMHZ(targetFrequency);
                         ELECHOUSE_cc1101.SetTx();
                     } else {
-                        Serial.println("Jamming stopped");
+                        DivSerial.println("Jamming stopped");
                         ELECHOUSE_cc1101.setSidle();
                         gpioOutputWrite(TX_PIN, false);
                     }
@@ -2670,15 +2672,15 @@ void runUI() {
                     break;
                 case 1:
                  continuousMode = !continuousMode;
-                  Serial.print("Jamming mode: ");
-                  Serial.println(continuousMode ? "Continuous Carrier" : "Noise");
+                  DivSerial.print("Jamming mode: ");
+                  DivSerial.println(continuousMode ? "Continuous Carrier" : "Noise");
                   updateDisplay();
                   lastDebounceTime = millis();
                     break;
                 case 2:
                   autoMode = !autoMode;
-                  Serial.print("Frequency mode: ");
-                  Serial.println(autoMode ? "Automatic" : "Manual");
+                  DivSerial.print("Frequency mode: ");
+                  DivSerial.println(autoMode ? "Automatic" : "Manual");
                   if (autoMode) {
                       currentFrequencyIndex = 0;
                       targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
@@ -2693,9 +2695,9 @@ void runUI() {
                   currentFrequencyIndex = (currentFrequencyIndex - 1 + numFrequencies) % numFrequencies;
                   targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
                   ELECHOUSE_cc1101.setMHZ(targetFrequency);
-                  Serial.print("Switched to: ");
-                  Serial.print(targetFrequency);
-                  Serial.println(" MHz");
+                  DivSerial.print("Switched to: ");
+                  DivSerial.print(targetFrequency);
+                  DivSerial.println(" MHz");
                   updateDisplay();
                   lastDebounceTime = millis();
                     break;
@@ -2703,9 +2705,9 @@ void runUI() {
                   currentFrequencyIndex = (currentFrequencyIndex + 1) % numFrequencies;
                   targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
                   ELECHOUSE_cc1101.setMHZ(targetFrequency);
-                  Serial.print("Switched to: ");
-                  Serial.print(targetFrequency);
-                  Serial.println(" MHz");
+                  DivSerial.print("Switched to: ");
+                  DivSerial.print(targetFrequency);
+                  DivSerial.println(" MHz");
                   updateDisplay();
                   lastDebounceTime = millis();
                     break;
@@ -2751,7 +2753,7 @@ void runUI() {
 }
 
 void subjammerSetup() {
-    Serial.begin(115200);
+    DivSerial.begin(115200);
     setTouchButtonInputEnabled(true);
     subghzSetJammerNavLabels();
     subghzClearBody(TFT_BLACK);

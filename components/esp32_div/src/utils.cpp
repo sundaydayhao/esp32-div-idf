@@ -1,5 +1,5 @@
-#include <SD.h>
-#include <SPI.h>
+#include "DivSd.h"
+#include "DivSpi.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -26,10 +26,10 @@ static char s_notifMsgCache[400];
 static bool s_notifShowSaveCache = false;
 
 /** Wrapped line count for modal text (font 1, size 1 — must match draw path). */
-static int countWrappedNotifLines(const String& msgIn, int innerPixelW) {
+static int countWrappedNotifLines(const DivString& msgIn, int innerPixelW) {
   tft.setTextFont(1);
   tft.setTextSize(1);
-  String msg = msgIn;
+  DivString msg = msgIn;
   msg.trim();
   int lines = 0;
   while (msg.length() > 0 && lines < 48) {
@@ -78,8 +78,8 @@ void tftPrintlnObf(const uint8_t* data, size_t len, uint8_t key) {
 void serialPrintObf(const uint8_t* data, size_t len, bool newline, uint8_t key) {
   char buf[128];
   decodeObfTo(buf, sizeof(buf), data, len, key);
-  if (newline) Serial.println(buf);
-  else Serial.print(buf);
+  if (newline) DivSerial.println(buf);
+  else DivSerial.print(buf);
 }
 
 static inline bool inRect(int x, int y, int rx, int ry, int rw, int rh) {
@@ -107,7 +107,7 @@ static void drawNotificationInternal(const char* title, const char* message, boo
 
     tft.setTextFont(1);
     tft.setTextSize(1);
-    String msgProbe = message ? String(message) : String("");
+    DivString msgProbe = message ? DivString(message) : DivString("");
     msgProbe.trim();
     int lineCount = countWrappedNotifLines(msgProbe, innerTextW);
     if (lineCount < 2) {
@@ -159,7 +159,7 @@ static void drawNotificationInternal(const char* title, const char* message, boo
 
     {
       const int maxY = messageBoxY + messageBoxDrawH - lineH;
-      String msg = message ? String(message) : String("");
+      DivString msg = message ? DivString(message) : DivString("");
       msg.trim();
       int cursorX = messageBoxX + 3;
       int cursorY = messageBoxY + 4;
@@ -273,7 +273,7 @@ NotificationAction notificationHandleTouch(int x, int y) {
 }
 
 void printWrappedText(int x, int y, int maxWidth, const char* text) {
-    String message = text;
+    DivString message = text;
     int cursorX = x, cursorY = y;
 
     while (message.length() > 0) {
@@ -528,7 +528,7 @@ void updateSdCardStatus() {
       s_sdNextMountAttemptMs = 0;
     }
 
-    Serial.println(sdCardPresent ? "SD Card detected" : "SD Card removed");
+    DivSerial.println(sdCardPresent ? "SD Card detected" : "SD Card removed");
     requestStatusBarRedraw();
   }
 }
@@ -634,7 +634,7 @@ void drawStatusBar(float batteryVoltage, bool forceUpdate, bool bottomSeparator)
     tft.setTextColor(TFT_GREEN, UI_LABLE);
     tft.setTextFont(1);
     tft.setTextSize(1);
-    tft.print(String(batteryPercentage) + "%");
+    tft.print(DivString(batteryPercentage) + "%");
 
     const int iconW         = 16;
     const int gap           = 3;
@@ -1050,11 +1050,11 @@ void pollPcf8574ScanMode() {}
 
 #if TOUCH_SHARES_TFT_SPI
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
-static SPIClass s_sdSpi(FSPI);
+static DivSpiClass s_sdSpi;
 #elif defined(CONFIG_IDF_TARGET_ESP32)
-static SPIClass s_sdSpi(VSPI);
+static DivSpiClass s_sdSpi;
 #else
-static SPIClass s_sdSpi(FSPI);
+static DivSpiClass s_sdSpi;
 #endif
 #endif
 
@@ -1063,16 +1063,16 @@ void sdSpiInit() {
 #if TOUCH_SHARES_TFT_SPI
   s_sdSpi.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
 #else
-  SPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
+  DivSpi.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
 #endif
 #endif
 }
 
 bool sdMountChipSelect(uint8_t cs) {
 #if TOUCH_SHARES_TFT_SPI
-  return SD.begin(cs, s_sdSpi);
+  return DivSd.begin(cs, s_sdSpi);
 #else
-  return SD.begin(cs);
+  return DivSd.begin(cs);
 #endif
 }
 
@@ -1087,7 +1087,7 @@ void initSDCard() {
   updateSdCardStatus();
 }
 
-/** GPIO CS that last mounted SD (-1 = unknown). Tried first to avoid long SD.begin on wrong CS. */
+/** GPIO CS that last mounted SD (-1 = unknown). Tried first to avoid long DivSd.begin on wrong CS. */
 static int8_t s_sdLastGoodCs = -1;
 
 static bool sdPinIsOkForSdMount(uint8_t pin) {
@@ -1124,7 +1124,7 @@ static void sdAddPinUnique(uint8_t* pins, int* nTry, uint8_t p) {
   }
 }
 
-/** SPI must already be SD wiring. Returns true if SD.begin succeeded. */
+/** SPI must already be SD wiring. Returns true if DivSd.begin succeeded. */
 static bool sdTryBeginOrder() {
   uint8_t tryPins[3];
   int nTry = 0;
@@ -1159,7 +1159,7 @@ bool isSDCardAvailable() {
 
   if (s_sdMounted) {
 
-    if (SD.exists("/")) return true;
+    if (DivSd.exists("/")) return true;
     s_sdMounted = false;
   }
 
@@ -1193,11 +1193,11 @@ void restoreSdAfterSharedSpi() {
 #if defined(SD_SCLK) && defined(SD_MISO) && defined(SD_MOSI) && defined(SD_CS)
   sdSpiInit();
 #endif
-  if (SD.exists("/")) {
+  if (DivSd.exists("/")) {
     s_sdMounted = true;
     return;
   }
-  SD.end();
+  DivSd.end();
 #if defined(SD_SCLK) && defined(SD_MISO) && defined(SD_MOSI) && defined(SD_CS)
   sdSpiInit();
 #endif
@@ -1276,15 +1276,15 @@ void displayLogo(uint16_t color, int displayTime) {
   // Version is intentionally NOT obfuscated.
   tft.print(ESP32DIV_VERSION);
 
-  Serial.println("==================================");
+  DivSerial.println("==================================");
   serialPrintObf(OBF_PN, sizeof(OBF_PN), true);
-  Serial.print("Developed by: "); serialPrintObf(OBF_DN, sizeof(OBF_DN), true);
+  DivSerial.print("Developed by: "); serialPrintObf(OBF_DN, sizeof(OBF_DN), true);
   // Version is intentionally NOT obfuscated.
-  Serial.print("Version:      "); Serial.println(ESP32DIV_VERSION);
-  Serial.print("Contact:      "); serialPrintObf(OBF_EM, sizeof(OBF_EM), true);
-  Serial.print("GitHub:       "); serialPrintObf(OBF_GH, sizeof(OBF_GH), true);
-  Serial.print("Website:      "); serialPrintObf(OBF_WB, sizeof(OBF_WB), true);
-  Serial.println("==================================");
+  DivSerial.print("Version:      "); DivSerial.println(ESP32DIV_VERSION);
+  DivSerial.print("Contact:      "); serialPrintObf(OBF_EM, sizeof(OBF_EM), true);
+  DivSerial.print("GitHub:       "); serialPrintObf(OBF_GH, sizeof(OBF_GH), true);
+  DivSerial.print("Website:      "); serialPrintObf(OBF_WB, sizeof(OBF_WB), true);
+  DivSerial.println("==================================");
 
   delay(displayTime);
 }
@@ -1342,12 +1342,12 @@ static void terminalCycleBaud() {
     return;
   }
   baudIndex = (baudIndex + 1) % 5;
-  Serial.end();
+  DivSerial.end();
   delay(100);
-  Serial.begin(baudRates[baudIndex]);
+  DivSerial.begin(baudRates[baudIndex]);
   tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
   tft.setTextColor(TFT_WHITE, TFT_WHITE);
-  String baudMsg = " Serial Terminal - " + String(baudRates[baudIndex]) + " baud ";
+  DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
   tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
   delay(10);
 }
@@ -1360,7 +1360,7 @@ static void terminalSetActive(bool active) {
   if (active) {
     tft.drawCentreString(" Serial Terminal Active ", DISPLAY_WIDTH / 2, 37, 2);
   } else {
-    String baudMsg = " Serial Terminal - " + String(baudRates[baudIndex]) + " baud ";
+    DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
     tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
   }
   terminalUpdateNavLabels();
@@ -1427,12 +1427,12 @@ void runUI() {
                     terminalActive = false;
                   } else if (!terminalActive) {
                     baudIndex = (baudIndex + 1) % 5;
-                    Serial.end();
+                    DivSerial.end();
                     delay(100);
-                    Serial.begin(baudRates[baudIndex]);
+                    DivSerial.begin(baudRates[baudIndex]);
                     tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
                     tft.setTextColor(TFT_WHITE, TFT_WHITE);
-                    String baudMsg = " Serial Terminal - " + String(baudRates[baudIndex]) + " baud ";
+                    DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
                     tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
                     delay(10);
                   }
@@ -1523,7 +1523,7 @@ void terminalSetup() {
 
   tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
   tft.setTextColor(TFT_WHITE, TFT_WHITE);
-  String baudMsg = " Serial Terminal - " + String(baudRates[baudIndex]) + " baud ";
+  DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
   tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
 
   float currentBatteryVoltage = readBatteryVoltage();
@@ -1532,7 +1532,7 @@ void terminalSetup() {
 
   uiDrawn = false;
 
-  Serial.begin(baudRates[baudIndex]);
+  DivSerial.begin(baudRates[baudIndex]);
 
   const int bfa = terminalBotFixedArea();
   yArea = DISPLAY_HEIGHT - TOP_FIXED_AREA - bfa;
@@ -1555,8 +1555,8 @@ void terminalLoop() {
 
   if (terminalActive) {
     byte charCount = 0;
-    while (Serial.available() && charCount < 10) {
-      data = Serial.read();
+    while (DivSerial.available() && charCount < 10) {
+      data = DivSerial.read();
       if (data == '\r' || xPos > 231) {
         xPos = 0;
         yDraw = scroll_line();
@@ -2219,9 +2219,9 @@ static constexpr uint16_t COL_BG   = FEATURE_BG;
 static constexpr int STATUS_BAR_H = 20;
 static constexpr int HEADER_H = 54;
 
-static String ellipsize(const String& s, int maxW, uint8_t font) {
+static DivString ellipsize(const DivString& s, int maxW, uint8_t font) {
   if (tft.textWidth(s, font) <= maxW) return s;
-  String out = s;
+  DivString out = s;
   while (out.length() > 0 && tft.textWidth(out + "...", font) > maxW) {
     out.remove(out.length() - 1);
   }
@@ -2229,8 +2229,8 @@ static String ellipsize(const String& s, int maxW, uint8_t font) {
 }
 
 struct Entry {
-  String name;
-  String path;
+  DivString name;
+  DivString path;
   bool isDir = false;
   uint32_t size = 0;
   bool isUp = false; // synthetic ".."
@@ -2240,7 +2240,7 @@ enum class Page : uint8_t { Browser, Info, ConfirmDelete };
 
 static Page page = Page::Browser;
 static std::vector<Entry> entries;
-static String cwd = "/";
+static DivString cwd = "/";
 static int sel = 0;
 static int listStart = 0;
 static bool uiDirty = true;
@@ -2255,7 +2255,7 @@ static Button browserBtns[4];
 static Button infoBtns[2];
 static Button confirmBtns[2];
 
-static String lastErr;
+static DivString lastErr;
 
 static int sdFmContentBottom() {
   return featureHasTouchNavBar() ? (int)touchNavContentBottomY()
@@ -2317,12 +2317,12 @@ static void sdFmUpdateConfirmNavLabels() {
 }
 
 static void clampSel();
-static bool reloadDir(const String& path, String* errOut);
+static bool reloadDir(const DivString& path, DivString* errOut);
 static void resetListDrawCache();
 static void drawBrowserPage(bool full = true);
 static void drawConfirmDeletePage();
 static void openSelected();
-static bool deleteSelected(String* errOut);
+static bool deleteSelected(DivString* errOut);
 
 static void sdFmHandleNavButtons() {
   if (!featureHasTouchNavBar()) {
@@ -2367,7 +2367,7 @@ static void sdFmHandleNavButtons() {
       return;
     }
     if (isTouchNavButtonPressedEdge(BTN_SELECT)) {
-      String err;
+      DivString err;
       const bool ok = deleteSelected(&err);
       if (!ok) {
         showNotification("Delete", err.c_str());
@@ -2379,33 +2379,33 @@ static void sdFmHandleNavButtons() {
   }
 }
 
-static File sdOpenCompat(const String& path) {
-  File f = SD.open(path.c_str());
+static DivFile sdOpenCompat(const DivString& path) {
+  DivFile f = DivSd.open(path.c_str());
   if (f) return f;
   if (path.length() > 1 && path[0] == '/') {
-    f = SD.open(path.substring(1).c_str());
+    f = DivSd.open(path.substring(1).c_str());
   }
   return f;
 }
 
-static bool sdRemoveCompat(const String& path) {
-  if (SD.remove(path.c_str())) return true;
-  if (path.length() > 1 && path[0] == '/') return SD.remove(path.substring(1).c_str());
+static bool sdRemoveCompat(const DivString& path) {
+  if (DivSd.remove(path.c_str())) return true;
+  if (path.length() > 1 && path[0] == '/') return DivSd.remove(path.substring(1).c_str());
   return false;
 }
 
-static bool sdRmdirCompat(const String& path) {
-  if (SD.rmdir(path.c_str())) return true;
-  if (path.length() > 1 && path[0] == '/') return SD.rmdir(path.substring(1).c_str());
+static bool sdRmdirCompat(const DivString& path) {
+  if (DivSd.rmdir(path.c_str())) return true;
+  if (path.length() > 1 && path[0] == '/') return DivSd.rmdir(path.substring(1).c_str());
   return false;
 }
 
-static String normalizePath(const String& path) {
+static DivString normalizePath(const DivString& path) {
   if (path.length() == 0) return "/";
-  String p = path;
+  DivString p = path;
   if (p[0] != '/') p = "/" + p;
 
-  String out;
+  DivString out;
   out.reserve(p.length());
   bool lastSlash = false;
   for (size_t i = 0; i < p.length(); ++i) {
@@ -2451,15 +2451,15 @@ static void ensureSelectionVisible(int maxVisible) {
   clampListStart(maxVisible);
 }
 
-static String parentPath(const String& p) {
-  String np = normalizePath(p);
+static DivString parentPath(const DivString& p) {
+  DivString np = normalizePath(p);
   if (np == "/") return "/";
   int slash = np.lastIndexOf('/');
   if (slash <= 0) return "/";
   return np.substring(0, slash);
 }
 
-static bool reloadDir(const String& path, String* errOut = nullptr) {
+static bool reloadDir(const DivString& path, DivString* errOut = nullptr) {
   entries.clear();
   lastErr = "";
 
@@ -2469,9 +2469,9 @@ static bool reloadDir(const String& path, String* errOut = nullptr) {
     return false;
   }
 
-  String openPath = normalizePath(path);
+  DivString openPath = normalizePath(path);
 
-  File dir = sdOpenCompat(openPath);
+  DivFile dir = sdOpenCompat(openPath);
   if (!dir) {
     if (errOut) *errOut = "Open dir failed";
     lastErr = "Open dir failed";
@@ -2496,15 +2496,15 @@ static bool reloadDir(const String& path, String* errOut = nullptr) {
   }
 
   for (;;) {
-    File f = dir.openNextFile();
+    DivFile f = dir.openNextFile();
     if (!f) break;
 
     Entry e;
     {
-      String raw = String(f.name());
+      DivString raw = DivString(f.name());
       while (raw.endsWith("/")) raw.remove(raw.length() - 1);
       int slash = raw.lastIndexOf('/');
-      String base = (slash >= 0) ? raw.substring(slash + 1) : raw;
+      DivString base = (slash >= 0) ? raw.substring(slash + 1) : raw;
       while (base.startsWith("/")) base.remove(0, 1);
       while (base.endsWith("/")) base.remove(base.length() - 1);
       e.name = base.length() ? base : raw;
@@ -2551,14 +2551,14 @@ static void drawHeader(const char* title) {
 
   tft.setTextFont(1);
   tft.setTextColor(UI_TEXT, FEATURE_BG);
-  String pathLine = ellipsize(cwd, w - 16, 1);
+  DivString pathLine = ellipsize(cwd, w - 16, 1);
   tft.setCursor(8, y0 + 24);
   tft.print(pathLine);
 
-  String right = entries.empty()
-    ? String("0/0")
-    : String(sel + 1) + "/" + String((int)entries.size());
-  String left = String("Items: ") + String((int)entries.size());
+  DivString right = entries.empty()
+    ? DivString("0/0")
+    : DivString(sel + 1) + "/" + DivString((int)entries.size());
+  DivString left = DivString("Items: ") + DivString((int)entries.size());
   int rightW = tft.textWidth(right, 1);
   tft.setCursor(8, y0 + 40);
   tft.print(left);
@@ -2571,9 +2571,9 @@ static void drawHeader(const char* title) {
 static void drawHeaderSelCounter() {
   const int w = tft.width();
   const int y0 = STATUS_BAR_H;
-  String right = entries.empty()
-    ? String("0/0")
-    : String(sel + 1) + "/" + String((int)entries.size());
+  DivString right = entries.empty()
+    ? DivString("0/0")
+    : DivString(sel + 1) + "/" + DivString((int)entries.size());
   int rightW = tft.textWidth(right, 1);
   tft.fillRect(w - 8 - max(rightW, 40), y0 + 38, max(rightW, 40) + 4, 14, FEATURE_BG);
   tft.setTextFont(1);
@@ -2593,13 +2593,13 @@ static void drawListRow(int idx, int y, int rowH, bool selected) {
 
   tft.setTextFont(1);
   tft.setTextColor(fg, bg);
-  String label = entries[idx].name;
+  DivString label = entries[idx].name;
   if (entries[idx].isDir && !entries[idx].isUp) label = label + "/";
   label = ellipsize(label, w - 80, 1);
   tft.setCursor(x + 4, y + 6);
   tft.print(label);
 
-  String right = entries[idx].isDir ? "DIR" : "";
+  DivString right = entries[idx].isDir ? "DIR" : "";
   if (!entries[idx].isDir && !entries[idx].isUp) {
     char sbuf[16];
     uint32_t kb = (entries[idx].size + 1023) / 1024;
@@ -2790,7 +2790,7 @@ static void drawInfoPage() {
     tft.setCursor(8, top + 58);
     tft.print("Size:");
     tft.setCursor(70, top + 58);
-    tft.print(String(e.size) + " B");
+    tft.print(DivString(e.size) + " B");
   }
 
   tft.setTextFont(1);
@@ -2842,7 +2842,7 @@ static void drawConfirmDeletePage() {
   uiDirty = false;
 }
 
-static bool deleteSelected(String* errOut = nullptr) {
+static bool deleteSelected(DivString* errOut = nullptr) {
   if (entries.empty()) { if (errOut) *errOut = "Nothing selected"; return false; }
   clampSel();
   const Entry e = entries[sel];
@@ -2870,10 +2870,10 @@ static void openSelected() {
   const Entry& e = entries[sel];
 
   if (e.isDir) {
-    String err;
+    DivString err;
     if (!reloadDir(normalizePath(e.path), &err)) {
       drawBrowserPage();
-      String msg = err.length() ? err : "Failed";
+      DivString msg = err.length() ? err : "Failed";
       msg += "\n";
       msg += e.path;
       showNotification("Open", msg.c_str());
@@ -2971,7 +2971,7 @@ static void handleTap(int x, int y) {
         return;
       }
       if (f == 1) {                                                  // Delete
-        String err;
+        DivString err;
         bool ok = deleteSelected(&err);
         if (!ok) {
           showNotification("Delete", err.c_str());
