@@ -510,6 +510,7 @@ void maintainTouchNavBar() {
 }
 
 void featureClearContent(uint16_t color) {
+  restoreTftSpiAfterTouchIfNeeded();
   const int bottom = touchNavContentBottomY();
   if (bottom > 0) {
     tft.fillRect(0, 0, tft.width(), bottom, color);
@@ -675,7 +676,6 @@ int last_submenu_index = -1;
 bool submenu_initialized = false;
 int last_menu_index = -1;
 bool menu_initialized = false;
-
 const int COLUMN_WIDTH = 120;
 const int X_OFFSET_LEFT = 10;
 const int X_OFFSET_RIGHT = X_OFFSET_LEFT + COLUMN_WIDTH;
@@ -711,15 +711,9 @@ static void launchCurrentMainMenuItem() {
             last_other_menu_index = -1;
         }
         in_sub_menu = true;
+        is_main_menu = false;
         submenu_initialized = false;
         displaySubmenu();
-    }
-
-    if (is_main_menu) {
-        is_main_menu = false;
-        displayMenu();
-    } else {
-        is_main_menu = true;
     }
 }
 
@@ -733,14 +727,44 @@ static void waitForTouchRelease(uint32_t timeoutMs = 500) {
 // Wait until a physical button is released before entering a feature.
 // Without this, the just-pressed SELECT is still held when the feature's
 // loop starts and is read as an immediate "exit", bouncing back to the menu.
-static void waitForButtonRelease(int buttonPin, uint32_t timeoutMs = 800) {
+static bool waitForButtonRelease(int buttonPin, uint32_t timeoutMs = 800) {
     const uint32_t start = millis();
     while (isPhysicalButtonPressed(buttonPin) && (millis() - start < timeoutMs)) {
         delay(10);
     }
+    const bool released = !isPhysicalButtonPressed(buttonPin);
+#if HAS_PCF8574_BUTTONS
+    if (released && buttonPin >= 0) {
+        s_pcfButtonLastState[buttonPin % 8] = true;
+    }
+#endif
+    return released;
+}
+
+static void returnToMainMenu() {
+    displayMenu();
+    waitForButtonRelease(BTN_SELECT, 600);
+    waitForTouchRelease(600);
+}
+
+static bool navButtonPressed(int buttonPin, const char* action) {
+    if (!isButtonPressedEdge(buttonPin)) {
+        return false;
+    }
+
+    ESP_LOGI(TAG, "button ui action=%s main_idx=%d sub_idx=%d main=%d in_sub=%d feature=%d other_layer=%u",
+             action ? action : "unknown", current_menu_index, current_submenu_index,
+             (int)is_main_menu, (int)in_sub_menu, (int)feature_active,
+             (unsigned)other_layer);
+    return true;
 }
 
 void displaySubmenu() {
+    restoreTftSpiAfterTouchIfNeeded();
+    in_sub_menu = true;
+    is_main_menu = false;
+    feature_active = false;
+    feature_exit_requested = false;
     setTouchButtonInputEnabled(false);
 
     if (current_menu_index == 2 && other_layer == OTHER_LAYER_HOME) {
@@ -806,6 +830,7 @@ void displaySubmenu() {
 }
 
 void displayOtherMenuGrid() {
+    restoreTftSpiAfterTouchIfNeeded();
     applyThemeToPalette(settings().theme);
 
     submenu_initialized = false;
@@ -897,10 +922,44 @@ static void drawMainMenuOtherTripleIcons(int x_position, int y_position, uint16_
     tft.drawBitmap(ix + 32 + MAIN_MENU_OTHER_ICON_GAP * 2, iy, bitmap_icon_down_dots, 16, 16, iconColor);
 }
 
+static void drawMainMenuTile(int index, bool selected, const uint16_t* iconColors) {
+    const int column = index / 4;
+    const int row = index % 4;
+    const int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
+    const int y_position = Y_START + row * Y_SPACING;
+    const uint16_t fill = UI_FG;
+    const uint16_t edge = selected ? UI_ICON : UI_LINE;
+    const uint16_t fg = selected ? UI_ICON : UI_TEXT;
+    const uint16_t icon = selected ? SELECTED_ICON_COLOR : iconColors[index];
+
+    tft.fillRoundRect(x_position, y_position, 100, 60, 5, fill);
+    tft.drawRoundRect(x_position, y_position, 100, 60, 5, edge);
+
+    if (index == MAIN_MENU_OTHER_IDX) {
+        drawMainMenuOtherTripleIcons(x_position, y_position, icon);
+    } else {
+        tft.drawBitmap(x_position + 42, y_position + 10, bitmap_icons[index], 16, 16, icon);
+    }
+
+    tft.setTextColor(fg, fill);
+    int textWidth = tft.textWidth(menu_items[index]);
+    int textX = x_position + (100 - textWidth) / 2;
+    int textY = y_position + 30;
+    tft.setCursor(textX, textY);
+    tft.print(menu_items[index]);
+}
+
 void displayMenu() {
 
+  restoreTftSpiAfterTouchIfNeeded();
+  feature_active = false;
+  feature_exit_requested = false;
+  in_sub_menu = false;
+  is_main_menu = true;
   setTouchButtonInputEnabled(false);
   applyThemeToPalette(settings().theme);
+  ESP_LOGI(TAG, "draw main menu idx=%d last=%d full=%d",
+           current_menu_index, last_menu_index, (int)!menu_initialized);
 
 const uint16_t icon_colors[NUM_MENU_ITEMS] = {
   UI_ICON,
@@ -923,81 +982,33 @@ const uint16_t icon_colors[NUM_MENU_ITEMS] = {
         tft.fillScreen(UI_BG);
 
         for (int i = 0; i < NUM_MENU_ITEMS; i++) {
-            int column = i / 4;
-            int row = i % 4;
-            int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-            int y_position = Y_START + row * Y_SPACING;
-
-            tft.fillRoundRect(x_position, y_position, 100, 60, 5, UI_FG);
-            tft.drawRoundRect(x_position, y_position, 100, 60, 5, UI_LINE);
-            if (i == MAIN_MENU_OTHER_IDX) {
-                drawMainMenuOtherTripleIcons(x_position, y_position, icon_colors[i]);
-            } else {
-                tft.drawBitmap(x_position + 42, y_position + 10, bitmap_icons[i], 16, 16, icon_colors[i]);
-            }
-
-            tft.setTextColor(UI_TEXT, UI_FG);
-            int textWidth = tft.textWidth(menu_items[i]);
-            int textX = x_position + (100 - textWidth) / 2;
-            int textY = y_position + 30;
-            tft.setCursor(textX, textY);
-            tft.print(menu_items[i]);
+            drawMainMenuTile(i, false, icon_colors);
         }
         menu_initialized = true;
         last_menu_index = -1;
     }
 
     if (last_menu_index != current_menu_index) {
-        for (int i = 0; i < NUM_MENU_ITEMS; i++) {
-            int column = i / 4;
-            int row = i % 4;
-            int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-            int y_position = Y_START + row * Y_SPACING;
-
-            if (i == last_menu_index) {
-                tft.fillRoundRect(x_position, y_position, 100, 60, 5, UI_FG);
-                tft.drawRoundRect(x_position, y_position, 100, 60, 5, UI_LINE);
-                tft.setTextColor(UI_TEXT, UI_FG);
-                if (last_menu_index == MAIN_MENU_OTHER_IDX) {
-                    drawMainMenuOtherTripleIcons(x_position, y_position, icon_colors[last_menu_index]);
-                } else {
-                    tft.drawBitmap(x_position + 42, y_position + 10, bitmap_icons[last_menu_index], 16, 16, icon_colors[last_menu_index]);
-                }
-                int textWidth = tft.textWidth(menu_items[last_menu_index]);
-                int textX = x_position + (100 - textWidth) / 2;
-                int textY = y_position + 30;
-                tft.setCursor(textX, textY);
-                tft.print(menu_items[last_menu_index]);
-            }
+        if (last_menu_index >= 0 && last_menu_index < NUM_MENU_ITEMS) {
+            drawMainMenuTile(last_menu_index, false, icon_colors);
         }
 
-        int column = current_menu_index / 4;
-        int row = current_menu_index % 4;
-        int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-        int y_position = Y_START + row * Y_SPACING;
-
-        tft.fillRoundRect(x_position, y_position, 100, 60, 5, UI_FG);
-        tft.drawRoundRect(x_position, y_position, 100, 60, 5, UI_ICON);
-
-        tft.setTextColor(UI_ICON, UI_FG);
-        if (current_menu_index == MAIN_MENU_OTHER_IDX) {
-            drawMainMenuOtherTripleIcons(x_position, y_position, SELECTED_ICON_COLOR);
-        } else {
-            tft.drawBitmap(x_position + 42, y_position + 10, bitmap_icons[current_menu_index], 16, 16, SELECTED_ICON_COLOR);
+        if (current_menu_index >= 0 && current_menu_index < NUM_MENU_ITEMS) {
+            drawMainMenuTile(current_menu_index, true, icon_colors);
+            last_menu_index = current_menu_index;
         }
-        int textWidth = tft.textWidth(menu_items[current_menu_index]);
-        int textX = x_position + (100 - textWidth) / 2;
-        int textY = y_position + 30;
-        tft.setCursor(textX, textY);
-        tft.print(menu_items[current_menu_index]);
-
-        last_menu_index = current_menu_index;
     }
     drawStatusBar(currentBatteryVoltage, true);
 }
 
+static void redrawMainMenu() {
+    menu_initialized = false;
+    last_menu_index = -1;
+    displayMenu();
+}
+
 void handleWiFiSubmenuButtons() {
-    if (isButtonPressed(BTN_UP)) {
+    if (navButtonPressed(BTN_UP, "wifi_up")) {
         current_submenu_index = (current_submenu_index - 1 + active_submenu_size) % active_submenu_size;
         if (current_submenu_index < 0) {
             current_submenu_index = NUM_SUBMENU_ITEMS - 1;
@@ -1007,7 +1018,7 @@ void handleWiFiSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_DOWN)) {
+    if (navButtonPressed(BTN_DOWN, "wifi_down")) {
         current_submenu_index = (current_submenu_index + 1) % active_submenu_size;
         if (current_submenu_index >= NUM_SUBMENU_ITEMS) {
             current_submenu_index = 0;
@@ -1017,17 +1028,15 @@ void handleWiFiSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_SELECT)) {
+    if (navButtonPressed(BTN_SELECT, "wifi_select")) {
         last_interaction_time = millis();
-        delay(70);
+        if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+            return;
+        }
 
         if (current_submenu_index == 7) {
-            in_sub_menu = false;
-            feature_active = false;
-            feature_exit_requested = false;
-            displayMenu();
-            handleButtons();
-            is_main_menu = false;
+            returnToMainMenu();
+            return;
         }
 
         if (current_submenu_index == 0) {
@@ -1288,12 +1297,8 @@ void handleWiFiSubmenuButtons() {
                 delay(200);
 
                 if (current_submenu_index == 7) {
-                    in_sub_menu = false;
-                    feature_active = false;
-                    feature_exit_requested = false;
-                    displayMenu();
-                    handleButtons();
-                    is_main_menu = false;
+                    returnToMainMenu();
+                    return;
                 } else if (current_submenu_index == 0) {
                     current_submenu_index = 0;
                     in_sub_menu = true;
@@ -1526,7 +1531,7 @@ void handleWiFiSubmenuButtons() {
 }
 
 void handleBluetoothSubmenuButtons() {
-    if (isButtonPressed(BTN_UP)) {
+    if (navButtonPressed(BTN_UP, "ble_up")) {
         current_submenu_index = (current_submenu_index - 1 + active_submenu_size) % active_submenu_size;
         if (current_submenu_index < 0) {
             current_submenu_index = NUM_SUBMENU_ITEMS - 1;
@@ -1536,7 +1541,7 @@ void handleBluetoothSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_DOWN)) {
+    if (navButtonPressed(BTN_DOWN, "ble_down")) {
         current_submenu_index = (current_submenu_index + 1) % active_submenu_size;
         if (current_submenu_index >= NUM_SUBMENU_ITEMS) {
             current_submenu_index = 0;
@@ -1546,17 +1551,15 @@ void handleBluetoothSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_SELECT)) {
+    if (navButtonPressed(BTN_SELECT, "ble_select")) {
         last_interaction_time = millis();
-        delay(200);
+        if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+            return;
+        }
 
         if (current_submenu_index == 6) {
-            in_sub_menu = false;
-            feature_active = false;
-            feature_exit_requested = false;
-            displayMenu();
-            handleButtons();
-            is_main_menu = false;
+            returnToMainMenu();
+            return;
         }
 
         if (current_submenu_index == 0) {
@@ -1762,12 +1765,8 @@ void handleBluetoothSubmenuButtons() {
                 delay(200);
 
                 if (current_submenu_index == 6) {
-                    in_sub_menu = false;
-                    feature_active = false;
-                    feature_exit_requested = false;
-                    displayMenu();
-                    handleButtons();
-                    is_main_menu = false;
+                    returnToMainMenu();
+                    return;
                 } else if (current_submenu_index == 0) {
                     current_submenu_index = 0;
                     in_sub_menu = true;
@@ -1942,7 +1941,7 @@ void handleBluetoothSubmenuButtons() {
 }
 
 void handleNRFSubmenuButtons() {
-    if (isButtonPressed(BTN_UP)) {
+    if (navButtonPressed(BTN_UP, "nrf_up")) {
         current_submenu_index = (current_submenu_index - 1 + active_submenu_size) % active_submenu_size;
         if (current_submenu_index < 0) {
             current_submenu_index = NUM_SUBMENU_ITEMS - 1;
@@ -1952,7 +1951,7 @@ void handleNRFSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_DOWN)) {
+    if (navButtonPressed(BTN_DOWN, "nrf_down")) {
         current_submenu_index = (current_submenu_index + 1) % active_submenu_size;
         if (current_submenu_index >= NUM_SUBMENU_ITEMS) {
             current_submenu_index = 0;
@@ -1962,17 +1961,15 @@ void handleNRFSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_SELECT)) {
+    if (navButtonPressed(BTN_SELECT, "nrf_select")) {
         last_interaction_time = millis();
-        delay(200);
+        if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+            return;
+        }
 
         if (current_submenu_index == 2) {
-            in_sub_menu = false;
-            feature_active = false;
-            feature_exit_requested = false;
-            displayMenu();
-            handleButtons();
-            is_main_menu = false;
+            returnToMainMenu();
+            return;
         }
 
         if (current_submenu_index == 0) {
@@ -2064,12 +2061,8 @@ void handleNRFSubmenuButtons() {
                 delay(200);
 
                 if (current_submenu_index == 2) {
-                    in_sub_menu = false;
-                    feature_active = false;
-                    feature_exit_requested = false;
-                    displayMenu();
-                    handleButtons();
-                    is_main_menu = false;
+                    returnToMainMenu();
+                    return;
                 } else if (current_submenu_index == 0) {
                     current_submenu_index = 0;
                     in_sub_menu = true;
@@ -2142,7 +2135,7 @@ void handleNRFSubmenuButtons() {
 }
 
 void handleSubGHzSubmenuButtons() {
-    if (isButtonPressed(BTN_UP)) {
+    if (navButtonPressed(BTN_UP, "subghz_up")) {
         current_submenu_index = (current_submenu_index - 1 + active_submenu_size) % active_submenu_size;
         if (current_submenu_index < 0) {
             current_submenu_index = NUM_SUBMENU_ITEMS - 1;
@@ -2152,7 +2145,7 @@ void handleSubGHzSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_DOWN)) {
+    if (navButtonPressed(BTN_DOWN, "subghz_down")) {
         current_submenu_index = (current_submenu_index + 1) % active_submenu_size;
         if (current_submenu_index >= NUM_SUBMENU_ITEMS) {
             current_submenu_index = 0;
@@ -2162,17 +2155,15 @@ void handleSubGHzSubmenuButtons() {
         delay(200);
     }
 
-    if (isButtonPressed(BTN_SELECT)) {
+    if (navButtonPressed(BTN_SELECT, "subghz_select")) {
         last_interaction_time = millis();
-        delay(200);
+        if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+            return;
+        }
 
         if (current_submenu_index == 3) {
-            in_sub_menu = false;
-            feature_active = false;
-            feature_exit_requested = false;
-            displayMenu();
-            handleButtons();
-            is_main_menu = false;
+            returnToMainMenu();
+            return;
         }
 
         if (current_submenu_index == 0) {
@@ -2301,12 +2292,8 @@ void handleSubGHzSubmenuButtons() {
                 delay(200);
 
                 if (current_submenu_index == 3) {
-                    in_sub_menu = false;
-                    feature_active = false;
-                    feature_exit_requested = false;
-                    displayMenu();
-                    handleButtons();
-                    is_main_menu = false;
+                    returnToMainMenu();
+                    return;
 
                 } else if (current_submenu_index == 0) {
 
@@ -2486,31 +2473,28 @@ static void launchToolsFeature(int idx) {
 }
 
 void handleToolsSubmenuButtons() {
-    if (isButtonPressed(BTN_UP)) {
+    if (navButtonPressed(BTN_UP, "tools_up")) {
         current_submenu_index = (current_submenu_index - 1 + active_submenu_size) % active_submenu_size;
         last_interaction_time = millis();
         displaySubmenu();
         delay(200);
     }
 
-    if (isButtonPressed(BTN_DOWN)) {
+    if (navButtonPressed(BTN_DOWN, "tools_down")) {
         current_submenu_index = (current_submenu_index + 1) % active_submenu_size;
         last_interaction_time = millis();
         displaySubmenu();
         delay(200);
     }
 
-    if (isButtonPressed(BTN_SELECT)) {
+    if (navButtonPressed(BTN_SELECT, "tools_select")) {
         last_interaction_time = millis();
-        delay(200);
+        if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+            return;
+        }
 
         if (current_submenu_index == TOOLS_IDX_BACK) {
-            in_sub_menu = false;
-            feature_active = false;
-            feature_exit_requested = false;
-            displayMenu();
-            handleButtons();
-            is_main_menu = false;
+            returnToMainMenu();
             return;
         }
 
@@ -2553,12 +2537,8 @@ void handleToolsSubmenuButtons() {
         delay(200);
 
         if (current_submenu_index == TOOLS_IDX_BACK) {
-            in_sub_menu = false;
-            feature_active = false;
-            feature_exit_requested = false;
-            displayMenu();
-            handleButtons();
-            is_main_menu = false;
+            returnToMainMenu();
+            return;
         } else {
             launchToolsFeature(current_submenu_index);
         }
@@ -2697,7 +2677,7 @@ void handleOtherSubmenuButtons() {
         const int og_rows =
             (other_NUM_SUBMENU_ITEMS + OTHER_GRID_COLS - 1) / OTHER_GRID_COLS;
 
-        if (isButtonPressed(BTN_UP)) {
+        if (navButtonPressed(BTN_UP, "other_up")) {
             int row = current_submenu_index / OTHER_GRID_COLS;
             if (row > 0) {
                 current_submenu_index -= OTHER_GRID_COLS;
@@ -2709,7 +2689,7 @@ void handleOtherSubmenuButtons() {
             delay(200);
         }
 
-        if (isButtonPressed(BTN_DOWN)) {
+        if (navButtonPressed(BTN_DOWN, "other_down")) {
             int row = current_submenu_index / OTHER_GRID_COLS;
             if (row < og_rows - 1) {
                 current_submenu_index += OTHER_GRID_COLS;
@@ -2721,7 +2701,7 @@ void handleOtherSubmenuButtons() {
             delay(200);
         }
 
-        if (isButtonPressed(BTN_LEFT)) {
+        if (navButtonPressed(BTN_LEFT, "other_left")) {
             int col = current_submenu_index % OTHER_GRID_COLS;
             if (col > 0) {
                 current_submenu_index--;
@@ -2733,7 +2713,7 @@ void handleOtherSubmenuButtons() {
             delay(200);
         }
 
-        if (isButtonPressed(BTN_RIGHT)) {
+        if (navButtonPressed(BTN_RIGHT, "other_right")) {
             int col = current_submenu_index % OTHER_GRID_COLS;
             if (col < OTHER_GRID_COLS - 1) {
                 current_submenu_index++;
@@ -2745,7 +2725,7 @@ void handleOtherSubmenuButtons() {
             delay(200);
         }
     } else {
-        if (isButtonPressed(BTN_UP)) {
+        if (navButtonPressed(BTN_UP, "other_list_up")) {
             current_submenu_index =
                 (current_submenu_index - 1 + active_submenu_size) % active_submenu_size;
             last_interaction_time = millis();
@@ -2753,7 +2733,7 @@ void handleOtherSubmenuButtons() {
             delay(200);
         }
 
-        if (isButtonPressed(BTN_DOWN)) {
+        if (navButtonPressed(BTN_DOWN, "other_list_down")) {
             current_submenu_index = (current_submenu_index + 1) % active_submenu_size;
             last_interaction_time = millis();
             displaySubmenu();
@@ -2761,18 +2741,16 @@ void handleOtherSubmenuButtons() {
         }
     }
 
-    if (isButtonPressed(BTN_SELECT)) {
+    if (navButtonPressed(BTN_SELECT, "other_select")) {
         last_interaction_time = millis();
-        delay(200);
+        if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+            return;
+        }
 
         if (other_layer == OTHER_LAYER_HOME) {
             if (current_submenu_index == other_NUM_SUBMENU_ITEMS - 1) {
-                in_sub_menu = false;
-                feature_active = false;
-                feature_exit_requested = false;
-                displayMenu();
-                handleButtons();
-                is_main_menu = false;
+                returnToMainMenu();
+                return;
             } else if (current_submenu_index == 0) {
                 other_layer = OTHER_LAYER_IR;
                 other_menu_grid_initialized = false;
@@ -2985,12 +2963,8 @@ void handleOtherSubmenuButtons() {
 
         if (other_layer == OTHER_LAYER_HOME) {
             if (current_submenu_index == other_NUM_SUBMENU_ITEMS - 1) {
-                in_sub_menu = false;
-                feature_active = false;
-                feature_exit_requested = false;
-                displayMenu();
-                handleButtons();
-                is_main_menu = false;
+                returnToMainMenu();
+                return;
             } else if (current_submenu_index == 0) {
                 other_layer = OTHER_LAYER_IR;
                 other_menu_grid_initialized = false;
@@ -3164,6 +3138,7 @@ void handleAboutPage() {
   waitForButtonRelease(BTN_SELECT);
   waitForButtonRelease(BTN_LEFT);
 
+  restoreTftSpiAfterTouchIfNeeded();
   tft.fillScreen(UI_BG);
   currentBatteryVoltage = readBatteryVoltage();
   drawStatusBar(currentBatteryVoltage, true);
@@ -3278,28 +3253,31 @@ void handleButtons() {
             default: break;
         }
     } else {
+        const bool on_main_menu = !feature_active && !in_sub_menu;
 
-        if (isButtonPressed(BTN_UP) && !is_main_menu) {
+        if (on_main_menu && navButtonPressed(BTN_UP, "main_up")) {
             current_menu_index--;
             if (current_menu_index < 0) {
                 current_menu_index = NUM_MENU_ITEMS - 1;
             }
             last_interaction_time = millis();
-            displayMenu();
+            redrawMainMenu();
             delay(200);
+            return;
         }
 
-        if (isButtonPressed(BTN_DOWN) && !is_main_menu) {
+        if (on_main_menu && navButtonPressed(BTN_DOWN, "main_down")) {
             current_menu_index++;
             if (current_menu_index >= NUM_MENU_ITEMS) {
                 current_menu_index = 0;
             }
             last_interaction_time = millis();
-            displayMenu();
+            redrawMainMenu();
             delay(200);
+            return;
         }
 
-        if (isButtonPressed(BTN_LEFT) && !is_main_menu) {
+        if (on_main_menu && navButtonPressed(BTN_LEFT, "main_left")) {
             int row = current_menu_index % 4;
             if (current_menu_index >= 4) {
                 current_menu_index = row;
@@ -3309,11 +3287,12 @@ void handleButtons() {
                 current_menu_index = row - 1;
             }
             last_interaction_time = millis();
-            displayMenu();
+            redrawMainMenu();
             delay(200);
+            return;
         }
 
-        if (isButtonPressed(BTN_RIGHT) && !is_main_menu) {
+        if (on_main_menu && navButtonPressed(BTN_RIGHT, "main_right")) {
             int row = current_menu_index % 4;
             if (current_menu_index < 4) {
                 current_menu_index = row + 4;
@@ -3323,21 +3302,30 @@ void handleButtons() {
                 current_menu_index = row + 5;
             }
             last_interaction_time = millis();
-            displayMenu();
+            redrawMainMenu();
             delay(200);
+            return;
         }
 
-        if (isButtonPressed(BTN_SELECT)) {
+        if (on_main_menu && navButtonPressed(BTN_SELECT, "main_select")) {
             last_interaction_time = millis();
-            delay(200);
-            waitForButtonRelease(BTN_SELECT);
+            if (!waitForButtonRelease(BTN_SELECT, 3000)) {
+                return;
+            }
             launchCurrentMainMenuItem();
+            return;
         }
 
         static unsigned long lastTouchTime = 0;
+        static unsigned long lastTouchPollTime = 0;
         const unsigned long touchFeedbackDelay = 100;
+        const unsigned long touchPollInterval = 40;
 
         if (!feature_active && (millis() - lastTouchTime >= touchFeedbackDelay)) {
+            if (millis() - lastTouchPollTime < touchPollInterval) {
+                return;
+            }
+            lastTouchPollTime = millis();
             int x, y;
             if (!readTouchXY(x, y)) { return; }
             delay(10);
@@ -3382,7 +3370,7 @@ void handleButtons() {
 void esp32_div_app_init() {
 
   ESP_LOGI(TAG, "boot start");
-  ESP_LOGI(TAG, "build marker: btn-release-fix v3");
+  ESP_LOGI(TAG, "build marker: btn-touch-spi-fix v9");
 
   tft.init();
   ESP_LOGI(TAG, "tft init done");
@@ -3438,6 +3426,7 @@ void esp32_div_app_init() {
   menu_initialized = false;
   currentBatteryVoltage = readBatteryVoltage();
   displayMenu();
+  is_main_menu = true;
   drawStatusBar(currentBatteryVoltage, false);
   ESP_LOGI(TAG, "menu drawn");
 

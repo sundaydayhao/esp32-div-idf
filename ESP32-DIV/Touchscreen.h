@@ -29,6 +29,7 @@ extern XPT2046_Touchscreen ts;
 extern bool feature_active;
 
 void setupTouchscreen();
+void restoreTftSpiAfterTouchIfNeeded();
 
 /** True when the panel is pressed. Use this instead of ts.touched() directly. */
 bool isTouchDown(uint16_t zThresh = 500);

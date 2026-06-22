@@ -555,6 +555,7 @@ static int statusBarTempBand(float t) {
 }
 
 void drawStatusBar(float batteryVoltage, bool forceUpdate, bool bottomSeparator) {
+  restoreTftSpiAfterTouchIfNeeded();
   static int lastBatteryPercentage = -1;
   static int lastWifiHalf          = -100000;
   static int lastBleHalf           = -100000;
@@ -824,9 +825,24 @@ static uint32_t s_pcf8574PollCount = 0;
 static uint32_t s_pcf8574ReadFailCount = 0;
 static bool s_pcf8574ScanMode = false;
 static uint8_t s_pcf8574ScanLast = 0xFF;
+static uint8_t s_pcf8574LastEventSnapshot = 0xFF;
+static int s_pcf8574LastEventPin = -1;
+static const char* s_pcf8574LastEventReason = nullptr;
+static uint32_t s_pcf8574LastEventMs = 0;
 
 uint8_t getPcf8574Address() {
   return s_pcf8574Addr;
+}
+
+static const char* pcf8574ButtonName(int buttonPin) {
+  switch (buttonPin) {
+    case BTN_UP: return "UP";
+    case BTN_DOWN: return "DOWN";
+    case BTN_LEFT: return "LEFT";
+    case BTN_RIGHT: return "RIGHT";
+    case BTN_SELECT: return "SELECT";
+    default: return "UNKNOWN";
+  }
 }
 
 static bool initPcf8574AtAddress(uint8_t address) {
@@ -839,6 +855,9 @@ static bool initPcf8574AtAddress(uint8_t address) {
   s_pcf8574Addr = address;
   ESP_LOGI("esp32_div", "PCF8574 using address 0x%02X", s_pcf8574Addr);
 
+  for (int pin = 0; pin < 8; ++pin) {
+    pcf.pinMode(pin, INPUT_PULLUP);
+  }
   pcf.pinMode(BTN_UP, INPUT_PULLUP);
   pcf.pinMode(BTN_DOWN, INPUT_PULLUP);
   pcf.pinMode(BTN_LEFT, INPUT_PULLUP);
@@ -885,10 +904,17 @@ void logPcf8574ButtonSnapshot(const char* reason, int buttonPin) {
     return;
   }
 
-  if (snapshot == s_pcf8574LastSnapshot) {
+  const uint32_t now = millis();
+  if (snapshot == s_pcf8574LastEventSnapshot &&
+      buttonPin == s_pcf8574LastEventPin &&
+      reason == s_pcf8574LastEventReason &&
+      now - s_pcf8574LastEventMs < 100) {
     return;
   }
-  s_pcf8574LastSnapshot = snapshot;
+  s_pcf8574LastEventSnapshot = snapshot;
+  s_pcf8574LastEventPin = buttonPin;
+  s_pcf8574LastEventReason = reason;
+  s_pcf8574LastEventMs = now;
 
   char state[128];
   snprintf(state, sizeof(state),
@@ -897,8 +923,9 @@ void logPcf8574ButtonSnapshot(const char* reason, int buttonPin) {
            (snapshot >> 3) & 1, (snapshot >> 4) & 1, (snapshot >> 5) & 1,
            (snapshot >> 6) & 1, (snapshot >> 7) & 1);
 
-  ESP_LOGI("esp32_div", "PCF8574 self-test reason=%s button=%d addr=0x%02X %s",
-           reason ? reason : "unknown", buttonPin, getPcf8574Address(), state);
+  ESP_LOGI("esp32_div", "PCF8574 self-test reason=%s action=%s pcf_pin=P%d pressed_mask=0x%02X addr=0x%02X %s",
+           reason ? reason : "unknown", pcf8574ButtonName(buttonPin), buttonPin,
+           (uint8_t)(~snapshot), getPcf8574Address(), state);
 }
 
 static void pcf8574SelfTestTask(void*) {
@@ -927,6 +954,11 @@ void startPcf8574SelfTest() {
   s_pcf8574ReadFailCount = 0;
   s_pcf8574ScanMode = false;
   s_pcf8574ScanLast = 0xFF;
+  s_pcf8574LastSnapshot = 0xFF;
+  s_pcf8574LastEventSnapshot = 0xFF;
+  s_pcf8574LastEventPin = -1;
+  s_pcf8574LastEventReason = nullptr;
+  s_pcf8574LastEventMs = 0;
 }
 
 void pollPcf8574SelfTest() {
@@ -950,6 +982,9 @@ void pollPcf8574SelfTest() {
     return;
   }
 
+  if (snapshot == s_pcf8574LastSnapshot) {
+    return;
+  }
   s_pcf8574LastSnapshot = snapshot;
 
   char state[128];
@@ -2099,6 +2134,7 @@ void setup(){
   buildPalette();
   ::setBrightness(settings().brightness);
   sel = 0; dirtySettings = false; uiDirty = false; dragging = false;
+  restoreTftSpiAfterTouchIfNeeded();
   drawAll();
 }
 

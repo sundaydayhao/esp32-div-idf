@@ -15,6 +15,7 @@ bool feature_active = false;
 static bool s_touchInitialized = false;
 static const char* TAG = "esp32_div_touch";
 static uint32_t s_lastTouchDebugMs = 0;
+static bool s_tftSpiDirtyFromTouch = false;
 
 #ifndef TOUCH_ROTATION
 #if defined(BOARD_ESP32_DIV_V2)
@@ -24,6 +25,44 @@ static uint32_t s_lastTouchDebugMs = 0;
 #endif
 #endif
 
+static constexpr bool kTouchSharesTftSpi =
+    (XPT2046_CLK == TFT_SCLK) && (XPT2046_MOSI == TFT_MOSI) && (XPT2046_MISO == TFT_MISO);
+
+static void markTftSpiDirtyFromTouch() {
+  if (kTouchSharesTftSpi) {
+    s_tftSpiDirtyFromTouch = true;
+  }
+}
+
+void restoreTftSpiAfterTouchIfNeeded() {
+  if (!kTouchSharesTftSpi || !s_tftSpiDirtyFromTouch) {
+    return;
+  }
+
+  SPIClass& spi = TFT_eSPI::getSPIinstance();
+  spi.end();
+  spi.begin(TFT_SCLK, TFT_MISO, TFT_MOSI, -1);
+#if defined(XPT2046_CS)
+  if (XPT2046_CS < 255) {
+    pinMode(XPT2046_CS, OUTPUT);
+    digitalWrite(XPT2046_CS, HIGH);
+  }
+#endif
+#if defined(TFT_CS)
+  if (TFT_CS >= 0) {
+    pinMode(TFT_CS, OUTPUT);
+    digitalWrite(TFT_CS, HIGH);
+  }
+#endif
+#if defined(TFT_DC)
+  if (TFT_DC >= 0) {
+    pinMode(TFT_DC, OUTPUT);
+    digitalWrite(TFT_DC, HIGH);
+  }
+#endif
+  s_tftSpiDirtyFromTouch = false;
+}
+
 static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   if (!s_touchInitialized) {
     return false;
@@ -32,6 +71,8 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
     return false;
   }
   TS_Point p = ts.getPoint();
+  markTftSpiDirtyFromTouch();
+  restoreTftSpiAfterTouchIfNeeded();
   if (p.z < (int16_t)zThresh) {
     return false;
   }
@@ -58,6 +99,8 @@ void setupTouchscreen() {
   ts.setRotation(TOUCH_ROTATION);
 
   s_touchInitialized = true;
+  markTftSpiDirtyFromTouch();
+  restoreTftSpiAfterTouchIfNeeded();
 }
 
 bool isTouchDown(uint16_t zThresh) {

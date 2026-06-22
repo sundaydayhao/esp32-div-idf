@@ -9,13 +9,13 @@
 #define BOARD_ESP32_DIV_V3
 
 // Select the TFT panel attached to the board.
-// ILI9341 is the default for ESP32-DIV V2 hardware.
+// ILI9341 is the default for ESP32-DIV V2/V3 hardware.
 // #define TFT_PANEL_ST7796
 #define TFT_PANEL_ILI9341
 
 // Button expander selection.
 // Leave commented to skip PCF8574 probing and use touch-only navigation.
-// v3 schematic uses PCF8574 address 0x20.
+// V2/V3 schematic uses PCF8574 address 0x20.
 #define pcf_ADDR 0x20
 
 // Set to 0 to hide the on-screen touch nav bar (5 footer buttons).
@@ -44,14 +44,12 @@
 #error "Select only one TFT panel: TFT_PANEL_ILI9341 or TFT_PANEL_ST7796"
 #endif
 
-#if defined(BOARD_ESP32_DIV_V3) && !defined(TOUCH_ROTATION)
-// Match the board display rotation so touch coordinates land in the same space
-// as the TFT menu layout.
-#define TOUCH_ROTATION 0
+#if defined(BOARD_ESP32_DIV_V2) && !defined(TFT_ROTATION)
+#define TFT_ROTATION 0
 #endif
 
-#if defined(BOARD_ESP32_DIV_V2) && !defined(TOUCH_ROTATION)
-// Match the board display rotation so touch coordinates land in the same space
-// as the TFT menu layout.
-#define TOUCH_ROTATION 0
+#if defined(BOARD_ESP32_DIV_V3) && !defined(TFT_ROTATION)
+// V3 keeps the same UI layout as V2, but the 3.2" module is mounted
+// differently. Rotate another 90 degrees clockwise to match the physical mount.
+#define TFT_ROTATION 0
 #endif

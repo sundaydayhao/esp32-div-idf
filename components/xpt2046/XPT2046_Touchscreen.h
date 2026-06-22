@@ -22,6 +22,7 @@ class XPT2046_Touchscreen {
   void getTouchRaw(uint16_t* x, uint16_t* y);
 
  private:
+  void configurePins();
   bool readRaw(uint16_t& x, uint16_t& y, uint16_t& z);
   uint16_t transfer12(uint8_t cmd);
 

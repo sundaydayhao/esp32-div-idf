@@ -82,7 +82,7 @@
   #error "Unsupported TFT panel selection"
 #endif
 
-// Explicit dimensions for the two supported panels in portrait orientation.
+// Explicit dimensions for the two supported panels in the existing UI layout.
 #if defined(TFT_PANEL_ILI9341)
 #ifdef TFT_WIDTH
 #undef TFT_WIDTH

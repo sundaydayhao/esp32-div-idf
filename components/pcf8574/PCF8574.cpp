@@ -164,6 +164,15 @@ bool PCF8574::begin(uint8_t address) {
   device_ = dev;
   ready_ = true;
 
+  if (!writePortLocked(pinStates_)) {
+    ESP_LOGW("pcf8574", "PCF8574 initial write failed at 0x%02X", address_);
+    (void)i2c_master_bus_rm_device(dev);
+    device_ = nullptr;
+    ready_ = false;
+    unlockBus(state);
+    return false;
+  }
+
   uint8_t initial = 0xFF;
   if (!readPortLocked(initial)) {
     ESP_LOGW("pcf8574", "PCF8574 read failed at 0x%02X", address_);
@@ -174,7 +183,6 @@ bool PCF8574::begin(uint8_t address) {
     return false;
   }
 
-  pinStates_ = initial;
   unlockBus(state);
   return true;
 }
@@ -195,11 +203,10 @@ void PCF8574::pinMode(uint8_t pin, uint8_t mode) {
 }
 
 int PCF8574::digitalRead(uint8_t pin) {
-  uint8_t value = pinStates_;
+  uint8_t value = 0xFF;
   if (!readPort(value)) {
     return 1;
   }
-  pinStates_ = value;
   if (pin > 7) {
     return 1;
   }

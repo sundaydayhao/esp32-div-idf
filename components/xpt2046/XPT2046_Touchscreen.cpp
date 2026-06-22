@@ -24,7 +24,7 @@ XPT2046_Touchscreen::XPT2046_Touchscreen(uint8_t csPin, uint8_t irqPin)
       mosiPin_(XPT2046_MOSI),
       misoPin_(XPT2046_MISO) {}
 
-void XPT2046_Touchscreen::begin() {
+void XPT2046_Touchscreen::configurePins() {
   gpio_config_t io = {};
 
   io.pin_bit_mask = (1ULL << csPin_) | (1ULL << clkPin_) | (1ULL << mosiPin_);
@@ -53,6 +53,10 @@ void XPT2046_Touchscreen::begin() {
   gpio_set_level((gpio_num_t)csPin_, 1);
   gpio_set_level((gpio_num_t)clkPin_, 0);
   gpio_set_level((gpio_num_t)mosiPin_, 0);
+}
+
+void XPT2046_Touchscreen::begin() {
+  configurePins();
   ESP_LOGI(TAG, "begin cs=%u clk=%u mosi=%u miso=%u irq=%u",
            (unsigned)csPin_, (unsigned)clkPin_, (unsigned)mosiPin_,
            (unsigned)misoPin_, (unsigned)irqPin_);
@@ -110,6 +114,7 @@ TS_Point XPT2046_Touchscreen::getPoint() {
 }
 
 bool XPT2046_Touchscreen::readRaw(uint16_t& x, uint16_t& y, uint16_t& z) {
+  configurePins();
   if (csPin_ < 255) gpio_set_level((gpio_num_t)csPin_, 0);
   esp_rom_delay_us(kDelayUs);
   uint16_t x1 = transfer12(0xD0);
