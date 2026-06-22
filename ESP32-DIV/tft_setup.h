@@ -5,6 +5,18 @@
 // Tell TFT_eSPI to stop after this board-specific setup.
 #define USER_SETUP_LOADED
 
+// TFT_config.h may have already selected a Kconfig driver. Clear panel driver
+// macros here so BoardConfig.h is the single source of truth for this project.
+#ifdef ILI9341_DRIVER
+#undef ILI9341_DRIVER
+#endif
+#ifdef ILI9341_2_DRIVER
+#undef ILI9341_2_DRIVER
+#endif
+#ifdef ST7796_DRIVER
+#undef ST7796_DRIVER
+#endif
+
 // Panel defaults and wiring shared by both supported panels.
 #ifdef TFT_MISO
 #undef TFT_MISO
@@ -53,9 +65,6 @@
 
 // The panel type is selected explicitly per board.
 #if defined(TFT_PANEL_ILI9341)
-  #ifdef ILI9341_DRIVER
-  #undef ILI9341_DRIVER
-  #endif
   #define ILI9341_DRIVER
 #ifdef SPI_FREQUENCY
 #undef SPI_FREQUENCY
@@ -66,9 +75,6 @@
 #endif
   #define SPI_READ_FREQUENCY  20000000
 #elif defined(TFT_PANEL_ST7796)
-  #ifdef ST7796_DRIVER
-  #undef ST7796_DRIVER
-  #endif
   #define ST7796_DRIVER
 #ifdef SPI_FREQUENCY
 #undef SPI_FREQUENCY

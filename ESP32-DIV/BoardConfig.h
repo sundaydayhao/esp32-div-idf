@@ -1,21 +1,23 @@
 #pragma once
 
 // Select the hardware target.
-// Leave all lines commented to use the ESP32-DIV V3 wiring.
+// Leave all BOARD_* lines commented to use the ESP32-DIV V3 wiring.
 
 // #define BOARD_CYD
 // #define BOARD_ESP32_DIV_V1
 // #define BOARD_ESP32_DIV_V2
 #define BOARD_ESP32_DIV_V3
+// #define BOARD_ESP32_DIV_V4
 
 // Select the TFT panel attached to the board.
-// ILI9341 is the default for ESP32-DIV V2/V3 hardware.
+// Leave both commented to use the board default:
+// V1/V2/V3 use ILI9341, V4 uses the LCDWiki 4.0" ST7796/ST7796S SPI module.
+// #define TFT_PANEL_ILI9341
 // #define TFT_PANEL_ST7796
-#define TFT_PANEL_ILI9341
 
 // Button expander selection.
 // Leave commented to skip PCF8574 probing and use touch-only navigation.
-// V2/V3 schematic uses PCF8574 address 0x20.
+// V2/V3/V4 schematic uses PCF8574 address 0x20.
 #define pcf_ADDR 0x20
 
 // Set to 0 to hide the on-screen touch nav bar (5 footer buttons).
@@ -35,12 +37,16 @@
 //#define TOUCH_Y_MIN 240
 //#define TOUCH_Y_MAX 3800
 
-#if !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
-#define BOARD_ESP32_DIV_V2
+#if !defined(BOARD_ESP32_DIV_V4) && !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
+#define BOARD_ESP32_DIV_V3
 #endif
 
 #if !defined(TFT_PANEL_ILI9341) && !defined(TFT_PANEL_ST7796)
+#if defined(BOARD_ESP32_DIV_V4)
+#define TFT_PANEL_ST7796
+#else
 #define TFT_PANEL_ILI9341
+#endif
 #endif
 
 #if defined(TFT_PANEL_ILI9341) && defined(TFT_PANEL_ST7796)
@@ -48,6 +54,11 @@
 #endif
 
 #if defined(BOARD_ESP32_DIV_V2) && !defined(TFT_ROTATION)
+#define TFT_ROTATION 0
+#endif
+
+#if defined(BOARD_ESP32_DIV_V4) && !defined(TFT_ROTATION)
+// V4 keeps the V3 board feature set and swaps only the TFT module to ST7796.
 #define TFT_ROTATION 0
 #endif
 
