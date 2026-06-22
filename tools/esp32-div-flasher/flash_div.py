@@ -2,8 +2,8 @@
 """
 ESP32-DIV firmware flasher (GUI + CLI).
 
-Uses esptool.py under the hood with the same layout as the Arduino-ESP32 uploader
-for ESP32-S3 and classic ESP32 boards.
+Uses esptool.py under the hood. It understands ESP-IDF build folders,
+manifest.json firmware bundles, and legacy Arduino-style binary exports.
 """
 
 from __future__ import annotations
@@ -299,7 +299,7 @@ PRESET_LABELS: dict[str, str] = {
 
 def infer_preset_from_app_bin(path: Path | str) -> Optional[str]:
     """
-    Guess bundled preset from a release/sketch .bin filename.
+    Guess bundled preset from a release/application .bin filename.
 
     Multi-board GitHub assets use names like ESP32-DIV-{cyd|v1|v2}-v1.7.0.bin.
     CYD and v1 targets are classic ESP32; v2 is ESP32-S3.
@@ -351,6 +351,7 @@ class ResolvedImages:
     partition_table: Path
     boot_app0: Path
     app: Path
+    offsets: Optional[dict[str, int]] = None
 
 
 def _script_dir() -> Path:
@@ -463,11 +464,13 @@ def _bins_direct(root: Path) -> list[Path]:
 
 def _firmware_folder_candidates(fw_dir: Path) -> list[Path]:
     """
-    Try the selected folder first, then immediate subfolders (Arduino/release zips
-    often nest build output one level deep).
+    Try the selected folder first, then common ESP-IDF and release-bundle children.
     """
     fw_dir = fw_dir.expanduser().resolve()
     out = [fw_dir]
+    build_dir = fw_dir / "build"
+    if build_dir.is_dir():
+        out.append(build_dir)
     try:
         subs = sorted(
             [p for p in fw_dir.iterdir() if p.is_dir()],
@@ -480,7 +483,6 @@ def _firmware_folder_candidates(fw_dir: Path) -> list[Path]:
 
 
 def _pick_bootloader_bin(bins: list[Path]) -> Optional[Path]:
-    # Arduino export: Sketch.ino.bootloader.bin
     tier = [p for p in bins if ".bootloader." in p.name.lower()]
     if tier:
         return max(tier, key=_mtime)
@@ -509,14 +511,13 @@ def _pick_app_bin(bins: list[Path], reserved: set[Path]) -> Optional[Path]:
     if not rest:
         return None
 
-    ino = [p for p in rest if p.name.lower().endswith(".ino.bin")]
-    if ino:
-        return max(ino, key=_mtime)
+    preferred = [p for p in rest if p.name.lower() in ("esp32_div_idf.bin", "firmware.bin", "app.bin")]
+    if preferred:
+        return max(preferred, key=_mtime)
 
-    for fixed in ("firmware.bin", "app.bin"):
-        hits = [p for p in rest if p.name.lower() == fixed]
-        if hits:
-            return max(hits, key=_mtime)
+    legacy_ino = [p for p in rest if p.name.lower().endswith(".ino.bin")]
+    if legacy_ino:
+        return max(legacy_ino, key=_mtime)
 
     candidates = []
     for p in rest:
@@ -539,8 +540,100 @@ def _pick_app_bin(bins: list[Path], reserved: set[Path]) -> Optional[Path]:
     return max(candidates, key=lambda x: x.stat().st_size)
 
 
+def _read_idf_flasher_args(build_dir: Path) -> Optional[ResolvedImages]:
+    args_path = build_dir / "flasher_args.json"
+    if not args_path.is_file():
+        return None
+    data = json.loads(args_path.read_text(encoding="utf-8"))
+    flash_files = data.get("flash_files")
+    if not isinstance(flash_files, dict):
+        return None
+
+    def file_for(offset: int) -> Optional[Path]:
+        names = {hex(offset), f"0x{offset:x}", f"0X{offset:X}"}
+        for key, name in flash_files.items():
+            if str(key) in names and isinstance(name, str):
+                return (build_dir / name).resolve()
+        return None
+
+    def offset_for_file(fragment: str) -> Optional[int]:
+        fragment = fragment.lower()
+        for key, name in flash_files.items():
+            if not isinstance(name, str) or fragment not in name.lower():
+                continue
+            try:
+                return int(str(key), 0)
+            except ValueError:
+                return None
+        return None
+
+    boot_offset = offset_for_file("bootloader")
+    part_offset = offset_for_file("partition")
+    ota_offset = offset_for_file("ota_data") or offset_for_file("otadata")
+    app_offset = offset_for_file(".bin")
+
+    bootloader = file_for(boot_offset) if boot_offset is not None else None
+    partition_table = file_for(part_offset) if part_offset is not None else None
+    boot_app0 = file_for(ota_offset) if ota_offset is not None else None
+    app = None
+    for key, name in flash_files.items():
+        if not isinstance(name, str):
+            continue
+        low = name.lower()
+        if any(x in low for x in ("bootloader", "partition", "ota_data", "otadata")):
+            continue
+        if low.endswith(".bin"):
+            app = (build_dir / name).resolve()
+            try:
+                app_offset = int(str(key), 0)
+            except ValueError:
+                app_offset = app_offset or PRESETS["esp32s3"]["offsets"]["app"]
+            break
+
+    paths = [bootloader, partition_table, boot_app0, app]
+    if any(p is None or not p.is_file() for p in paths):
+        return None
+
+    flash_settings = data.get("flash_settings") if isinstance(data.get("flash_settings"), dict) else {}
+    extra_args = data.get("extra_esptool_args") if isinstance(data.get("extra_esptool_args"), dict) else {}
+    chip = str(extra_args.get("chip") or "")
+    if not chip:
+        chip = "esp32s3" if "esp32s3" in build_dir.name.lower() else "esp32s3"
+
+    return ResolvedImages(
+        chip=chip,
+        flash_mode=str(flash_settings.get("flash_mode") or PRESETS["esp32s3"]["flash_mode"]),
+        flash_freq=str(flash_settings.get("flash_freq") or PRESETS["esp32s3"]["flash_freq"]),
+        bootloader=bootloader,  # type: ignore[arg-type]
+        partition_table=partition_table,  # type: ignore[arg-type]
+        boot_app0=boot_app0,  # type: ignore[arg-type]
+        app=app,  # type: ignore[arg-type]
+        offsets={
+            "bootloader": boot_offset if boot_offset is not None else PRESETS["esp32s3"]["offsets"]["bootloader"],
+            "partition_table": part_offset if part_offset is not None else PRESETS["esp32s3"]["offsets"]["partition_table"],
+            "boot_app0": ota_offset if ota_offset is not None else PRESETS["esp32s3"]["offsets"]["boot_app0"],
+            "app": app_offset if app_offset is not None else PRESETS["esp32s3"]["offsets"]["app"],
+        },
+    )
+
+
+def _try_resolve_idf_build(fw_dir: Path) -> Optional[ResolvedImages]:
+    for candidate in (fw_dir, fw_dir / "build"):
+        try:
+            candidate = candidate.expanduser().resolve()
+        except OSError:
+            continue
+        resolved = _read_idf_flasher_args(candidate)
+        if resolved is not None:
+            return resolved
+    return None
+
+
 def _boot_app0_path(fw_root: Path) -> Path:
     local = fw_root / "boot_app0.bin"
+    if local.is_file():
+        return local
+    local = fw_root / "ota_data_initial.bin"
     if local.is_file():
         return local
     bundled = bundled_boot_app0()
@@ -613,6 +706,10 @@ def resolve_firmware_dir(fw_dir: Path, preset_key: str) -> ResolvedImages:
     if not fw_dir.is_dir():
         raise FileNotFoundError(f"Not a folder: {fw_dir}")
 
+    idf_build = _try_resolve_idf_build(fw_dir)
+    if idf_build is not None:
+        return idf_build
+
     manifest_path = fw_dir / "manifest.json"
     if manifest_path.is_file():
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -652,8 +749,8 @@ def resolve_firmware_dir(fw_dir: Path, preset_key: str) -> ResolvedImages:
     detail = _summarize_bins_near(fw_dir)
     raise FileNotFoundError(
         "Could not identify bootloader + partitions + app .bin files.\n"
-        "You need Arduino-style exports (e.g. *.bootloader.bin, *.partitions.bin, *.ino.bin), "
-        "or add manifest.json next to the binaries.\n\n"
+        "Choose an ESP-IDF build folder, an ESP-IDF project root with build/, "
+        "or add manifest.json next to the binaries. Legacy Arduino exports are still accepted.\n\n"
         + detail
     )
 
@@ -748,10 +845,10 @@ def resolve_bundled_boot_chain(preset_key: str) -> tuple[Path, Path, Path]:
         "Checked (in order):\n  "
         + "\n  ".join(tried_lines)
         + "\n\n"
-        "From Arduino: Sketch - Export compiled Binary, then copy files into bundled/:\n"
-        "  *bootloader*.bin (or bootloader.bin)\n"
-        "  *.partitions*.bin (or partitions.bin)\n"
-        "Optional: boot_app0.bin (otherwise the built-in Arduino boot_app0 is used).\n"
+        "Copy ESP-IDF boot-chain files into bundled/:\n"
+        "  bootloader.bin\n"
+        "  partition-table.bin (or partitions.bin)\n"
+        "Optional: boot_app0.bin / ota_data_initial.bin.\n"
         f"You can use bundled/{preset_key}/ instead of bundled/ if you prefer."
     )
 
@@ -877,7 +974,7 @@ def download_release_app_bin(release: dict[str, Any], on_line: Callable[[str], N
     if picked is None:
         raise RuntimeError(
             f"Release {tag!r} has no suitable firmware .bin asset "
-            "(expected ESP32-DIV-x.y.z.bin or *.ino.bin)."
+            "(expected an application image such as esp32_div_idf.bin or ESP32-DIV-x.y.z.bin)."
         )
     name, url = picked
     return download_github_firmware_asset(tag, name, url, on_line)
@@ -915,10 +1012,12 @@ def github_list_firmware_assets(assets: list[dict[str, Any]]) -> list[tuple[str,
         if sz < 80_000:
             continue
         score = 0
-        if ".ino.bin" in low:
-            score += 120
+        if "esp32_div_idf" in low:
+            score += 140
         if "esp32-div" in low or "esp32_div" in low:
             score += 80
+        if ".ino.bin" in low:
+            score += 20
         scored.append((score, sz, name, url))
     if not scored:
         return []
@@ -1072,11 +1171,11 @@ def flash_firmware(
         on_line(format_available_ports_hint())
         on_line(
             "Tips: click Refresh ports and pick the CP210x/USB-SERIAL port; "
-            "close Arduino IDE Serial Monitor or any serial terminal using that COM port."
+            "close ESP-IDF monitor, Arduino Serial Monitor, or any serial terminal using that COM port."
         )
         return 2
 
-    off = offsets_for_chip(images.chip)
+    off = images.offsets or offsets_for_chip(images.chip)
     chip = images.chip
     legacy = _esptool_major_version() < 5
     before_after = (
@@ -1219,7 +1318,7 @@ def _gui() -> None:
             f"About {APP_NAME}",
             f"{APP_NAME} {APP_TAGLINE}\n\n"
             f"Version {__version__}\n\n"
-            "Flashes exported Arduino binaries using esptool.\n"
+            "Flashes ESP-IDF build artifacts and firmware bundles using esptool.\n"
             "For research and educational use only.",
             parent=root,
         )
@@ -1450,18 +1549,18 @@ def _gui() -> None:
         "\u2461  Board preset — Auto-set when you pick a GitHub release (CYD/v1 → ESP32, v2 → ESP32-S3). "
         "For older single-file releases, choose ESP32-S3 (v2) or ESP32 (CYD & v1) manually.\n\n"
         "\u2462  Firmware source — Pick one of the two flashing tabs:\n"
-        "   \u2022  Local export — Folder from Arduino IDE: Sketch → Export compiled Binary.\n"
+        "   \u2022  ESP-IDF build — Project root or build/ folder produced by idf.py build.\n"
         "   \u2022  Toolbox / GitHub — Uses bundled bootloader/partitions/boot_app0. "
-        "Pick a GitHub release and Download, or Browse to a sketch .bin you already have.\n\n"
+        "Pick a GitHub release and Download, or Browse to an application .bin you already have.\n\n"
         "④  Flash — “Erase entire flash” gives a clean install; leave it off for a normal upgrade. "
         "Press Flash firmware — it runs esptool and shows live output in the activity log.\n\n"
-        "Tips — Close Arduino Serial Monitor before flashing. Try baud 115200 if upload fails.\n"
+        "Tips - Close ESP-IDF monitor or any serial terminal before flashing. Try baud 115200 if upload fails.\n"
         "Shortcuts: F5 refresh · Ctrl+Enter flash · Ctrl+L clear log · Ctrl+Q exit\n"
     )
     howto_text.insert("1.0", _howto_body)
     howto_text.configure(state="disabled")
 
-    flash_nb.add(tab_local, text="  Local export  ")
+    flash_nb.add(tab_local, text="  ESP-IDF build  ")
     flash_nb.add(tab_remote, text="  Toolbox / GitHub  ")
     flash_nb.add(tab_help, text="  How to use  ")
 
@@ -1470,7 +1569,7 @@ def _gui() -> None:
     frm_folder.columnconfigure(0, minsize=96)
     frm_folder.columnconfigure(1, weight=1)
     frm_folder.columnconfigure(2, weight=0)
-    ttk.Label(frm_folder, text="Export folder", style="FHMuted.TLabel").grid(
+    ttk.Label(frm_folder, text="Build folder", style="FHMuted.TLabel").grid(
         row=0, column=0, sticky="e", padx=(0, 10), pady=2
     )
     folder_var = tk.StringVar()
@@ -1524,7 +1623,7 @@ def _gui() -> None:
     )
     dz_folder_l1 = tk.Label(
         dz_folder,
-        text="Select Arduino export folder",
+        text="Select ESP-IDF project or build folder",
         fg=pal["accent"],
         bg=pal["surface"],
         font=(ui_family, 10, "bold"),
@@ -1533,7 +1632,7 @@ def _gui() -> None:
     )
     dz_folder_l2 = tk.Label(
         dz_folder,
-        text="Folder with bootloader, partitions, boot_app0, and app .bin",
+        text="Folder with flasher_args.json, bootloader, partition table, OTA data, and app .bin",
         fg=pal["muted"],
         bg=pal["surface"],
         font=(ui_family, 9),
@@ -1579,7 +1678,7 @@ def _gui() -> None:
     gh_download_btn = ttk.Button(frm_app, text="\u2B07  Download release", width=18, style=sec_st)
     gh_download_btn.grid(row=1, column=1, columnspan=2, sticky="ew", pady=(4, 0))
 
-    ttk.Label(frm_app, text="Sketch app (.bin)", style="FHMuted.TLabel").grid(
+    ttk.Label(frm_app, text="Application .bin", style="FHMuted.TLabel").grid(
         row=2, column=0, sticky="e", padx=(0, 10), pady=(10, 3)
     )
     app_bin_var = tk.StringVar()
@@ -1613,7 +1712,7 @@ def _gui() -> None:
     )
     dz_bin_l1 = tk.Label(
         dz_bin,
-        text="Pick sketch .bin (optional if downloaded)",
+        text="Pick application .bin (optional if downloaded)",
         fg=pal["accent"],
         bg=pal["surface"],
         font=(ui_family, 10, "bold"),
@@ -1650,7 +1749,7 @@ def _gui() -> None:
 
     def sync_src_ui(*_args: object) -> None:
         if src_var.get() == "folder":
-            dev_source_var.set("Local export")
+            dev_source_var.set("ESP-IDF build folder")
             folder_entry.configure(state="normal")
             browse_btn.configure(state="normal")
             app_bin_entry.configure(state="disabled")
@@ -1680,9 +1779,9 @@ def _gui() -> None:
         # Tab "How to use" (idx 2): keep current src_var; do not switch mode.
         sync_src_ui()
         if idx == 2:
-            status_var.set("How to use — switch to Local export or Toolbox / GitHub when you are ready to flash")
+            status_var.set("How to use - switch to ESP-IDF build or Toolbox / GitHub when you are ready to flash")
         elif src_var.get() == "folder":
-            status_var.set("Local export selected - choose the folder with all .bin files")
+            status_var.set("ESP-IDF build selected - choose the project root or build folder")
         else:
             status_var.set("Bundled source selected - choose an app .bin or GitHub release")
 
@@ -1715,7 +1814,7 @@ def _gui() -> None:
     ttk.Label(lf_dev, textvariable=baud_var, style="FHInnerStrong.TLabel").grid(
         row=2, column=1, sticky="w", pady=3
     )
-    dev_source_var = tk.StringVar(value="Local export")
+    dev_source_var = tk.StringVar(value="ESP-IDF build folder")
     ttk.Label(lf_dev, textvariable=dev_source_var, style="FHInnerAccent.TLabel").grid(
         row=3, column=1, sticky="w", pady=3
     )
@@ -2175,10 +2274,10 @@ def _gui() -> None:
             if src_var.get() == "folder":
                 fw = folder_var.get().strip().strip('"').strip("'")
                 if not fw or not Path(fw).is_dir():
-                    status_var.set("Choose a valid firmware export folder")
+                    status_var.set("Choose a valid firmware build folder")
                     messagebox.showwarning(
                         "Firmware folder",
-                        "Choose the folder that contains the exported bootloader, partitions, boot_app0, and app .bin files.",
+                        "Choose the ESP-IDF project root or build folder that contains flasher_args.json and generated .bin files.",
                         parent=root,
                     )
                     return
@@ -2188,8 +2287,8 @@ def _gui() -> None:
                 if not ap or not Path(ap).is_file():
                     status_var.set("Choose an application .bin before flashing")
                     messagebox.showwarning(
-                        "Sketch app (.bin)",
-                        "Download a release above (path fills automatically), or browse for a sketch .bin you already have.",
+                        "Application .bin",
+                        "Download a release above (path fills automatically), or browse for an application .bin you already have.",
                         parent=root,
                     )
                     return
@@ -2294,7 +2393,7 @@ def main() -> None:
         "--firmware-folder",
         "-d",
         type=Path,
-        help="Folder with Arduino export (bootloader, partitions, sketch .bin)",
+        help="ESP-IDF project/build folder, manifest bundle, or legacy Arduino export",
     )
     fw_src.add_argument(
         "--bundled-app-bin",

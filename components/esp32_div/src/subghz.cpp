@@ -8,9 +8,18 @@
 #include "shared.h"
 #include "utils.h"
 #include "driver/ledc.h"
+#include "driver/gpio.h"
 
 
 namespace {
+  static inline void gpioOutputWrite(int pin, bool high) {
+    if (pin < 0 || pin >= GPIO_NUM_MAX) {
+      return;
+    }
+    gpio_set_direction((gpio_num_t)pin, GPIO_MODE_OUTPUT);
+    gpio_set_level((gpio_num_t)pin, high ? 1 : 0);
+  }
+
   static constexpr const char* SUBGHZ_DIR = "/subghz";
   static constexpr const char* SUBGHZ_EXPORT_PREFIX = "/subghz/profiles_";
   static constexpr const char* SUBGHZ_CURRENT_PATH = "/subghz/profiles_current.bin";
@@ -558,9 +567,7 @@ static void replayBuzzerWrite(bool on) {
   if (BUZZER_PIN < 0) {
     return;
   }
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN,
-               (on ? BUZZER_ACTIVE_LEVEL : BUZZER_INACTIVE_LEVEL) ? HIGH : LOW);
+  gpioOutputWrite(BUZZER_PIN, (on ? BUZZER_ACTIVE_LEVEL : BUZZER_INACTIVE_LEVEL) != 0);
 }
 
 static bool replayBuzzerInit(uint16_t hz) {
@@ -2389,7 +2396,7 @@ static void subjammerToggleJam() {
   } else {
     Serial.println("Jamming stopped");
     ELECHOUSE_cc1101.setSidle();
-    digitalWrite(TX_PIN, LOW);
+    gpioOutputWrite(TX_PIN, false);
   }
   updateDisplay();
   lastDebounceTime = millis();
@@ -2423,7 +2430,7 @@ static void subjammerApplyFrequency() {
     ELECHOUSE_cc1101.SetTx();
   } else {
     ELECHOUSE_cc1101.setSidle();
-    digitalWrite(TX_PIN, LOW);
+    gpioOutputWrite(TX_PIN, false);
   }
 }
 
@@ -2656,7 +2663,7 @@ void runUI() {
                     } else {
                         Serial.println("Jamming stopped");
                         ELECHOUSE_cc1101.setSidle();
-                        digitalWrite(TX_PIN, LOW);
+                        gpioOutputWrite(TX_PIN, false);
                     }
                     updateDisplay();
                     lastDebounceTime = millis();
@@ -2836,7 +2843,7 @@ void subjammerLoop() {
         if (continuousMode) {
             ELECHOUSE_cc1101.SpiWriteReg(CC1101_TXFIFO, 0xFF);
             ELECHOUSE_cc1101.SpiStrobe(CC1101_STX);
-            digitalWrite(TX_PIN, HIGH);
+            gpioOutputWrite(TX_PIN, true);
         } else {
             for (int i = 0; i < 10; i++) {
                 uint32_t noise = random(16777216);

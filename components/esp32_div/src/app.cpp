@@ -1,5 +1,4 @@
 #include <TFT_eSPI.h>
-#include <Wire.h>
 #include "PCF8574.h"
 #include "app.h"
 #include "SettingsStore.h"
@@ -14,6 +13,7 @@
 #include "utils.h"
 
 #include "driver/ledc.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 static void drawTouchNavBar();
@@ -29,8 +29,8 @@ static bool s_backlightPwmReady = false;
 
 static void initBuzzerIdle() {
 #if BUZZER_PIN >= 0
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, BUZZER_INACTIVE_LEVEL ? HIGH : LOW);
+  gpio_set_direction((gpio_num_t)BUZZER_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_level((gpio_num_t)BUZZER_PIN, BUZZER_INACTIVE_LEVEL ? 1 : 0);
 #endif
 }
 

@@ -1,8 +1,8 @@
 idf_component_register(
     SRCS
-        "PCF8574.cpp"
+        "src/PCF8574.cpp"
     INCLUDE_DIRS
-        "."
+        "include"
     REQUIRES
         esp_driver_i2c
         driver

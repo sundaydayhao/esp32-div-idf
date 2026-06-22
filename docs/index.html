@@ -338,7 +338,7 @@
               <i class="hn hn-laptop-code" aria-hidden="true"></i> esptool
             </button>
             <button type="button" class="start-tab" role="tab" aria-selected="false" data-tab="arduino">
-              <i class="hn hn-code" aria-hidden="true"></i> Arduino IDE
+              <i class="hn hn-code" aria-hidden="true"></i> ESP-IDF Source
             </button>
           </div>
 
@@ -450,41 +450,41 @@
             </div>
 
             <div class="start-panel" data-panel="arduino" role="tabpanel" hidden>
-              <p class="start-panel__note">For building and uploading the sketch from source — see <a href="https://github.com/cifertech/ESP32-DIV/wiki/Firmware-Upload#method-3-upload-sketch-via-arduino-ide" target="_blank" rel="noopener">Method 3</a> in the wiki.</p>
+              <p class="start-panel__note">Build from source with ESP-IDF. The project root follows the normal ESP-IDF layout: <code class="step__code step__code--inline">main/</code>, <code class="step__code step__code--inline">components/</code>, <code class="step__code step__code--inline">managed_components/</code>, and <code class="step__code step__code--inline">sdkconfig</code>.</p>
               <ol class="steps">
                 <li class="step">
                   <span class="step__num">01</span>
                   <div>
-                    <h3 class="step__title">Install Arduino IDE &amp; ESP32 core</h3>
-                    <p class="step__desc">Install <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">Arduino IDE 2.x</a>, open Board Manager, and install <strong>esp32 by Espressif Systems (v2.0.10)</strong>.</p>
+                    <h3 class="step__title">Install ESP-IDF</h3>
+                    <p class="step__desc">Install ESP-IDF 6.x and open an ESP-IDF terminal with the toolchain environment loaded.</p>
                   </div>
                 </li>
                 <li class="step">
                   <span class="step__num">02</span>
                   <div>
-                    <h3 class="step__title">Replace platform.txt</h3>
-                    <p class="step__desc">Download <code class="step__code step__code--inline">platform.txt</code> from the repo <a href="https://github.com/cifertech/ESP32-DIV/tree/main/Flash%20File" target="_blank" rel="noopener">Flash File</a> folder and replace the file in your Arduino15 ESP32 package (back up the original first).</p>
+                    <h3 class="step__title">Select target and board</h3>
+                    <p class="step__desc">Run <code class="step__code step__code--inline">idf.py set-target esp32s3</code>. Board and panel selection live in <code class="step__code step__code--inline">components/esp32_div_board/include/BoardConfig.h</code>.</p>
                   </div>
                 </li>
                 <li class="step">
                   <span class="step__num">03</span>
                   <div>
-                    <h3 class="step__title">Install project libraries</h3>
-                    <p class="step__desc">Copy libraries from the repo <a href="https://github.com/cifertech/ESP32-DIV/tree/main/Libraries" target="_blank" rel="noopener">Libraries</a> folder into your Arduino <strong>libraries</strong> directory, then restart the IDE.</p>
+                    <h3 class="step__title">Build firmware</h3>
+                    <p class="step__desc">Run <code class="step__code step__code--inline">idf.py build</code>. Component Manager downloads managed dependencies when needed.</p>
                   </div>
                 </li>
                 <li class="step">
                   <span class="step__num">04</span>
                   <div>
-                    <h3 class="step__title">Configure board settings</h3>
-                    <p class="step__desc">Open the sketch from the repo. Board: <strong>ESP32 S3 Dev Module</strong> (v2) or classic <strong>ESP32</strong> (v1/CYD). Partition scheme: <strong>Minimal SPIFFS</strong>. Upload speed: <strong>921600</strong> (or 115200 if unstable).</p>
+                    <h3 class="step__title">Flash and monitor</h3>
+                    <p class="step__desc">Connect the board in download mode, then run <code class="step__code step__code--inline">idf.py -p COMx flash monitor</code>.</p>
                   </div>
                 </li>
                 <li class="step">
                   <span class="step__num">05</span>
                   <div>
-                    <h3 class="step__title">Verify and upload</h3>
-                    <p class="step__desc">Click <strong>Verify</strong>, then <strong>Upload</strong>. Enter download mode (hold BOOT, press RESET) if prompted. Check the TFT or serial monitor at <strong>115200 baud</strong>.</p>
+                    <h3 class="step__title">Use build artifacts</h3>
+                    <p class="step__desc">Generated binaries are in <code class="step__code step__code--inline">build/</code>: bootloader, partition table, OTA data, and <code class="step__code step__code--inline">esp32_div_idf.bin</code>.</p>
                   </div>
                 </li>
               </ol>
@@ -552,7 +552,7 @@
                   <span class="step__num">01</span>
                   <div>
                     <h3 class="step__title">Get firmware files</h3>
-                    <p class="step__desc">Download the app <strong>.bin</strong> from <a href="https://github.com/cifertech/ESP32-DIV/tree/main/Pre-compiled%20Bin" target="_blank" rel="noopener">Pre-compiled Bin</a> and the <strong>.partitions</strong> file from <a href="https://github.com/cifertech/ESP32-DIV/tree/main/Flash%20File" target="_blank" rel="noopener">Flash File</a>.</p>
+                    <p class="step__desc">Use the generated files from <code class="step__code step__code--inline">build/</code>: <code class="step__code step__code--inline">bootloader/bootloader.bin</code>, <code class="step__code step__code--inline">partition_table/partition-table.bin</code>, <code class="step__code step__code--inline">ota_data_initial.bin</code>, and <code class="step__code step__code--inline">esp32_div_idf.bin</code>. Release images are kept under <code class="step__code step__code--inline">firmware/precompiled/</code>.</p>
                   </div>
                 </li>
                 <li class="step">

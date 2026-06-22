@@ -1,24 +1,24 @@
-set(ESP32_DIV_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../ESP32-DIV")
-
 idf_component_register(
     SRCS
-        "${ESP32_DIV_SRC_DIR}/app.cpp"
-        "${ESP32_DIV_SRC_DIR}/bluetooth.cpp"
-        "${ESP32_DIV_SRC_DIR}/ducky.cpp"
-        "${ESP32_DIV_SRC_DIR}/gps.cpp"
-        "${ESP32_DIV_SRC_DIR}/ir.cpp"
-        "${ESP32_DIV_SRC_DIR}/KeyboardUI.cpp"
-        "${ESP32_DIV_SRC_DIR}/rfid.cpp"
-        "${ESP32_DIV_SRC_DIR}/SettingsStore.cpp"
-        "${ESP32_DIV_SRC_DIR}/signal_dsp.cpp"
-        "${ESP32_DIV_SRC_DIR}/subghz.cpp"
-        "${ESP32_DIV_SRC_DIR}/Theme.cpp"
-        "${ESP32_DIV_SRC_DIR}/Touchscreen.cpp"
-        "${ESP32_DIV_SRC_DIR}/utils.cpp"
-        "${ESP32_DIV_SRC_DIR}/wifi.cpp"
+        "src/app.cpp"
+        "src/bluetooth.cpp"
+        "src/ducky.cpp"
+        "src/gps.cpp"
+        "src/ir.cpp"
+        "src/KeyboardUI.cpp"
+        "src/rfid.cpp"
+        "src/SettingsStore.cpp"
+        "src/signal_dsp.cpp"
+        "src/subghz.cpp"
+        "src/Theme.cpp"
+        "src/Touchscreen.cpp"
+        "src/utils.cpp"
+        "src/wifi.cpp"
     INCLUDE_DIRS
-        "${ESP32_DIV_SRC_DIR}"
+        "include"
     REQUIRES
+        esp32_div_board
+        arduino
         TFT_eSPI
         cjson
         thirdparty_compat
@@ -33,6 +33,7 @@ idf_component_register(
         esp_wifi
         esp_netif
         esp_http_server
+        esp_driver_gpio
         mdns
         app_update
         esp_driver_ledc

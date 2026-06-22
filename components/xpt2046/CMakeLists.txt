@@ -1,8 +1,8 @@
 idf_component_register(
     SRCS
-        "XPT2046_Touchscreen.cpp"
+        "src/XPT2046_Touchscreen.cpp"
     INCLUDE_DIRS
-        "."
+        "include"
     REQUIRES
         driver
         esp_driver_spi

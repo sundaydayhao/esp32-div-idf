@@ -1,12 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(EXTRA_COMPONENT_DIRS
-    "${CMAKE_CURRENT_LIST_DIR}/components/esp32_div"
-    "${CMAKE_CURRENT_LIST_DIR}/components/eeprom_compat"
-    "${CMAKE_CURRENT_LIST_DIR}/components/pcf8574"
-    "${CMAKE_CURRENT_LIST_DIR}/components/xpt2046"
-    "${CMAKE_CURRENT_LIST_DIR}/components/thirdparty_compat"
-    "${CMAKE_CURRENT_LIST_DIR}/components/nimble_compat"
+    "${CMAKE_CURRENT_LIST_DIR}/third_party/arduino"
+    "${CMAKE_CURRENT_LIST_DIR}/third_party/TFT_eSPI"
 )
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)

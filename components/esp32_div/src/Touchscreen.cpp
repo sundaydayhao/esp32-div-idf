@@ -2,9 +2,18 @@
 #include "Touchscreen.h"
 #include <algorithm>
 #include <TFT_eSPI.h>
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 extern TFT_eSPI tft;
+
+static void setOutputHigh(int pin) {
+  if (pin < 0 || pin >= GPIO_NUM_MAX) {
+    return;
+  }
+  gpio_set_direction((gpio_num_t)pin, GPIO_MODE_OUTPUT);
+  gpio_set_level((gpio_num_t)pin, 1);
+}
 
 #ifndef XPT2046_IRQ
 #define XPT2046_IRQ 255
@@ -48,20 +57,17 @@ void restoreTftSpiAfterTouchIfNeeded() {
   spi.begin(TFT_SCLK, TFT_MISO, TFT_MOSI, -1);
 #if defined(XPT2046_CS)
   if (XPT2046_CS < 255) {
-    pinMode(XPT2046_CS, OUTPUT);
-    digitalWrite(XPT2046_CS, HIGH);
+    setOutputHigh(XPT2046_CS);
   }
 #endif
 #if defined(TFT_CS)
   if (TFT_CS >= 0) {
-    pinMode(TFT_CS, OUTPUT);
-    digitalWrite(TFT_CS, HIGH);
+    setOutputHigh(TFT_CS);
   }
 #endif
 #if defined(TFT_DC)
   if (TFT_DC >= 0) {
-    pinMode(TFT_DC, OUTPUT);
-    digitalWrite(TFT_DC, HIGH);
+    setOutputHigh(TFT_DC);
   }
 #endif
   s_tftSpiDirtyFromTouch = false;
