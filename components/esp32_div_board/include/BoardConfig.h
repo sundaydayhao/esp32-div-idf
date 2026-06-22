@@ -1,7 +1,7 @@
 #pragma once
 
 // Select the hardware target.
-// Leave all BOARD_* lines commented to use the ESP32-DIV V3 wiring.
+// Leave all BOARD_* lines commented to use the ESP32-DIV V4 wiring.
 
 // #define BOARD_CYD
 // #define BOARD_ESP32_DIV_V1
@@ -38,7 +38,7 @@
 //#define TOUCH_Y_MAX 3800
 
 #if !defined(BOARD_ESP32_DIV_V4) && !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
-#define BOARD_ESP32_DIV_V3
+#define BOARD_ESP32_DIV_V4
 #endif
 
 #if !defined(TFT_PANEL_ILI9341) && !defined(TFT_PANEL_ST7796)

@@ -1294,10 +1294,10 @@ namespace Terminal {
 #define TEXT_HEIGHT 16
 #define BOT_FIXED_AREA 0
 #define TOP_FIXED_AREA 86
-#define DISPLAY_WIDTH 240
-#define DISPLAY_HEIGHT 320
-#define SCREEN_WIDTH 240
-#define SCREENHEIGHT 320
+#define DISPLAY_WIDTH TFT_WIDTH
+#define DISPLAY_HEIGHT TFT_HEIGHT
+#define SCREEN_WIDTH TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 
 static bool uiDrawn = false;
 
@@ -1400,7 +1400,7 @@ void runUI() {
     };
 
     if (!uiDrawn) {
-        tft.drawLine(0, 19, 240, 19, TFT_WHITE);
+        tft.drawLine(0, 19, tft.width(), 19, TFT_WHITE);
         tft.fillRect(0, STATUS_BAR_Y_OFFSET, SCREEN_WIDTH, STATUS_BAR_HEIGHT, DARK_GRAY);
 
         for (int i = 0; i < ICON_NUM; i++) {
@@ -1573,7 +1573,7 @@ void terminalLoop() {
 
 namespace AppSettingsUI {
 
-static const int SCREEN_W = 240;
+static int screenW() { return tft.width(); }
 static const int BAR_H    = 22;
 static const int TITLE_Y  = BAR_H + 4;
 static const int TITLE_H  = 16;
@@ -1628,7 +1628,7 @@ static bool dragging = false;
 
 static uint32_t lastChangeMs = 0;
 
-static Rect rowRect(int i) { return makeRect(PAD_X, rowY(i), SCREEN_W - PAD_X*2, ROW_H); }
+static Rect rowRect(int i) { return makeRect(PAD_X, rowY(i), screenW() - PAD_X*2, ROW_H); }
 
 static void setTitleFont() { tft.setTextFont(2); }
 static void setLabelFont() { tft.setTextFont(2); }
@@ -1643,7 +1643,7 @@ static void drawTitle() {
 static void drawCardStatic(int i, bool selected) {
   Rect r = rowRect(i);
 
-  tft.fillRect(0, r.y, SCREEN_W, r.h, UI_BG);
+  tft.fillRect(0, r.y, screenW(), r.h, UI_BG);
 
   if (selected) {
     tft.fillRect(0, r.y, 3, r.h, UI.accent);
@@ -1655,7 +1655,7 @@ static void drawCardStatic(int i, bool selected) {
   tft.setCursor(r.x, ty);
   tft.print(items[i]);
 
-  tft.drawLine(PAD_X, r.y + r.h - 1, SCREEN_W - PAD_X, r.y + r.h - 1, UI_LINE);
+  tft.drawLine(PAD_X, r.y + r.h - 1, screenW() - PAD_X, r.y + r.h - 1, UI_LINE);
 }
 
 static void wipeBrightnessWidgetArea() {
@@ -1862,7 +1862,7 @@ static void drawAutoScan(bool on, bool selected) { drawSwitchRow(on, selected, 4
 
 static Rect backRect(){
   int h = tft.height();
-  int bwTotal = SCREEN_W - PAD_X*2;
+  int bwTotal = screenW() - PAD_X*2;
   int bh = 24;
   int bx = PAD_X;
   int by = h - bh - 8;
@@ -1885,7 +1885,7 @@ static void footerToast(const char* msg, uint16_t color){
   Rect b = backRect();
   int y = b.y - 18;
   int h = 14;
-  tft.fillRect(PAD_X, y, SCREEN_W - PAD_X*2, h, UI_BG);
+  tft.fillRect(PAD_X, y, screenW() - PAD_X*2, h, UI_BG);
   tft.setTextColor(color, UI_BG);
   tft.setTextFont(1);
   tft.setTextSize(1);
@@ -1897,7 +1897,7 @@ static void drawFooter(bool backPressed=false, bool savePressed=false){
   Rect s = saveRect();
 
   int clearX = PAD_X - 2;
-  int clearW = SCREEN_W - (PAD_X*2) + 4;
+  int clearW = screenW() - (PAD_X*2) + 4;
   tft.fillRect(clearX, b.y-2, clearW, b.h+4, UI.bg);
 
   FeatureUI::drawButtonRect(b.x, b.y, b.w, b.h, "Back",

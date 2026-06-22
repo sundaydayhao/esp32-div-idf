@@ -2,6 +2,7 @@
 #define SHARED_H
 #include <stdint.h>
 #include "BoardConfig.h"
+#include "tft_setup.h"
 
 #ifndef PROGMEM
 #define PROGMEM

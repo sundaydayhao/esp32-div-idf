@@ -34,10 +34,10 @@
 #endif
 #define DARK_GRAY UI_FG
 
-static constexpr int kBleScreenH = 320;
+static int bleScreenH() { return tft.height(); }
 
 static int bleContentBottom() {
-  return featureHasTouchNavBar() ? touchNavContentBottomY() : kBleScreenH;
+  return featureHasTouchNavBar() ? touchNavContentBottomY() : bleScreenH();
 }
 
 static inline uint32_t bleRandU32(uint32_t maxExclusive) {
@@ -120,8 +120,8 @@ int spooferlineIndex = 0;
 
 static bool uiDrawn = false;
 
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -904,8 +904,8 @@ void exit() {
 namespace SourApple {
 static bool uiDrawn = false;
 
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -1150,7 +1150,7 @@ byte channelGroup1[] = {2, 5, 8, 11};
 byte channelGroup2[] = {26, 29, 32, 35};
 byte channelGroup3[] = {80, 83, 86, 89};
 
-#define SCREEN_HEIGHT 320
+#define SCREEN_HEIGHT TFT_HEIGHT
 #define LINE_HEIGHT 12
 #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
 
@@ -1417,8 +1417,8 @@ namespace BleSniffer { void exit(); }
 
 namespace BleScan {
 
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -2343,8 +2343,8 @@ void scan() {
 }
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREEN_HEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -3028,7 +3028,7 @@ byte channelGroup1[] = {2, 5, 8, 11};
 byte channelGroup2[] = {26, 29, 32, 35};
 byte channelGroup3[] = {80, 83, 86, 89};
 
-#define SCREEN_HEIGHT 320
+#define SCREEN_HEIGHT TFT_HEIGHT
 #define LINE_HEIGHT 12
 #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
 
@@ -3361,8 +3361,8 @@ void prokillLoop() {
 
 namespace BleSniffer {
 
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16

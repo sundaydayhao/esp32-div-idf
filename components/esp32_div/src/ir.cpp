@@ -13,10 +13,12 @@
 #include "shared.h"
 #include "utils.h"
 
-static constexpr int kIrScreenH = 320;
+static int irScreenH() {
+  return tft.height();
+}
 
 static int irContentBottom() {
-  return featureHasTouchNavBar() ? touchNavContentBottomY() : kIrScreenH;
+  return featureHasTouchNavBar() ? touchNavContentBottomY() : irScreenH();
 }
 
 static void irClearBody(uint16_t color = FEATURE_BG) {

@@ -189,11 +189,7 @@ void DivDisplay::initPanel() {
   delay(120);
   const uint8_t pixFmt = 0x55;
   sendCommand(0x3A, &pixFmt, 1);
-#if defined(TFT_PANEL_ILI9341)
-  const uint8_t mem = 0x48;
-#else
-  const uint8_t mem = 0x48;
-#endif
+  const uint8_t mem = 0x40 | TFT_RGB_ORDER;
   sendCommand(0x36, &mem, 1);
 #ifdef TFT_INVERSION_OFF
   sendCommand(0x20);
@@ -217,21 +213,21 @@ void DivDisplay::setRotation(uint8_t rotation) {
   rotation_ = rotation & 3;
   width_ = (rotation_ & 1) ? TFT_HEIGHT : TFT_WIDTH;
   height_ = (rotation_ & 1) ? TFT_WIDTH : TFT_HEIGHT;
-  uint8_t madctl = 0x48;
+  uint8_t madctl = 0x40 | TFT_RGB_ORDER;
   switch (rotation_) {
-    case 1: madctl = 0x28; break;
-    case 2: madctl = 0x88; break;
-    case 3: madctl = 0xE8; break;
-    default: madctl = 0x48; break;
+    case 1: madctl = 0x20 | TFT_RGB_ORDER; break;
+    case 2: madctl = 0x80 | TFT_RGB_ORDER; break;
+    case 3: madctl = 0xE0 | TFT_RGB_ORDER; break;
+    default: madctl = 0x40 | TFT_RGB_ORDER; break;
   }
   sendCommand(0x36, &madctl, 1);
 }
 
 void DivDisplay::setAddrWindow(int32_t x, int32_t y, int32_t w, int32_t h) {
-  const uint16_t x0 = x;
-  const uint16_t y0 = y;
-  const uint16_t x1 = x + w - 1;
-  const uint16_t y1 = y + h - 1;
+  const uint16_t x0 = x + TFT_COL_OFFSET;
+  const uint16_t y0 = y + TFT_ROW_OFFSET;
+  const uint16_t x1 = x + w - 1 + TFT_COL_OFFSET;
+  const uint16_t y1 = y + h - 1 + TFT_ROW_OFFSET;
   uint8_t col[4] = {static_cast<uint8_t>(x0 >> 8), static_cast<uint8_t>(x0),
                     static_cast<uint8_t>(x1 >> 8), static_cast<uint8_t>(x1)};
   uint8_t row[4] = {static_cast<uint8_t>(y0 >> 8), static_cast<uint8_t>(y0),
@@ -251,6 +247,12 @@ void DivDisplay::writeFillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint1
 
 void DivDisplay::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t color) {
   if (w <= 0 || h <= 0 || x >= width_ || y >= height_) return;
+  if (x == 0 && w == 240 && width_ > 240) {
+    w = width_;
+  }
+  if (y >= 0 && h == 320 && height_ > 320) {
+    h = height_ - y;
+  }
   if (x < 0) { w += x; x = 0; }
   if (y < 0) { h += y; y = 0; }
   if (x + w > width_) w = width_ - x;
@@ -305,6 +307,12 @@ void DivDisplay::drawPixel(int32_t x, int32_t y, uint16_t color) {
 }
 
 void DivDisplay::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint16_t color) {
+  if (y0 == y1 && x0 == 0 && x1 == 240 && width_ > 240) {
+    x1 = width_ - 1;
+  }
+  if (x0 == x1 && y0 == 0 && y1 == 320 && height_ > 320) {
+    y1 = height_ - 1;
+  }
   const int32_t dx = std::abs(x1 - x0);
   const int32_t sx = x0 < x1 ? 1 : -1;
   const int32_t dy = -std::abs(y1 - y0);

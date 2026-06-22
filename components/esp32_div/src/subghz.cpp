@@ -383,10 +383,12 @@ namespace {
 #endif
 #define DARK_GRAY UI_FG
 
-static constexpr int kSubghzScreenH = 320;
+static int subghzScreenH() {
+  return tft.height();
+}
 
 static int subghzContentBottom() {
-  return featureHasTouchNavBar() ? touchNavContentBottomY() : kSubghzScreenH;
+  return featureHasTouchNavBar() ? touchNavContentBottomY() : subghzScreenH();
 }
 
 static void subghzClearBody(uint16_t color = TFT_BLACK) {

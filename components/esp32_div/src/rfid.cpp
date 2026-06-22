@@ -76,7 +76,9 @@ static void rfidReleaseNavButtons() {
   }
 }
 
-static constexpr int kRfidScreenH = 320;
+static int rfidScreenH() {
+  return tft.height();
+}
 static constexpr int16_t kRfidToolbarY = 20;
 static constexpr int16_t kRfidToolbarH = 16;
 static constexpr int kRfidToolbarBottom = kRfidToolbarY + kRfidToolbarH;
@@ -85,7 +87,7 @@ static constexpr int kRfidIconSize = 16;
 static bool s_rfidUiDrawn = false;
 
 static int rfidContentBottom() {
-  return featureHasTouchNavBar() ? touchNavContentBottomY() : kRfidScreenH;
+  return featureHasTouchNavBar() ? touchNavContentBottomY() : rfidScreenH();
 }
 
 static void rfidClearBody(uint16_t color = FEATURE_BG) {

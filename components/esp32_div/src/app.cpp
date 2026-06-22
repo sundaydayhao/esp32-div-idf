@@ -711,13 +711,56 @@ int last_submenu_index = -1;
 bool submenu_initialized = false;
 int last_menu_index = -1;
 bool menu_initialized = false;
-const int COLUMN_WIDTH = 120;
-const int X_OFFSET_LEFT = 10;
-const int X_OFFSET_RIGHT = X_OFFSET_LEFT + COLUMN_WIDTH;
-const int Y_START = 30;
-const int Y_SPACING = 75;
+static constexpr int Y_START = 30;
+static constexpr int Y_SPACING = 75;
+static constexpr int MENU_TILE_W = 100;
+static constexpr int MENU_TILE_H = 60;
+static constexpr int MAIN_MENU_ROWS = 4;
 const int MENU_TOUCH_PAD_X = 10;
 const int MENU_TOUCH_PAD_Y = 12;
+
+static int menuGridLeftX() {
+    const int screenW = tft.width();
+    const int gap = (screenW > 240) ? 40 : 20;
+    int x = (screenW - MENU_TILE_W * 2 - gap) / 2;
+    return (x > 4) ? x : 4;
+}
+
+static int menuGridRightX() {
+    return menuGridLeftX() + MENU_TILE_W + ((tft.width() > 240) ? 40 : 20);
+}
+
+static int menuGridSpacingY(int rows) {
+    if (rows <= 1) {
+        return Y_SPACING;
+    }
+    const int contentTop = 30;
+    const int contentBottom = tft.height() - 12;
+    const int availableStep = (contentBottom - contentTop - MENU_TILE_H) / (rows - 1);
+    if (tft.height() <= 320) {
+        return Y_SPACING;
+    }
+    if (availableStep < Y_SPACING) {
+        return Y_SPACING;
+    }
+    return (availableStep > 105) ? 105 : availableStep;
+}
+
+static int menuGridTopY(int rows) {
+    const int contentBottom = tft.height();
+    const int legacyTop = Y_START;
+    const int totalH = MENU_TILE_H + menuGridSpacingY(rows) * (rows - 1);
+    const int centered = 20 + ((contentBottom - 20 - totalH) / 2);
+    return (tft.height() > 320 && centered > legacyTop) ? centered : legacyTop;
+}
+
+static int menuTileX(int column) {
+    return (column == 0) ? menuGridLeftX() : menuGridRightX();
+}
+
+static int menuTileY(int row, int rows) {
+    return menuGridTopY(rows) + row * menuGridSpacingY(rows);
+}
 
 void displayMenu();
 void displaySubmenu();
@@ -867,6 +910,7 @@ void displaySubmenu() {
 void displayOtherMenuGrid() {
     restoreTftSpiAfterTouchIfNeeded();
     applyThemeToPalette(settings().theme);
+    const int gridRows = (other_NUM_SUBMENU_ITEMS + OTHER_GRID_COLS - 1) / OTHER_GRID_COLS;
 
     submenu_initialized = false;
     last_submenu_index = -1;
@@ -881,16 +925,16 @@ void displayOtherMenuGrid() {
         for (int i = 0; i < other_NUM_SUBMENU_ITEMS; i++) {
             int column = i % OTHER_GRID_COLS;
             int row = i / OTHER_GRID_COLS;
-            int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-            int y_position = Y_START + row * Y_SPACING;
+            int x_position = menuTileX(column);
+            int y_position = menuTileY(row, gridRows);
 
-            tft.fillRoundRect(x_position, y_position, 100, 60, 5, UI_FG);
-            tft.drawRoundRect(x_position, y_position, 100, 60, 5, UI_LINE);
-            tft.drawBitmap(x_position + 42, y_position + 10, other_submenu_icons[i], 16, 16, UI_ICON);
+            tft.fillRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, UI_FG);
+            tft.drawRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, UI_LINE);
+            tft.drawBitmap(x_position + (MENU_TILE_W - 16) / 2, y_position + 10, other_submenu_icons[i], 16, 16, UI_ICON);
 
             tft.setTextColor(UI_TEXT, UI_FG);
             int textWidth = tft.textWidth(other_submenu_items[i]);
-            int textX = x_position + (100 - textWidth) / 2;
+            int textX = x_position + (MENU_TILE_W - textWidth) / 2;
             int textY = y_position + 30;
             tft.setCursor(textX, textY);
             tft.print(other_submenu_items[i]);
@@ -904,17 +948,17 @@ void displayOtherMenuGrid() {
         for (int i = 0; i < other_NUM_SUBMENU_ITEMS; i++) {
             int column = i % OTHER_GRID_COLS;
             int row = i / OTHER_GRID_COLS;
-            int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-            int y_position = Y_START + row * Y_SPACING;
+            int x_position = menuTileX(column);
+            int y_position = menuTileY(row, gridRows);
 
             if (i == last_other_menu_index) {
-                tft.fillRoundRect(x_position, y_position, 100, 60, 5, UI_FG);
-                tft.drawRoundRect(x_position, y_position, 100, 60, 5, UI_LINE);
+                tft.fillRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, UI_FG);
+                tft.drawRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, UI_LINE);
                 tft.setTextColor(UI_TEXT, UI_FG);
-                tft.drawBitmap(x_position + 42, y_position + 10,
+                tft.drawBitmap(x_position + (MENU_TILE_W - 16) / 2, y_position + 10,
                                other_submenu_icons[last_other_menu_index], 16, 16, UI_ICON);
                 int textWidth = tft.textWidth(other_submenu_items[last_other_menu_index]);
-                int textX = x_position + (100 - textWidth) / 2;
+                int textX = x_position + (MENU_TILE_W - textWidth) / 2;
                 int textY = y_position + 30;
                 tft.setCursor(textX, textY);
                 tft.print(other_submenu_items[last_other_menu_index]);
@@ -923,17 +967,17 @@ void displayOtherMenuGrid() {
 
         int column = current_submenu_index % OTHER_GRID_COLS;
         int row = current_submenu_index / OTHER_GRID_COLS;
-        int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-        int y_position = Y_START + row * Y_SPACING;
+        int x_position = menuTileX(column);
+        int y_position = menuTileY(row, gridRows);
 
-        tft.fillRoundRect(x_position, y_position, 100, 60, 5, UI_FG);
-        tft.drawRoundRect(x_position, y_position, 100, 60, 5, UI_ICON);
+        tft.fillRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, UI_FG);
+        tft.drawRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, UI_ICON);
 
         tft.setTextColor(UI_ICON, UI_FG);
-        tft.drawBitmap(x_position + 42, y_position + 10, other_submenu_icons[current_submenu_index],
+        tft.drawBitmap(x_position + (MENU_TILE_W - 16) / 2, y_position + 10, other_submenu_icons[current_submenu_index],
                        16, 16, SELECTED_ICON_COLOR);
         int textWidth = tft.textWidth(other_submenu_items[current_submenu_index]);
-        int textX = x_position + (100 - textWidth) / 2;
+        int textX = x_position + (MENU_TILE_W - textWidth) / 2;
         int textY = y_position + 30;
         tft.setCursor(textX, textY);
         tft.print(other_submenu_items[current_submenu_index]);
@@ -950,7 +994,7 @@ static constexpr int MAIN_MENU_OTHER_ICON_GAP = 4;
 
 static void drawMainMenuOtherTripleIcons(int x_position, int y_position, uint16_t iconColor) {
     const int tripleW = 16 * 3 + MAIN_MENU_OTHER_ICON_GAP * 2;
-    int ix = x_position + (100 - tripleW) / 2;
+    int ix = x_position + (MENU_TILE_W - tripleW) / 2;
     const int iy = y_position + 10;
     tft.drawBitmap(ix, iy, bitmap_icon_led, 16, 16, iconColor);
     tft.drawBitmap(ix + 16 + MAIN_MENU_OTHER_ICON_GAP, iy, bitmap_icon_satellite, 16, 16, iconColor);
@@ -960,25 +1004,25 @@ static void drawMainMenuOtherTripleIcons(int x_position, int y_position, uint16_
 static void drawMainMenuTile(int index, bool selected, const uint16_t* iconColors) {
     const int column = index / 4;
     const int row = index % 4;
-    const int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-    const int y_position = Y_START + row * Y_SPACING;
+    const int x_position = menuTileX(column);
+    const int y_position = menuTileY(row, MAIN_MENU_ROWS);
     const uint16_t fill = UI_FG;
     const uint16_t edge = selected ? UI_ICON : UI_LINE;
     const uint16_t fg = selected ? UI_ICON : UI_TEXT;
     const uint16_t icon = selected ? SELECTED_ICON_COLOR : iconColors[index];
 
-    tft.fillRoundRect(x_position, y_position, 100, 60, 5, fill);
-    tft.drawRoundRect(x_position, y_position, 100, 60, 5, edge);
+    tft.fillRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, fill);
+    tft.drawRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, edge);
 
     if (index == MAIN_MENU_OTHER_IDX) {
         drawMainMenuOtherTripleIcons(x_position, y_position, icon);
     } else {
-        tft.drawBitmap(x_position + 42, y_position + 10, bitmap_icons[index], 16, 16, icon);
+        tft.drawBitmap(x_position + (MENU_TILE_W - 16) / 2, y_position + 10, bitmap_icons[index], 16, 16, icon);
     }
 
     tft.setTextColor(fg, fill);
     int textWidth = tft.textWidth(menu_items[index]);
-    int textX = x_position + (100 - textWidth) / 2;
+    int textX = x_position + (MENU_TILE_W - textWidth) / 2;
     int textY = y_position + 30;
     tft.setCursor(textX, textY);
     tft.print(menu_items[index]);
@@ -2958,15 +3002,16 @@ void handleOtherSubmenuButtons() {
 
         int touched_slot = -1;
         if (other_layer == OTHER_LAYER_HOME) {
+            const int gridRows = (other_NUM_SUBMENU_ITEMS + OTHER_GRID_COLS - 1) / OTHER_GRID_COLS;
             for (int i = 0; i < other_NUM_SUBMENU_ITEMS; i++) {
                 int column = i % OTHER_GRID_COLS;
                 int row = i / OTHER_GRID_COLS;
-                int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-                int y_position = Y_START + row * Y_SPACING;
+                int x_position = menuTileX(column);
+                int y_position = menuTileY(row, gridRows);
                 int button_x1 = x_position;
                 int button_y1 = y_position;
-                int button_x2 = x_position + 100;
-                int button_y2 = y_position + 60;
+                int button_x2 = x_position + MENU_TILE_W;
+                int button_y2 = y_position + MENU_TILE_H;
                 if (x >= button_x1 && x <= button_x2 && y >= button_y1 && y <= button_y2) {
                     touched_slot = i;
                     break;
@@ -3369,13 +3414,13 @@ void handleButtons() {
         for (int i = 0; i < NUM_MENU_ITEMS; i++) {
                 int column = i / 4;
                 int row = i % 4;
-                int x_position = (column == 0) ? X_OFFSET_LEFT : X_OFFSET_RIGHT;
-                int y_position = Y_START + row * Y_SPACING;
+                int x_position = menuTileX(column);
+                int y_position = menuTileY(row, MAIN_MENU_ROWS);
 
                 int button_x1 = x_position - MENU_TOUCH_PAD_X;
                 int button_y1 = y_position - MENU_TOUCH_PAD_Y;
-                int button_x2 = x_position + 100 + MENU_TOUCH_PAD_X;
-                int button_y2 = y_position + 60 + MENU_TOUCH_PAD_Y;
+                int button_x2 = x_position + MENU_TILE_W + MENU_TOUCH_PAD_X;
+                int button_y2 = y_position + MENU_TILE_H + MENU_TOUCH_PAD_Y;
 
                 if (x >= button_x1 && x <= button_x2 && y >= button_y1 && y <= button_y2) {
                     ESP_LOGI(TOUCH_TAG, "main menu hit idx=%d raw=(%d,%d) box=[%d..%d,%d..%d] main=%d feature=%d",

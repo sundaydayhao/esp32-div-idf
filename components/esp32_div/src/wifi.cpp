@@ -74,11 +74,11 @@ namespace Deauther {
 #endif
 #define DARK_GRAY UI_FG
 
-static constexpr int kWifiScreenH = 320;
+static int wifiScreenH() { return tft.height(); }
 static constexpr int kWifiBodyTop = 37;
 
 static int wifiContentBottom() {
-  return featureHasTouchNavBar() ? touchNavContentBottomY() : kWifiScreenH;
+  return featureHasTouchNavBar() ? touchNavContentBottomY() : wifiScreenH();
 }
 
 static int wifiMaxLinesInZone(int contentTop, int lineHeight) {
@@ -624,8 +624,8 @@ void draw() {
 static bool uiDrawn = false;
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREEN_HEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -1229,8 +1229,8 @@ void beaconSpam() {
 static bool uiDrawn = false;
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -1480,8 +1480,8 @@ static int deauthVisibleLines() {
 #define MAX_CHANNELS 14
 #define MAX_SSID_LENGTH 8
 
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -1947,11 +1947,8 @@ void deauthdetectLoop() {
 
 namespace WifiScan {
 
-#define TFT_WIDTH 240
-#define TFT_HEIGHT 320
-
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -3958,8 +3955,8 @@ void handleCredList(int x, int y) {
 static bool uiDrawn = false;
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -4273,8 +4270,8 @@ void cportalLoop() {
 
 namespace Deauther {
 
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREEN_HEIGHT TFT_HEIGHT
 
 static unsigned long deautherLastButtonPress = 0;
 static const unsigned long deautherDebounceTime = 200;
@@ -4713,8 +4710,8 @@ void handleTouch() {
 static bool uiDrawn = false;
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -4917,8 +4914,8 @@ void deautherLoop() {
 
 namespace ProbeRequestFlood {
 
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREEN_HEIGHT TFT_HEIGHT
 
 // Larger row height = easier touch selection.
 static constexpr int LIST_HEADER_Y = 50;
@@ -5396,8 +5393,8 @@ void handleTouch() {
 }
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
@@ -5604,8 +5601,8 @@ namespace FirmwareUpdate {
 
 const char* host = "esp32";
 
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
+#define SCREEN_WIDTH TFT_WIDTH
+#define SCREEN_HEIGHT TFT_HEIGHT
 
 #define BUTTON_WIDTH 230
 #define BUTTON_HEIGHT 20
@@ -6041,8 +6038,8 @@ static void fwStoreFooter(const FeatureUI::Button* src, uint8_t count) {
 }
 
 void runUI() {
-#define SCREEN_WIDTH  240
-#define SCREENHEIGHT 320
+#define SCREEN_WIDTH  TFT_WIDTH
+#define SCREENHEIGHT TFT_HEIGHT
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16

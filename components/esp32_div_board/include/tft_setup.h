@@ -51,6 +51,14 @@
 #endif
 #define TFT_BACKLIGHT_ON HIGH
 
+// TFT MADCTL color-order bits.
+#ifndef TFT_RGB
+#define TFT_RGB 0x00
+#endif
+#ifndef TFT_BGR
+#define TFT_BGR 0x08
+#endif
+
 // Both supported panels use the same color order on this board.
 #ifdef TFT_RGB_ORDER
 #undef TFT_RGB_ORDER
@@ -107,4 +115,11 @@
 #undef TFT_HEIGHT
 #endif
   #define TFT_HEIGHT 480
+#endif
+
+#ifndef TFT_COL_OFFSET
+#define TFT_COL_OFFSET 0
+#endif
+#ifndef TFT_ROW_OFFSET
+#define TFT_ROW_OFFSET 0
 #endif
