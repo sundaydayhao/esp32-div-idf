@@ -195,6 +195,22 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef TOUCH_Y_MAX
 #define TOUCH_Y_MAX 3750
 #endif
+#elif defined(BOARD_ESP32_DIV_V3)
+#ifndef TOUCH_PROFILE_ID
+#define TOUCH_PROFILE_ID "ESP32_DIV_V3"
+#endif
+#ifndef TOUCH_X_MIN
+#define TOUCH_X_MIN 280
+#endif
+#ifndef TOUCH_X_MAX
+#define TOUCH_X_MAX 3850
+#endif
+#ifndef TOUCH_Y_MIN
+#define TOUCH_Y_MIN 320
+#endif
+#ifndef TOUCH_Y_MAX
+#define TOUCH_Y_MAX 3750
+#endif
 #endif
 
 #ifndef TOUCH_PROFILE_ID
@@ -287,6 +303,15 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 // User hardware: buzzer on IO2
 #define BUZZER_PIN -1
 #endif
+#ifndef BUZZER_USE_PWM
+// 1 = passive magnetic transducer driven by PWM, 0 = active DC buzzer.
+#define BUZZER_USE_PWM 1
+#endif
+#ifndef BUZZER_ACTIVE_LEVEL
+// Logical GPIO level that makes the buzzer sound.
+#define BUZZER_ACTIVE_LEVEL 1
+#endif
+#define BUZZER_INACTIVE_LEVEL (BUZZER_ACTIVE_LEVEL ? 0 : 1)
 
 /* Backlight / PWM */
 #ifndef BACKLIGHT_PIN

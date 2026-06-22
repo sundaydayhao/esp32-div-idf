@@ -27,6 +27,13 @@ static const char* TAG = "esp32_div";
 static const char* TOUCH_TAG = "esp32_div_touch_hit";
 static bool s_backlightPwmReady = false;
 
+static void initBuzzerIdle() {
+#if BUZZER_PIN >= 0
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, BUZZER_INACTIVE_LEVEL ? HIGH : LOW);
+#endif
+}
+
 static void initBacklightPwm() {
   if (BACKLIGHT_PIN < 0 || s_backlightPwmReady) {
     return;
@@ -349,12 +356,16 @@ static bool touchButtonInputEnabled = false;
 static bool touchButtonCueDrawn = false;
 static bool s_touchNavLabelsConfigured = false;
 static bool s_touchNavHeld[5] = {false, false, false, false, false};
+static bool s_touchNavSampleValid = false;
+static int s_touchNavSampleSlot = -1;
+static uint32_t s_touchNavSampleMs = 0;
 #if HAS_PCF8574_BUTTONS
 static bool s_pcfButtonLastState[8] = {true, true, true, true, true, true, true, true};
 #endif
 static FeatureUI::Button s_touchNavBtns[5];
 static const char* s_touchNavLabels[5] = {nullptr, nullptr, nullptr, nullptr, nullptr};
 static constexpr int16_t TOUCH_NAV_BAR_H = (FeatureUI::FOOTER_H * 4) / 5;  // 20% shorter than footer
+static constexpr uint32_t TOUCH_NAV_SAMPLE_CACHE_MS = 20;
 
 static int touchNavPinForIndex(int idx) {
   switch (idx) {
@@ -367,9 +378,16 @@ static int touchNavPinForIndex(int idx) {
   }
 }
 
+static void invalidateTouchNavSampleCache() {
+  s_touchNavSampleValid = false;
+  s_touchNavSampleSlot = -1;
+  s_touchNavSampleMs = 0;
+}
+
 void setTouchButtonInputEnabled(bool enabled) {
   if (touchButtonInputEnabled != enabled) {
     touchButtonCueDrawn = false;
+    invalidateTouchNavSampleCache();
     if (!enabled) {
       for (int i = 0; i < 5; ++i) {
         s_touchNavLabels[i] = nullptr;
@@ -416,6 +434,7 @@ void resetTouchNavHeldState() {
   for (int i = 0; i < 5; ++i) {
     s_touchNavHeld[i] = false;
   }
+  invalidateTouchNavSampleCache();
 }
 
 void redrawTouchButtonBar() {
@@ -499,6 +518,35 @@ static void drawTouchNavBar() {
   tft.setTextColor(UI_TEXT, FEATURE_BG);
 }
 
+static int sampleTouchNavSlot() {
+  if (!feature_active || !touchButtonInputEnabled) {
+    invalidateTouchNavSampleCache();
+    return -1;
+  }
+
+  const uint32_t now = millis();
+  if (s_touchNavSampleValid &&
+      (uint32_t)(now - s_touchNavSampleMs) <= TOUCH_NAV_SAMPLE_CACHE_MS) {
+    return s_touchNavSampleSlot;
+  }
+
+  int slot = -1;
+  int x = 0;
+  int y = 0;
+  if (readTouchXYDismiss(x, y)) {
+    layoutTouchNavBtns();
+    const int stripTop = tft.height() - TOUCH_NAV_BAR_H;
+    if (y >= stripTop) {
+      slot = FeatureUI::hit(s_touchNavBtns, 5, x, y);
+    }
+  }
+
+  s_touchNavSampleSlot = slot;
+  s_touchNavSampleMs = now;
+  s_touchNavSampleValid = true;
+  return slot;
+}
+
 void maintainTouchNavBar() {
 #if TOUCH_BUTTON_CUE_ENABLED
   if (!touchButtonInputEnabled || !feature_active || touchButtonCueDrawn) {
@@ -556,20 +604,7 @@ static bool isTouchNavSlotDown(int idx) {
     return false;
   }
 
-  int x = 0;
-  int y = 0;
-  if (!readTouchXYDismiss(x, y)) {
-    return false;
-  }
-
-  layoutTouchNavBtns();
-
-  const int stripTop = tft.height() - TOUCH_NAV_BAR_H;
-  if (y < stripTop) {
-    return false;
-  }
-
-  return FeatureUI::hit(s_touchNavBtns, 5, x, y) == idx;
+  return sampleTouchNavSlot() == idx;
 }
 
 bool isPhysicalButtonPressed(int buttonPin) {
@@ -2420,6 +2455,7 @@ static void runToolsFeatureExitCleanup() {
     displaySubmenu();
     delay(200);
     while (isButtonPressed(BTN_SELECT)) {
+        delay(10);
     }
 }
 
@@ -2448,6 +2484,7 @@ static void runToolsFeature(int idx, void (*setupFn)(), void (*loopFn)()) {
         if (!useTouchNav && isButtonPressed(BTN_SELECT)) {
             break;
         }
+        delay(1);
     }
     runToolsFeatureExitCleanup();
 }
@@ -3371,6 +3408,8 @@ void esp32_div_app_init() {
 
   ESP_LOGI(TAG, "boot start");
   ESP_LOGI(TAG, "build marker: btn-touch-spi-fix v9");
+
+  initBuzzerIdle();
 
   tft.init();
   ESP_LOGI(TAG, "tft init done");

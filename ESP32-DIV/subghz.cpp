@@ -549,13 +549,29 @@ static uint32_t notifHideAtMs = 0;
 static bool notifActive = false;
 
 static bool buzzerArmed = false;
+#if BUZZER_USE_PWM
 static bool buzzerPwmReady = false;
+#endif
 static uint32_t buzzerOffAtMs = 0;
+
+static void replayBuzzerWrite(bool on) {
+  if (BUZZER_PIN < 0) {
+    return;
+  }
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN,
+               (on ? BUZZER_ACTIVE_LEVEL : BUZZER_INACTIVE_LEVEL) ? HIGH : LOW);
+}
 
 static bool replayBuzzerInit(uint16_t hz) {
   if (BUZZER_PIN < 0) {
     return false;
   }
+#if !BUZZER_USE_PWM
+  (void)hz;
+  replayBuzzerWrite(false);
+  return true;
+#else
   if (!buzzerPwmReady) {
     const ledc_timer_config_t timerConfig = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
@@ -578,7 +594,7 @@ static bool replayBuzzerInit(uint16_t hz) {
         .duty = 0,
         .hpoint = 0,
         .sleep_mode = LEDC_SLEEP_MODE_NO_ALIVE_NO_PD,
-        .flags = {.output_invert = 0},
+        .flags = {.output_invert = BUZZER_ACTIVE_LEVEL ? 0U : 1U},
         .deconfigure = false,
     };
     if (ledc_channel_config(&channelConfig) != ESP_OK) {
@@ -588,14 +604,19 @@ static bool replayBuzzerInit(uint16_t hz) {
   }
 
   return ledc_set_freq(LEDC_LOW_SPEED_MODE, LEDC_TIMER_1, hz) == ESP_OK;
+#endif
 }
 
 static void replayBeep(uint16_t hz = 2200, uint16_t ms = 60) {
   if (!replayBuzzerInit(hz)) {
     return;
   }
+#if !BUZZER_USE_PWM
+  replayBuzzerWrite(true);
+#else
   ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 128);
   ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
+#endif
   buzzerArmed = true;
   buzzerOffAtMs = millis() + ms;
 }
@@ -603,7 +624,11 @@ static void replayBeep(uint16_t hz = 2200, uint16_t ms = 60) {
 static void replayBeepPoll() {
   if (!buzzerArmed) return;
   if ((int32_t)(millis() - buzzerOffAtMs) < 0) return;
-  ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
+#if !BUZZER_USE_PWM
+  replayBuzzerWrite(false);
+#else
+  ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, BUZZER_INACTIVE_LEVEL);
+#endif
   buzzerArmed = false;
 }
 

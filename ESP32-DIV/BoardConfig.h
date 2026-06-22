@@ -22,8 +22,11 @@
 // Touch button input will still work when this is disabled.
 #define TOUCH_BUTTON_CUE_ENABLED 1
 
-// Disable buzzer for now. Set this to the wired GPIO, e.g. 2, to re-enable later.
-#define BUZZER_PIN -1
+// V3 BUZZER on IO2. The simple 2-pin BUZZER is an active buzzer, so drive it
+// with DC on/off instead of the PWM used for the original CMT transducer.
+#define BUZZER_PIN 2
+#define BUZZER_USE_PWM 0
+#define BUZZER_ACTIVE_LEVEL 1
 
 // Optional per-board touch calibration overrides (raw XPT2046 ADC range).
 // CYD defaults (portrait): X 200..3700, Y 240..3800 — run Touch Calibrate if needed.

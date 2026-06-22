@@ -1,5 +1,6 @@
 #include "SettingsStore.h"
 #include "Touchscreen.h"
+#include <algorithm>
 #include <TFT_eSPI.h>
 #include "esp_log.h"
 
@@ -16,6 +17,9 @@ static bool s_touchInitialized = false;
 static const char* TAG = "esp32_div_touch";
 static uint32_t s_lastTouchDebugMs = 0;
 static bool s_tftSpiDirtyFromTouch = false;
+static constexpr uint8_t kTouchSampleCount = 5;
+static constexpr uint8_t kTouchMinValidSamples = 3;
+static constexpr int16_t kTouchMaxStableSpreadRaw = 700;
 
 #ifndef TOUCH_ROTATION
 #if defined(BOARD_ESP32_DIV_V2)
@@ -63,6 +67,16 @@ void restoreTftSpiAfterTouchIfNeeded() {
   s_tftSpiDirtyFromTouch = false;
 }
 
+static bool touchPointLooksValid(const TS_Point& p, uint16_t zThresh) {
+  if (p.z < (int16_t)zThresh) {
+    return false;
+  }
+  if (p.x <= 5 || p.x >= 4090 || p.y <= 5 || p.y >= 4090) {
+    return false;
+  }
+  return true;
+}
+
 static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   if (!s_touchInitialized) {
     return false;
@@ -70,22 +84,54 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   if (!ts.tirqTouched()) {
     return false;
   }
-  TS_Point p = ts.getPoint();
-  markTftSpiDirtyFromTouch();
+
+  int16_t xs[kTouchSampleCount] = {};
+  int16_t ys[kTouchSampleCount] = {};
+  int16_t zs[kTouchSampleCount] = {};
+  uint8_t validCount = 0;
+
+  for (uint8_t i = 0; i < kTouchSampleCount; ++i) {
+    if (!ts.tirqTouched()) {
+      break;
+    }
+
+    TS_Point p = ts.getPoint();
+    markTftSpiDirtyFromTouch();
+    if (!touchPointLooksValid(p, zThresh)) {
+      continue;
+    }
+
+    xs[validCount] = p.x;
+    ys[validCount] = p.y;
+    zs[validCount] = p.z;
+    ++validCount;
+  }
+
   restoreTftSpiAfterTouchIfNeeded();
-  if (p.z < (int16_t)zThresh) {
+
+  if (validCount < kTouchMinValidSamples) {
     return false;
   }
-  if (p.x <= 5 || p.x >= 4090 || p.y <= 5 || p.y >= 4090) {
+
+  std::sort(xs, xs + validCount);
+  std::sort(ys, ys + validCount);
+  std::sort(zs, zs + validCount);
+
+  const uint8_t spreadLo = (validCount >= 4) ? 1 : 0;
+  const uint8_t spreadHi = (validCount >= 4) ? (uint8_t)(validCount - 2) : (uint8_t)(validCount - 1);
+  if ((xs[spreadHi] - xs[spreadLo]) > kTouchMaxStableSpreadRaw ||
+      (ys[spreadHi] - ys[spreadLo]) > kTouchMaxStableSpreadRaw) {
     return false;
   }
-  rawX = p.x;
-  rawY = p.y;
+
+  rawX = xs[validCount / 2];
+  rawY = ys[validCount / 2];
   const uint32_t now = millis();
   if (now - s_lastTouchDebugMs >= 250) {
     s_lastTouchDebugMs = now;
-    ESP_LOGI(TAG, "raw touch x=%d y=%d z=%d irq=%d", (int)p.x, (int)p.y, (int)p.z,
-             (int)ts.tirqTouched());
+    ESP_LOGI(TAG, "raw touch x=%d y=%d z=%d samples=%u irq=%d",
+             (int)rawX, (int)rawY, (int)zs[validCount / 2],
+             (unsigned)validCount, (int)ts.tirqTouched());
   }
   return true;
 }

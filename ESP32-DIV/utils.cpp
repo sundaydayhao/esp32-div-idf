@@ -3086,6 +3086,7 @@ void loop() {
 
 namespace TouchCalib {
 static int stepIdx = 0;
+static bool waitingRelease = false;
 static uint16_t xs[4], ys[4];
 static const int pts[4][2] = { {20,20}, {TFT_WIDTH-20,20}, {TFT_WIDTH-20,TFT_HEIGHT-20}, {20,TFT_HEIGHT-20} };
 
@@ -3109,46 +3110,106 @@ static void drawTarget(int x,int y){
   ESP_LOGI("esp32_div_touch", "TouchCalib draw step=%d target=(%d,%d)", stepIdx + 1, x, y);
 }
 
+static void drawReleasePrompt(){
+  tft.fillRect(8, TFT_HEIGHT - 20, TFT_WIDTH - 16, 12, TFT_NAVY);
+  tft.setTextColor(UI_TEXT, TFT_NAVY);
+  tft.setTextFont(1);
+  tft.setCursor(8, TFT_HEIGHT - 18);
+  tft.print("Release touch");
+}
+
+static uint16_t avg2(uint16_t a, uint16_t b){
+  return (uint16_t)(((uint32_t)a + (uint32_t)b) / 2);
+}
+
+static bool rangeWideEnough(uint16_t a, uint16_t b){
+  int d = (int)a - (int)b;
+  if (d < 0) d = -d;
+  return d >= 500;
+}
+
+static void saveCalibration(){
+  const uint16_t xLeft = avg2(xs[0], xs[3]);
+  const uint16_t xRight = avg2(xs[1], xs[2]);
+  const uint16_t yTop = avg2(ys[0], ys[1]);
+  const uint16_t yBottom = avg2(ys[2], ys[3]);
+  const bool rangesOk = rangeWideEnough(xLeft, xRight) && rangeWideEnough(yTop, yBottom);
+
+  auto& s = settings();
+  bool ok = false;
+  if (rangesOk) {
+    s.touchXMin = xLeft;
+    s.touchXMax = xRight;
+#if defined(BOARD_CYD)
+    s.touchYMin = yTop;
+    s.touchYMax = yBottom;
+#else
+    s.touchYMin = yBottom;
+    s.touchYMax = yTop;
+#endif
+    ok = settingsSave();
+  }
+
+  tft.fillScreen(UI_BG);
+  tft.setTextColor(ok ? UI.ok : UI.warn, UI_BG);
+  tft.setCursor(70, 8);
+  tft.print(ok ? "Calibration Saved" : (rangesOk ? "Save FAILED" : "Calibration FAILED"));
+
+  tft.setTextColor(UI_TEXT, UI_BG);
+  tft.setCursor(70,28);
+  tft.printf("X:[%u..%u] Y:[%u..%u]",
+             rangesOk ? s.touchXMin : xLeft,
+             rangesOk ? s.touchXMax : xRight,
+             rangesOk ? s.touchYMin : yBottom,
+             rangesOk ? s.touchYMax : yTop);
+
+  ESP_LOGI("esp32_div_touch",
+           "TouchCalib %s xLeft=%u xRight=%u yTop=%u yBottom=%u saved=[%u..%u,%u..%u]",
+           ok ? "saved" : "failed",
+           xLeft, xRight, yTop, yBottom,
+           s.touchXMin, s.touchXMax, s.touchYMin, s.touchYMax);
+
+  delay(1200);
+  feature_exit_requested = true;
+}
+
 void setup(){
   stepIdx=0;
+  waitingRelease=false;
   ESP_LOGI("esp32_div_touch", "TouchCalib setup");
   drawTarget(pts[0][0], pts[0][1]);
 }
 
 void loop(){
+  if (waitingRelease) {
+    if (isTouchDownDismiss()) {
+      delay(40);
+      return;
+    }
+    waitingRelease = false;
+    if (stepIdx >= 4) {
+      saveCalibration();
+      return;
+    }
+    drawTarget(pts[stepIdx][0], pts[stepIdx][1]);
+    delay(120);
+    return;
+  }
+
   if (stepIdx>=4){
-    uint16_t xMin = min(xs[0], xs[3]);
-    uint16_t xMax = max(xs[1], xs[2]);
-    uint16_t yMin = min(ys[0], ys[1]);
-    uint16_t yMax = max(ys[2], ys[3]);
-    auto& s = settings();
-    s.touchXMin = xMin; s.touchXMax = xMax;
-    s.touchYMin = yMin; s.touchYMax = yMax;
-
-    bool ok = settingsSave();
-
-    tft.fillScreen(UI_BG);
-    tft.setTextColor(ok ? UI.ok : UI.warn, UI_BG);
-    tft.setCursor(70, 8);
-    tft.print(ok ? "Calibration Saved" : "Save FAILED");
-
-    tft.setTextColor(UI_TEXT, UI_BG);
-    tft.setCursor(70,28);
-    tft.printf("X:[%u..%u] Y:[%u..%u]", xMin,xMax,yMin,yMax);
-
-    delay(1200);
-    feature_exit_requested = true;
+    saveCalibration();
     return;
   }
 
   int16_t rx = 0, ry = 0;
-  if (readTouchRawXY(rx, ry)) {
+  if (readTouchRawXY(rx, ry, 200)) {
     ESP_LOGI("esp32_div_touch", "TouchCalib hit step=%d raw=(%d,%d)", stepIdx + 1, (int)rx, (int)ry);
     xs[stepIdx] = (uint16_t)rx;
     ys[stepIdx] = (uint16_t)ry;
     stepIdx++;
-    if (stepIdx<4) drawTarget(pts[stepIdx][0], pts[stepIdx][1]);
+    waitingRelease = true;
+    drawReleasePrompt();
   }
-  delay(100);
+  delay(40);
 }
 }
