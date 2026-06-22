@@ -4467,6 +4467,41 @@ CONFIG_TFT_SMOOTH_FONT=y
 # end of TFT_eSPI
 
 #
+# ESP-NimBLE-CPP configuration
+#
+# default:
+CONFIG_NIMBLE_CPP_LOG_LEVEL_NONE=y
+# default:
+# CONFIG_NIMBLE_CPP_LOG_LEVEL_ERROR is not set
+# default:
+# CONFIG_NIMBLE_CPP_LOG_LEVEL_WARNING is not set
+# default:
+# CONFIG_NIMBLE_CPP_LOG_LEVEL_INFO is not set
+# default:
+# CONFIG_NIMBLE_CPP_LOG_LEVEL_DEBUG is not set
+# default:
+CONFIG_NIMBLE_CPP_LOG_LEVEL=0
+# default:
+# CONFIG_NIMBLE_CPP_LOG_OVERRIDE_COLOR is not set
+# default:
+# CONFIG_NIMBLE_CPP_ENABLE_RETURN_CODE_TEXT is not set
+# default:
+# CONFIG_NIMBLE_CPP_ENABLE_GAP_EVENT_CODE_TEXT is not set
+# default:
+# CONFIG_NIMBLE_CPP_ENABLE_ADVERTISEMENT_TYPE_TEXT is not set
+# default:
+# CONFIG_NIMBLE_CPP_ADDR_FMT_EXCLUDE_DELIMITER is not set
+# default:
+# CONFIG_NIMBLE_CPP_ADDR_FMT_UPPERCASE is not set
+# default:
+# CONFIG_NIMBLE_CPP_ATT_VALUE_TIMESTAMP_ENABLED is not set
+# default:
+CONFIG_NIMBLE_CPP_ATT_VALUE_INIT_LENGTH=20
+# default:
+# CONFIG_NIMBLE_CPP_DEBUG_ASSERT_ENABLED is not set
+# end of ESP-NimBLE-CPP configuration
+
+#
 # cJSON
 #
 # default:
