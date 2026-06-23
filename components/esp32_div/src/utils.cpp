@@ -1399,7 +1399,7 @@ static void terminalCycleBaud() {
   tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
   tft.setTextColor(TFT_WHITE, TFT_WHITE);
   DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
-  tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
+  tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 1);
   delay(10);
 }
 
@@ -1409,10 +1409,10 @@ static void terminalSetActive(bool active) {
   tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
   tft.setTextColor(TFT_WHITE, TFT_WHITE);
   if (active) {
-    tft.drawCentreString(" Serial Terminal Active ", DISPLAY_WIDTH / 2, 37, 2);
+    tft.drawCentreString(" Serial Terminal Active ", DISPLAY_WIDTH / 2, 37, 1);
   } else {
     DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
-    tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
+    tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 1);
   }
   terminalUpdateNavLabels();
 }
@@ -1484,7 +1484,7 @@ void runUI() {
                     tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
                     tft.setTextColor(TFT_WHITE, TFT_WHITE);
                     DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
-                    tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
+                    tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 1);
                     delay(10);
                   }
                     break;
@@ -1492,7 +1492,7 @@ void runUI() {
                     delay(10);
                     tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
                     tft.setTextColor(TFT_WHITE, TFT_WHITE);
-                    tft.drawCentreString(" Serial Terminal Active ", DISPLAY_WIDTH / 2, 37, 2);
+                    tft.drawCentreString(" Serial Terminal Active ", DISPLAY_WIDTH / 2, 37, 1);
                     terminalActive = true;
                     break;
 
@@ -1575,7 +1575,7 @@ void terminalSetup() {
   tft.fillRect(0, 37, DISPLAY_WIDTH, 16, ORANGE);
   tft.setTextColor(TFT_WHITE, TFT_WHITE);
   DivString baudMsg = " Serial Terminal - " + DivString(baudRates[baudIndex]) + " baud ";
-  tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 2);
+  tft.drawCentreString(baudMsg, DISPLAY_WIDTH / 2, 37, 1);
 
   float currentBatteryVoltage = readBatteryVoltage();
 
@@ -1681,8 +1681,8 @@ static uint32_t lastChangeMs = 0;
 
 static Rect rowRect(int i) { return makeRect(PAD_X, rowY(i), screenW() - PAD_X*2, ROW_H); }
 
-static void setTitleFont() { tft.setTextFont(2); }
-static void setLabelFont() { tft.setTextFont(2); }
+static void setTitleFont() { tft.setTextFont(1); }
+static void setLabelFont() { tft.setTextFont(1); }
 
 static void drawTitle() {
   setTitleFont();
@@ -1776,7 +1776,7 @@ static void drawBrightness(uint8_t v, bool selected) {
 static Rect rThemeDark()  {
   Rect r = rowRect(1);
   int right = r.x + r.w - 6;
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   int wD = (int)tft.textWidth("[Dark]");
   int wL = (int)tft.textWidth("Light");
   int gap = 6;
@@ -1785,7 +1785,7 @@ static Rect rThemeDark()  {
 static Rect rThemeLight() {
   Rect r = rowRect(1);
   int right = r.x + r.w - 6;
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   int wL = (int)tft.textWidth("[Light]");
   return makeRect(right - wL, r.y + 8, wL, r.h - 16);
 }
@@ -2594,7 +2594,7 @@ static void drawHeader(const char* title) {
   const int y0 = STATUS_BAR_H;
   tft.fillRect(0, y0, w, HEADER_H, FEATURE_BG);
 
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextSize(1);
   tft.setTextColor(UI_ICON, FEATURE_BG);
   tft.setCursor(8, y0 + 4);
@@ -2694,18 +2694,18 @@ static void drawList(bool full = true) {
 
   if (!isSDCardAvailable()) {
     tft.fillRect(0, top, tft.width(), bottom - top, COL_BG);
-    tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextColor(UI_WARN, COL_BG);
-    tft.drawCentreString("SD not mounted", tft.width() / 2, top + 30, 2);
+    tft.drawCentreString("SD not mounted", tft.width() / 2, top + 30, 1);
     resetListDrawCache();
     return;
   }
 
   if (entries.empty()) {
     tft.fillRect(0, top, tft.width(), bottom - top, COL_BG);
-    tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextColor(UI_TEXT, COL_BG);
-    tft.drawCentreString("Empty folder", tft.width() / 2, top + 30, 2);
+    tft.drawCentreString("Empty folder", tft.width() / 2, top + 30, 1);
     resetListDrawCache();
     return;
   }
@@ -2815,9 +2815,9 @@ static void drawInfoPage() {
   tft.fillRect(0, top, tft.width(), bottom - top, COL_BG);
 
   if (entries.empty()) {
-    tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextColor(UI_TEXT, COL_BG);
-    tft.drawCentreString("No selection", tft.width()/2, top + 24, 2);
+    tft.drawCentreString("No selection", tft.width()/2, top + 24, 1);
     uiDirty = false;
     return;
   }
@@ -2825,7 +2825,7 @@ static void drawInfoPage() {
   clampSel();
   const Entry& e = entries[sel];
 
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextColor(UI_TEXT, COL_BG);
   tft.setCursor(8, top + 10);
   tft.print("Name:");
@@ -2878,9 +2878,9 @@ static void drawConfirmDeletePage() {
   const int bottom = sdFmContentBottom();
   tft.fillRect(0, top, tft.width(), bottom - top, COL_BG);
 
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextColor(UI_WARN, COL_BG);
-  tft.drawCentreString("Delete selected item?", tft.width()/2, top + 18, 2);
+  tft.drawCentreString("Delete selected item?", tft.width()/2, top + 18, 1);
 
   if (!entries.empty()) {
     const Entry& e = entries[sel];
@@ -3149,7 +3149,7 @@ static void drawTarget(int x,int y){
   tft.drawLine(x-14,y, x+14,y, UI_ICON);
   tft.drawLine(x,y-14, x,y+14, UI_ICON);
   tft.setTextColor(UI_TEXT, TFT_NAVY);
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setCursor(8, 8);
   tft.print("Touch Calibration");
   tft.setTextFont(1);

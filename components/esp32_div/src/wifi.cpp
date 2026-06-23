@@ -22,6 +22,7 @@
 #include "signal_dsp.h"
 #include "shared.h"
 #include "utils.h"
+#include "esp_log.h"
 
 /** Active-scan dwell per channel for STA scans (shared.h WIFI_SCAN_ACTIVE_MS). */
 static inline uint32_t wifiStaScanMsPerChannel() {
@@ -42,6 +43,8 @@ static inline int wifiRandInt(int minInclusive, int maxExclusive) {
   }
   return minInclusive + wifiRandInt(maxExclusive - minInclusive);
 }
+
+static const char* kWifiScanTag = "WifiScan";
 
 namespace Deauther {
   extern void wsl_bypasser_send_raw_frame(const uint8_t *frame_buffer, int size);
@@ -2199,17 +2202,19 @@ static void drawNetworkRow(int i, int y, bool isSel) {
   tft.fillRect(0, y, SCREEN_WIDTH, LIST_ROW_H, TFT_BLACK);
 
   tft.setCursor(2, y);
-  tft.setTextColor(isSel ? ORANGE : FEATURE_BG);
+  tft.setTextColor(isSel ? ORANGE : WHITE, TFT_BLACK);
   tft.print(isSel ? ">" : " ");
 
   tft.setCursor(10, y);
-  tft.setTextColor(isSel ? ORANGE : (auth == WIFI_AUTH_OPEN ? ORANGE : WHITE));
+  tft.setTextColor(isSel ? ORANGE : (auth == WIFI_AUTH_OPEN ? ORANGE : WHITE), TFT_BLACK);
   tft.println(buf);
 }
 
 void displayWiFiList(bool fullRedraw = false) {
   uiDrawn = false;
   int networkCount = DivWiFi.scanComplete();
+  ESP_LOGI(kWifiScanTag, "displayWiFiList full=%d count=%d page=%d index=%d", fullRedraw ? 1 : 0,
+           networkCount, current_page, currentIndex);
 
   if (fullRedraw) {
     tft.drawFastHLine(0, 19, 240, UI_LINE);
@@ -2295,7 +2300,7 @@ void displayScanning() {
   loading(100, ORANGE, 0, 0, 3, true);
   tft.setCursor(10, 65);
   tft.println("Wait a moment.");
-  isScanning = false;
+  ESP_LOGI(kWifiScanTag, "displayScanning");
 }
 
 void startWiFiScan() {
@@ -2308,6 +2313,8 @@ void startWiFiScan() {
   listStartIndex = 0;
 
   displayScanning();
+  ESP_LOGI(kWifiScanTag, "startWiFiScan begin auto=%d bgRunning=%d bgHasResults=%d",
+           settings().autoWifiScan ? 1 : 0, bgScanRunning ? 1 : 0, bgHasResults ? 1 : 0);
 
   pauseBackgroundRadioTasks();
   if (bgScanRunning) {
@@ -2320,6 +2327,7 @@ void startWiFiScan() {
   const uint32_t dwell = wifiStaScanMsPerChannel();
   fgWifiScanInProgress = true;
   int numNetworks = DivWiFi.scanNetworks(true, true, false, dwell);
+  ESP_LOGI(kWifiScanTag, "scanNetworks returned %d", numNetworks);
   if (numNetworks == WIFI_SCAN_RUNNING) {
     while (DivWiFi.scanComplete() == WIFI_SCAN_RUNNING) {
       if (feature_exit_requested || featureExitButtonPressed()) {
@@ -2327,21 +2335,29 @@ void startWiFiScan() {
         fgWifiScanInProgress = false;
         isScanning = false;
         feature_exit_requested = true;
+        ESP_LOGW(kWifiScanTag, "startWiFiScan aborted by exit");
         return;
       }
       delay(50);
     }
     numNetworks = DivWiFi.scanComplete();
+    ESP_LOGI(kWifiScanTag, "scanComplete after wait = %d", numNetworks);
   }
   fgWifiScanInProgress = false;
   isScanning = false;
+  ESP_LOGI(kWifiScanTag, "scan finished, updating state");
 
   if (numNetworks >= 0) {
     bgHasResults = true;
     bgLastScanMs = millis();
+    ESP_LOGI(kWifiScanTag, "cache updated bgHasResults=%d bgLastScanMs=%lu",
+             bgHasResults ? 1 : 0, (unsigned long)bgLastScanMs);
   }
 
+  ESP_LOGI(kWifiScanTag, "startWiFiScan done count=%d bgHasResults=%d", numNetworks, bgHasResults ? 1 : 0);
+  ESP_LOGI(kWifiScanTag, "about to render scan list");
   displayWiFiList(true);
+  ESP_LOGI(kWifiScanTag, "rendered scan list");
 }
 
 void displayWiFiDetails() {
@@ -4340,10 +4356,11 @@ static void deautherDrawApRow(int i, int y, bool isSel) {
 
   tft.fillRect(0, y, SCREEN_WIDTH, LIST_ROW_H, TFT_BLACK);
   tft.setCursor(2, y);
-  tft.setTextColor(isSel ? ORANGE : FEATURE_BG);
+  tft.setTextColor(isSel ? ORANGE : WHITE, TFT_BLACK);
   tft.print(isSel ? ">" : " ");
   tft.setCursor(10, y);
-  tft.setTextColor(isSel ? ORANGE : (ap_list[i].authmode == WIFI_AUTH_OPEN ? ORANGE : WHITE));
+  tft.setTextColor(isSel ? ORANGE : (ap_list[i].authmode == WIFI_AUTH_OPEN ? ORANGE : WHITE),
+                   TFT_BLACK);
   tft.println(buf);
 }
 
@@ -4976,10 +4993,11 @@ static void probeDrawApRow(int i, int y, bool isSel) {
 
   tft.fillRect(0, y, SCREEN_WIDTH, LIST_ROW_H, TFT_BLACK);
   tft.setCursor(2, y);
-  tft.setTextColor(isSel ? ORANGE : FEATURE_BG);
+  tft.setTextColor(isSel ? ORANGE : WHITE, TFT_BLACK);
   tft.print(isSel ? ">" : " ");
   tft.setCursor(10, y);
-  tft.setTextColor(isSel ? ORANGE : (ap_list[i].authmode == WIFI_AUTH_OPEN ? ORANGE : WHITE));
+  tft.setTextColor(isSel ? ORANGE : (ap_list[i].authmode == WIFI_AUTH_OPEN ? ORANGE : WHITE),
+                   TFT_BLACK);
   tft.println(buf);
 }
 

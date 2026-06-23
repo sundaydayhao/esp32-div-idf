@@ -32,6 +32,14 @@ static constexpr int16_t kTouchMaxStableSpreadRaw = 700;
 static constexpr bool kTouchSharesTftSpi =
     (XPT2046_CLK == TFT_SCLK) && (XPT2046_MOSI == TFT_MOSI) && (XPT2046_MISO == TFT_MISO);
 
+static bool touchPending() {
+#if defined(XPT2046_IRQ) && (XPT2046_IRQ < 255)
+  return ts.tirqTouched();
+#else
+  return ts.touched();
+#endif
+}
+
 static void markTftSpiDirtyFromTouch() {
   if (kTouchSharesTftSpi) {
     s_tftSpiDirtyFromTouch = true;
@@ -63,7 +71,7 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   if (!s_touchInitialized) {
     return false;
   }
-  if (!ts.tirqTouched()) {
+  if (!touchPending()) {
     return false;
   }
 
@@ -73,7 +81,7 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
   uint8_t validCount = 0;
 
   for (uint8_t i = 0; i < kTouchSampleCount; ++i) {
-    if (!ts.tirqTouched()) {
+    if (!touchPending()) {
       break;
     }
 
@@ -113,7 +121,7 @@ static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
     s_lastTouchDebugMs = now;
     ESP_LOGI(TAG, "raw touch x=%d y=%d z=%d samples=%u irq=%d",
              (int)rawX, (int)rawY, (int)zs[validCount / 2],
-             (unsigned)validCount, (int)ts.tirqTouched());
+             (unsigned)validCount, (int)touchPending());
   }
   return true;
 }

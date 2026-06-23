@@ -1469,6 +1469,8 @@ static void bleScanUpdateNavLabels() {
   redrawTouchButtonBar();
 }
 
+static void updateBLEList();
+
 unsigned long lastButtonPress = 0;
 const unsigned long debounceTime = 200;
 
@@ -1578,7 +1580,6 @@ void displayScanning() {
   tft.setCursor(10, LIST_HEADER_Y + 15);
   tft.println("Wait a moment.");
   delay(100);
-  isScanning = false;
 }
 
 void startBLEScan() {
@@ -1608,6 +1609,9 @@ void startBLEScan() {
     bgHasResults = (bleResults.getCount() > 0);
     bgLastScanMs = millis();
   }
+
+  // Render the result page immediately so the user does not wait for the next loop tick.
+  updateBLEList();
 }
 
 void handleButtons() {

@@ -1,24 +1,42 @@
-I (9042) esp32_div: PCF8574 self-test reason=edge action=DOWN pcf_pin=P5 pressed_mask=0x20 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=1 P5=0 P6=1 P7=1
-I (9044) esp32_div: button ui action=main_down main_idx=0 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
-I (9054) esp32_div: main menu action=DOWN index 0 -> 1
-I (9058) esp32_div: draw main menu idx=1 last=-1 full=1
-I (10037) esp32_div: PCF8574 poll addr=0x20 poll=8 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=0 P6=1 P7=1
-I (10238) esp32_div: PCF8574 poll addr=0x20 poll=9 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=1
-I (10341) esp32_div: PCF8574 self-test reason=edge action=DOWN pcf_pin=P5 pressed_mask=0x20 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=1 P5=0 P6=1 P7=1
-I (10343) esp32_div: button ui action=main_down main_idx=1 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
-I (10353) esp32_div: main menu action=DOWN index 1 -> 2
-I (10357) esp32_div: draw main menu idx=2 last=-1 full=1
-I (11357) esp32_div: PCF8574 self-test reason=edge action=RIGHT pcf_pin=P4 pressed_mask=0x10 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
-I (11359) esp32_div: button ui action=main_right main_idx=2 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
-I (11368) esp32_div: main menu action=RIGHT index 2 -> 6
-I (11373) esp32_div: draw main menu idx=6 last=-1 full=1
-I (12350) esp32_div: PCF8574 poll addr=0x20 poll=11 fail=0 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
-I (12538) esp32_div: PCF8574 self-test reason=edge action=RIGHT pcf_pin=P4 pressed_mask=0x10 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
-I (12539) esp32_div: button ui action=main_right main_idx=6 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
-I (12549) esp32_div: main menu action=RIGHT index 6 -> 7
-I (12554) esp32_div: draw main menu idx=7 last=-1 full=1
-I (13524) esp32_div: PCF8574 poll addr=0x20 poll=12 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=1
-I (13662) esp32_div: PCF8574 self-test reason=edge action=RIGHT pcf_pin=P4 pressed_mask=0x10 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
-I (13664) esp32_div: button ui action=main_right main_idx=7 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
-I (13673) esp32_div: main menu action=RIGHT index 7 -> 0
-I (13678) esp32_div: draw main menu idx=0 last=-1 full=1
+I (3233) esp32_div: BLE init done
+I (3233) esp32_div: background tasks
+I (3234) esp32_div: background tasks done
+I (3234) esp32_div: draw menu
+I (3237) esp32_div: draw main menu idx=0 last=-1 full=1
+I (3880) esp32_div: menu drawn
+E (3880) spi_common: spi_bus_initialize(895): SPI bus already initialized.
+I (3881) xpt2046: begin cs=18 clk=36 mosi=35 miso=37 irq=255
+I (3884) esp32_div: touch ready
+I (3887) esp32_div: ready
+I (5612) esp32_div: PCF8574 self-test reason=edge action=SELECT pcf_pin=P7 pressed_mask=0x80 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=0
+I (5614) esp32_div: button ui action=main_select main_idx=0 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
+I (5734) esp32_div_touch_hit: launch main menu idx=0 main=1 feature=0 in_sub=0
+I (9764) esp32_div_touch: raw touch x=1831 y=1670 z=1326 samples=5 irq=1
+I (10555) pp: pp rom version: e7ae62f
+I (10556) net80211: net80211 rom version: e7ae62f
+I (10557) wifi:wifi driver task: 3fcd41e0, prio:23, stack:6656, core=0
+I (10567) wifi:wifi firmware version: b37c951
+I (10568) wifi:wifi certification version: v7.0
+I (10568) wifi:config NVS flash: enabled
+I (10570) wifi:config nano formatting: disabled
+I (10574) wifi:Init data frame dynamic rx buffer num: 32
+I (10580) wifi:Init static rx mgmt buffer num: 5
+I (10584) wifi:Init management short buffer num: 32
+I (10588) wifi:Init dynamic tx buffer num: 32
+I (10592) wifi:Init static tx FG buffer num: 2
+I (10597) wifi:Init static rx buffer size: 1600
+I (10601) wifi:Init static rx buffer num: 10
+I (10605) wifi:Init dynamic rx buffer num: 32
+I (10610) wifi_init: rx ba win: 6
+I (10612) wifi_init: accept mbox: 6
+I (10615) wifi_init: tcpip mbox: 32
+I (10618) wifi_init: udp mbox: 6
+I (10621) wifi_init: tcp mbox: 6
+I (10624) wifi_init: tcp tx win: 5760
+I (10628) wifi_init: tcp rx win: 5760
+I (10631) wifi_init: tcp mss: 1440
+I (10634) wifi_init: WiFi IRAM OP enabled
+I (10638) wifi_init: WiFi RX IRAM OP enabled
+I (10644) wifi:mode : sta (e8:f6:0a:a1:04:54)
+I (10646) wifi:enable tsf
+I (26038) esp32_div_touch: raw touch x=3678 y=3503 z=1105 samples=5 irq=1

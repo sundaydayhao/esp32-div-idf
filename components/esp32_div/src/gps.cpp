@@ -2654,7 +2654,8 @@ static void wardDrawWigleCfgPage() {
   tft.setTextFont(1);
   tft.setTextColor(UI_DIM_TEXT, FEATURE_BG);
   if (!featureHasTouchNavBar()) {
-    tft.drawString("Back  Check = save to SD", pad, kWardBodyY + 18);
+    tft.drawString("Back", pad, kWardBodyY + 18);
+    tft.drawString("Check = save to SD", pad + 42, kWardBodyY + 18);
   }
 
   auto rowCard = [&](int idx, const char* label, const char* val, bool dim) {

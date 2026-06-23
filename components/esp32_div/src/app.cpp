@@ -872,7 +872,7 @@ void displaySubmenu() {
     menu_initialized = false;
     last_menu_index = -1;
 
-    tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextSize(1);
 
     if (!submenu_initialized) {
@@ -936,7 +936,7 @@ void displayOtherMenuGrid() {
     menu_initialized = false;
     last_menu_index = -1;
 
-    tft.setTextFont(2);
+    tft.setTextFont(1);
 
     if (!other_menu_grid_initialized) {
         tft.fillScreen(UI_BG);
@@ -1028,28 +1028,7 @@ static uint16_t contrastColorFor565(uint16_t color) {
     return (luma >= 1280) ? BLACK : WHITE;
 }
 
-static bool mainMenuTouchInputAvailable() {
-#if defined(XPT2046_IRQ) && (XPT2046_IRQ < 255)
-    return true;
-#else
-    return false;
-#endif
-}
-
 static void drawMainMenuSelectionBanner() {
-    if (current_menu_index < 0 || current_menu_index >= NUM_MENU_ITEMS) {
-        return;
-    }
-
-    char label[40];
-    std::snprintf(label, sizeof(label), "Selected %d: %s", current_menu_index, menu_items[current_menu_index]);
-    tft.fillRect(0, 20, tft.width(), 10, UI_BG);
-    tft.setTextFont(1);
-    tft.setTextSize(1);
-    tft.setTextColor(UI_TEXT, UI_BG);
-    tft.setCursor(6, 21);
-    tft.print(label);
-    tft.setTextFont(2);
 }
 
 static void drawMainMenuTile(int index, bool selected, const uint16_t* iconColors) {
@@ -1107,7 +1086,7 @@ const uint16_t icon_colors[NUM_MENU_ITEMS] = {
     last_submenu_index = -1;
     other_menu_grid_initialized = false;
     last_other_menu_index = -1;
-    tft.setTextFont(2);
+    tft.setTextFont(1);
 
     if (!menu_initialized) {
         tft.fillScreen(UI_BG);
@@ -1129,13 +1108,10 @@ const uint16_t icon_colors[NUM_MENU_ITEMS] = {
             last_menu_index = current_menu_index;
         }
     }
-    drawMainMenuSelectionBanner();
     drawStatusBar(currentBatteryVoltage, true);
 }
 
 static void redrawMainMenu() {
-    menu_initialized = false;
-    last_menu_index = -1;
     displayMenu();
 }
 
@@ -3280,15 +3256,15 @@ void handleAboutPage() {
 
   tft.setTextColor(UI_TEXT, UI_BG);
   tft.setTextSize(1);
-  tft.setTextFont(2);
+  tft.setTextFont(1);
 
   const char* title = "[About This Project]";
-  tft.setCursor(10, 50);
+  tft.setCursor(10, 42);
   tft.println(title);
 
-  int lineHeight = 18;
+  int lineHeight = 12;
   int text_x = 10;
-  int text_y = 80;
+  int text_y = 62;
   tft.setCursor(text_x, text_y);
   tft.print("- ");
   tftPrintlnObf(OBF_PN, sizeof(OBF_PN));
@@ -3472,10 +3448,6 @@ void handleButtons() {
         const unsigned long touchFeedbackDelay = 100;
         const unsigned long touchPollInterval = 40;
 
-        if (!mainMenuTouchInputAvailable()) {
-            return;
-        }
-
         if (!feature_active && (millis() - lastTouchTime >= touchFeedbackDelay)) {
             if (millis() - lastTouchPollTime < touchPollInterval) {
                 return;
@@ -3502,16 +3474,8 @@ void handleButtons() {
                     current_menu_index = i;
                     last_interaction_time = millis();
                     displayMenu();
-
-                    const unsigned long startTime = millis();
-                    while (isTouchDownDismiss() && (millis() - startTime < touchFeedbackDelay)) {
-                        delay(10);
-                    }
-
-                    if (isTouchDownDismiss()) {
-                        launchCurrentMainMenuItem();
-                        waitForTouchRelease();
-                    }
+                    waitForTouchRelease(600);
+                    launchCurrentMainMenuItem();
 
                     lastTouchTime = millis();
                     delay(200);
