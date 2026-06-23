@@ -1,9 +1,8 @@
 ## ESP-IDF Project
 
 This tree is organized as an ESP-IDF application. The firmware entry point is
-`main/app_main`, application code lives in `components/esp32_div`, board
-selection lives in `components/esp32_div_board/include/BoardConfig.h`, and
-platform services live in `components/esp32_div_platform`.
+`main/app_main`, application code lives in `main/`, board selection lives in
+`main/BoardConfig.h`, and platform services are implemented in `main/src`.
 
 ```bash
 idf.py set-target esp32s3
@@ -138,7 +137,7 @@ ESP32-DIV is an open-source, multi-band wireless toolkit built on the **ESP32-S3
  
 </details>
 <details>
-<summary><strong>üõ∞Ô∏è GPS</strong></summary>
+<summary><strong>üõ∞Ô∏?GPS</strong></summary>
   
 | Tool | Description |
 |------|-------------|
@@ -194,21 +193,21 @@ ESP32-DIV is an open-source, multi-band wireless toolkit built on the **ESP32-S3
 ESP32DIV consists of two boards:
 
 ### üß† Main Board
-- **ESP32-S3** ‚Äì Main microcontroller with Wi-Fi and BLE
-- **ILI9341 TFT Display** ‚Äì 2.8" UI display
-- **LF33** ‚Äì 3.3V regulator
-- **IP5306** ‚Äì Lithium battery charging and protection
-- **CP2102** ‚Äì USB to serial for flashing
-- **PCF8574** ‚Äì I/O expander for buttons
-- **SD Card Slot** ‚Äì Stores logs and captured signals
-- **Push Buttons** ‚Äì Navigation and interaction
-- **Antenna Connector** ‚Äì External antenna support
+- **ESP32-S3** ‚Ä?Main microcontroller with Wi-Fi and BLE
+- **ILI9341 TFT Display** ‚Ä?2.8" UI display
+- **LF33** ‚Ä?3.3V regulator
+- **IP5306** ‚Ä?Lithium battery charging and protection
+- **CP2102** ‚Ä?USB to serial for flashing
+- **PCF8574** ‚Ä?I/O expander for buttons
+- **SD Card Slot** ‚Ä?Stores logs and captured signals
+- **Push Buttons** ‚Ä?Navigation and interaction
+- **Antenna Connector** ‚Ä?External antenna support
 - **WS2812 NeoPixels** - Giving better feedback
 - **Buzzer** - It shares a GPIO with the battery voltage divider, so using it is optional.
 
-### üõ°Ô∏è Shield
-- **3x NRF24 Modules** ‚Äì 2.4GHz jamming and spoofing
-- **1x CC1101 Module** ‚Äì Sub-GHz jamming and replay
+### üõ°Ô∏?Shield
+- **3x NRF24 Modules** ‚Ä?2.4GHz jamming and spoofing
+- **1x CC1101 Module** ‚Ä?Sub-GHz jamming and replay
 - **Multiple antennas** - Extended range
 - **IR Transceiver** - Capture & replay IR remotes
 
@@ -255,18 +254,19 @@ Distributed under the MIT License. See LICENSE.txt for more information.
 ## üí¨ Support & Contributions
 
 - üí¨ Found a bug or have a feature request? Open an [Issue](https://github.com/cifertech/ESP32-DIV/issues)
-- ‚≠ê Like the project? Star the repo!
+- ‚≠?Like the project? Star the repo!
 - üõ† Want to contribute? Fork it and submit a pull request.
-‚Äé
+‚Ä?
 
 
 <!-- Contact -->
 ## :handshake: Contact 
 
-‚ñ∂ Support me on Patreon [patreon.com/cifertech](https://www.patreon.com/cifertech)
+‚ñ?Support me on Patreon [patreon.com/cifertech](https://www.patreon.com/cifertech)
 
 CiferTech - [@twitter](https://twitter.com/techcifer) - CiferTech@gmali.com
 
 Project Link: [https://github.com/cifertech/ESP32-DIV](https://github.com/cifertech/ESP32-DIV)
 
  
+

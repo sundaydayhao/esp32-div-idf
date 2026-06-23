@@ -25,7 +25,7 @@ static char s_notifTitleCache[64];
 static char s_notifMsgCache[400];
 static bool s_notifShowSaveCache = false;
 
-/** Wrapped line count for modal text (font 1, size 1 â€” must match draw path). */
+/** Wrapped line count for modal text (font 1, size 1 ¡ª must match draw path). */
 static int countWrappedNotifLines(const DivString& msgIn, int innerPixelW) {
   tft.setTextFont(1);
   tft.setTextSize(1);
@@ -1436,9 +1436,11 @@ static void terminalHandleNavButtons() {
 
 void runUI() {
 
+#undef STATUS_BAR_Y_OFFSET
     #define STATUS_BAR_Y_OFFSET 20
     #define STATUS_BAR_HEIGHT 16
     #define ICON_SIZE 16
+#undef ICON_NUM
     #define ICON_NUM 3
 
     static int iconX[ICON_NUM] = {210, 170, 10};
@@ -3264,3 +3266,4 @@ void loop(){
   delay(40);
 }
 }
+

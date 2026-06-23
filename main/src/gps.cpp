@@ -683,7 +683,7 @@ void drawSkyPlotGx(Gfx& g, int cx, int cy, int R) {
       seed ^= seed >> 16;
       seed *= 2654435761u;
       az = (int16_t)(seed % 360u);
-      el = (int16_t)(12 + ((seed >> 11) % 34u)); // 12Â°â€“45Â° (inside horizon ring)
+      el = (int16_t)(12 + ((seed >> 11) % 34u)); // 12¡ã¨C45¡ã (inside horizon ring)
       posEstimated = true;
     }
 
@@ -713,7 +713,7 @@ void drawSkyPlotGx(Gfx& g, int cx, int cy, int R) {
     if (rows[i].inSolution) {
       g.drawCircle(sx, sy, mr + 2, WHITE);
     }
-    // PRNs are listed in SNR strip â€” avoids overlapping labels on sky plot.
+    // PRNs are listed in SNR strip ¡ª avoids overlapping labels on sky plot.
   }
 }
 
@@ -1296,7 +1296,7 @@ void session() {
     delay(2);
   }
 
-  // Do not delete gScanPanel here â€” releasing ~140 KiB fragments heap and often
+  // Do not delete gScanPanel here ¡ª releasing ~140 KiB fragments heap and often
   // prevents createSprite() from succeeding when re-entering this screen.
 
   gpsSerial.end();
@@ -2012,7 +2012,7 @@ static WardMainLayout wardComputeMainLayout(int contentBottom) {
   return L;
 }
 
-/** Main: back left; gear, play, RSS flush-right. Settings/WiGLE: back left, save right (no âˆ’/+ strip). */
+/** Main: back left; gear, play, RSS flush-right. Settings/WiGLE: back left, save right (no ?/+ strip). */
 static void wardToolbarIconXs(WardPage page, int16_t xs[4]) {
   const int W = tft.width();
   const int sz = (int)kWardIconSz;
@@ -3099,7 +3099,7 @@ static bool wardWigleStreamUpload(DivFile& csv, const char* uploadName, const ch
   return true;
 }
 
-/** Pause scans, join Wiâ€‘Fi, convert CSV to WiGLE v1.6, upload, disconnect. */
+/** Pause scans, join Wi?Fi, convert CSV to WiGLE v1.6, upload, disconnect. */
 static void wardPerformWigleUpload(const char* srcCsvPath, DivFile* liveLog) {
   char apiUser[96];
   char apiTok[128];
@@ -3108,9 +3108,9 @@ static void wardPerformWigleUpload(const char* srcCsvPath, DivFile* liveLog) {
   bool useStoredWifi = false;
   if (!wardReadWigleConfig(apiUser, sizeof(apiUser), apiTok, sizeof(apiTok), staSsid, sizeof(staSsid), staPass,
                            sizeof(staPass), &useStoredWifi)) {
-    wardNotify("WiGLE", "SD:/config/wigle.txt â€” line1: WiGLE API name, line2: token. If this ESP32 already "
-                        "joined Wiâ€‘Fi once, stop at line 2. Else add line3=SSID line4=password. Optional "
-                        "line3 AUTO or - uses saved Wiâ€‘Fi only.");
+    wardNotify("WiGLE", "SD:/config/wigle.txt ¡ª line1: WiGLE API name, line2: token. If this ESP32 already "
+                        "joined Wi?Fi once, stop at line 2. Else add line3=SSID line4=password. Optional "
+                        "line3 AUTO or - uses saved Wi?Fi only.");
     return;
   }
 
@@ -3147,8 +3147,8 @@ static void wardPerformWigleUpload(const char* srcCsvPath, DivFile* liveLog) {
     delay(400);
   }
   if (!gotIp) {
-    wardNotify("WiGLE", useStoredWifi ? "WiFi failed. Connect this device to Wiâ€‘Fi once in another tool, "
-                                        "or add SSID + password on lines 3â€“4 of wigle.txt."
+    wardNotify("WiGLE", useStoredWifi ? "WiFi failed. Connect this device to Wi?Fi once in another tool, "
+                                        "or add SSID + password on lines 3¨C4 of wigle.txt."
                                       : "WiFi connect failed (check wigle.txt SSID/pass).");
     DivWiFi.disconnect();
     delay(100);
@@ -3591,7 +3591,7 @@ static bool wardSessionShouldExit() {
     return true;
   }
   if (featureHasTouchNavBar()) {
-    /* Center nav is Save or Exit by page â€” use wardPollNavButtons, not raw SELECT. */
+    /* Center nav is Save or Exit by page ¡ª use wardPollNavButtons, not raw SELECT. */
     return isPhysicalButtonPressed(BTN_SELECT);
   }
   return isButtonPressed(BTN_SELECT) || touchRequestsExit();

@@ -1,11 +1,56 @@
 idf_component_register(
     SRCS
+        "src/PCF8574.cpp"
+        "src/DivDisplay.cpp"
+        "src/DivNvStore.cpp"
+        "src/DivPlatform.cpp"
+        "src/DivSd.cpp"
+        "src/DivSerial.cpp"
+        "src/DivSpi.cpp"
+        "src/DivWiFi.cpp"
+        "src/ELECHOUSE_CC1101_SRC_DRV.cpp"
+        "src/app.cpp"
+        "src/bluetooth.cpp"
+        "src/ducky.cpp"
+        "src/gps.cpp"
+        "src/ir.cpp"
+        "src/KeyboardUI.cpp"
+        "src/rfid.cpp"
+        "src/SettingsStore.cpp"
+        "src/signal_dsp.cpp"
+        "src/subghz.cpp"
+        "src/Theme.cpp"
+        "src/Touchscreen.cpp"
+        "src/utils.cpp"
+        "src/wifi.cpp"
+        "src/XPT2046_Touchscreen.cpp"
         "main.cpp"
     INCLUDE_DIRS
         "."
+        "include"
     REQUIRES
-        esp32_div_board
-        esp32_div
+        bt
+        cjson
+        nvs_flash
+        esp_event
+        esp_system
+        esp_timer
+        esp_wifi
+        esp_netif
+        esp_http_server
+        esp_driver_gpio
+        esp_driver_i2c
+        mdns
+        app_update
+        esp_driver_ledc
+        espressif__esp-dsp
+        esp_driver_spi
+        esp_driver_sdspi
+        esp_driver_tsens
+        esp_driver_uart
+        esp-tls
+        fatfs
+        sdmmc
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-missing-field-initializers)

@@ -110,8 +110,11 @@ static void bleSetSpooferNavLabels() {
 
 namespace BleSpoofer {
 
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT 250
+#undef LINE_HEIGHT
 #define LINE_HEIGHT 12
+#undef MAX_LINES
 #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
 
 DivString spooferBuffer[MAX_LINES];
@@ -122,9 +125,11 @@ static bool uiDrawn = false;
 
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 5
 
 static int iconX[ICON_NUM] = {90, 130, 170, 210, 10};
@@ -906,9 +911,11 @@ static bool uiDrawn = false;
 
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 1
 
 static int iconX[ICON_NUM] = {10};
@@ -919,6 +926,7 @@ DivString device_uuid = "00003082-0000-1000-9000-00805f9b34fb";
 
 uint8_t packet[17];
 
+#undef MAX_LINES
 #define MAX_LINES 30
 DivString lines[MAX_LINES];
 int currentLine = 0;
@@ -1150,8 +1158,11 @@ byte channelGroup1[] = {2, 5, 8, 11};
 byte channelGroup2[] = {26, 29, 32, 35};
 byte channelGroup3[] = {80, 83, 86, 89};
 
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
+#undef LINE_HEIGHT
 #define LINE_HEIGHT 12
+#undef MAX_LINES
 #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
 
 DivString Buffer[MAX_LINES];
@@ -1419,9 +1430,11 @@ namespace BleScan {
 
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 2
 
 BLEScan* bleScan;
@@ -1986,7 +1999,7 @@ void bleScanSetup() {
 
   ensureBleInit();
 
-  // With auto BLE scan off, cached bleResults are not updated â€” only reuse when background scan is on.
+  // With auto BLE scan off, cached bleResults are not updated ¡ª only reuse when background scan is on.
   if (settings().autoBleScan && bgHasResults && bleResultsValid && bleResults.getCount() > 0) {
     current_page = 0;
     currentIndex = 0;
@@ -2108,8 +2121,11 @@ static constexpr int kScannerLogBoxTop = kScannerStatusY + kScannerStatusBoxH + 
 static constexpr int kScannerLogStartY = kScannerLogBoxTop + kScannerBoxHeaderH;
 static constexpr int kScannerLogEndY = kScannerLogBoxTop + kScannerLogBoxH - 2;
 
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT 180
+#undef LINE_HEIGHT
 #define LINE_HEIGHT 12
+#undef MAX_LINES
 #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
 
 DivString Buffer[MAX_LINES];
@@ -2348,10 +2364,13 @@ void scan() {
 
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 3
 
   static int iconX[ICON_NUM] = {170, 210, 10};
@@ -3032,8 +3051,11 @@ byte channelGroup1[] = {2, 5, 8, 11};
 byte channelGroup2[] = {26, 29, 32, 35};
 byte channelGroup3[] = {80, 83, 86, 89};
 
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
+#undef LINE_HEIGHT
 #define LINE_HEIGHT 12
+#undef MAX_LINES
 #define MAX_LINES (SCREEN_HEIGHT / LINE_HEIGHT)
 
 DivString Buffer[MAX_LINES];
@@ -3367,9 +3389,11 @@ namespace BleSniffer {
 
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 3
 
 static bool uiDrawn = false;
@@ -3383,7 +3407,9 @@ static const unsigned char* icons[ICON_NUM] = {
 
 #define HEADER_HEIGHT 20
 #define STATUS_DOT_SIZE 8
+#undef LINE_HEIGHT
 #define LINE_HEIGHT 16
+#undef MAX_LINES
 #define MAX_LINES 16
 #define MAX_DEVICES 32
 #define SCAN_INTERVAL 5000
@@ -4123,3 +4149,4 @@ void exit() {
   sniffer.stop();
 }
 }
+

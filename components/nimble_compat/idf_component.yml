@@ -1,5 +1,0 @@
-dependencies:
-  esp-nimble-cpp:
-    path: ../../managed_components/esp-nimble-cpp
-  idf:
-    version: ">=6.0.1"

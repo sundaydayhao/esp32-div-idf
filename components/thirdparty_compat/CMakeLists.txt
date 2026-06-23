@@ -1,9 +1,0 @@
-idf_component_register(
-    SRCS
-        "src/ELECHOUSE_CC1101_SRC_DRV.cpp"
-    INCLUDE_DIRS
-        "include"
-    REQUIRES
-        esp32_div_platform
-        esp_driver_gpio
-)

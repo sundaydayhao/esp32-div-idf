@@ -1,7 +1,7 @@
 #pragma once
-// config.h â€” merged from bleconfig.h, wificonfig.h, subconfig.h
+// config.h ¡ª merged from bleconfig.h, wificonfig.h, subconfig.h
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Common includes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Common includes ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
 #include "DivDisplay.h"
 #include "DivNvStore.h"
 #include "DivSerial.h"
@@ -32,11 +32,11 @@
 #include "utils.h"
 #include "shared.h"
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Common externs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Common externs ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
 extern DivDisplay tft;
 extern PCF8574 pcf;
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ BLE namespaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ BLE namespaces ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
 namespace BleJammer {
   void blejamSetup();
   void blejamLoop();
@@ -75,7 +75,7 @@ namespace BleSniffer {
   void exit();
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ SubGHz namespaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ SubGHz namespaces ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
 namespace replayat {
   void ReplayAttackSetup();
   void ReplayAttackLoop();
@@ -89,7 +89,7 @@ namespace subjammer {
   void subjammerLoop();
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ WiFi namespaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ WiFi namespaces ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
 namespace PacketMonitor {
   void ptmSetup();
   void ptmLoop();

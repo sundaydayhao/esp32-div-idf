@@ -167,7 +167,7 @@ static DivString fitText(const DivString& s, int pixWidth, int font = 2) {
   while (tft.textWidth(out, font) > pixWidth && out.length() > 1) {
     out.remove(out.length() - 1);
   }
-  if (out.length() < s.length() && pixWidth >= tft.textWidth("â€¦", font) + 4) out += "â€¦";
+  if (out.length() < s.length() && pixWidth >= tft.textWidth("¡­", font) + 4) out += "¡­";
   return out;
 }
 
@@ -531,7 +531,7 @@ static bool execFile(const DivString& path) {
   const int execTop = TOOLBAR_Y + HEADER_H + HEADER_H + 1;
   tft.fillRect(0, execTop, DISPLAY_WIDTH, DISPLAY_HEIGHT - execTop, COL_BG);
   tft.setTextColor(COL_FG, COL_BG);
-  tft.drawCentreString("Executingâ€¦", DISPLAY_WIDTH/2, execTop + 4, 1);
+  tft.drawCentreString("Executing¡­", DISPLAY_WIDTH/2, execTop + 4, 1);
   tft.drawString("File:", PADDING, execTop + 24, 1);
   tft.drawString(path, 48, execTop + 24, 1);
 

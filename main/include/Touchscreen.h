@@ -39,7 +39,7 @@ bool isTouchDownDismiss(uint16_t zThresh = 120);
 bool readTouchRawXY(int16_t& x, int16_t& y, uint16_t zThresh = 500);
 
 bool readTouchXY(int& x, int& y);
-/** Lower pressure threshold â€” use for "tap anywhere to dismiss" so light taps register. */
+/** Lower pressure threshold ¡ª use for "tap anywhere to dismiss" so light taps register. */
 bool readTouchXYDismiss(int& x, int& y);
 
 #endif

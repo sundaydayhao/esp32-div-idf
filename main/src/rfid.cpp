@@ -16,7 +16,7 @@
 #define RFID_UID_CLONE 1
 #endif
 
-/** Passive listen max wait (ms). Old 60000 felt like ‚Äú~1 minute‚Äù when no tag. Override in build flags if needed. */
+/** Passive listen max wait (ms). Old 60000 felt like °∞~1 minute°± when no tag. Override in build flags if needed. */
 #ifndef RFID_TAG_LISTEN_TIMEOUT_MS
 #define RFID_TAG_LISTEN_TIMEOUT_MS 20000
 #endif
@@ -191,7 +191,7 @@ static constexpr int RF_RESULT_LINE_PX = 17;
 static constexpr int RF_BODY_LINE_PX = 18;
 static constexpr int RF_TAG_H = 14;
 static constexpr int RF_TAG_GAP = 4;
-/** Ignored ‚Äî kept so session code need not change. */
+/** Ignored °™ kept so session code need not change. */
 static constexpr int RF_DYN_TOP_MAIN = 0;
 static constexpr int RF_DYN_TOP_PROG = 0;
 
@@ -1090,7 +1090,7 @@ static bool rfidWaitTimeoutDismiss() {
   }
 }
 
-/** Timeout ‚Äî stay on 2-box chrome; feature info on Info nav. @return true to retry. */
+/** Timeout °™ stay on 2-box chrome; feature info on Info nav. @return true to retry. */
 static bool rfidDismissTimeoutPanel(const char* statusLine, const char* message) {
   rfidSetDynamicPill("WARN", UI_WARN);
   rfidSetBandAux(nullptr);
@@ -1210,7 +1210,7 @@ static void rfidListenTick(const char* statusLine, unsigned long t0) {
   rfidDynamicBand(0, statusLine, detail);
 }
 
-/** Full chrome once ‚Äî listening: NFC Status + Activity (info via nav button). */
+/** Full chrome once °™ listening: NFC Status + Activity (info via nav button). */
 static void rfidShellListen(const char* title, const char* footerLabel, const char* infoBody) {
   rfidListenShellReset();
   rfidDynClearPrev();
@@ -1228,7 +1228,7 @@ static void rfidShellListen(const char* title, const char* footerLabel, const ch
   rfidPrint("[*] Waiting for tag...", UI_DIM_TEXT, false);
 }
 
-/** Full chrome once ‚Äî progress: NFC Status + Activity (info via nav button). */
+/** Full chrome once °™ progress: NFC Status + Activity (info via nav button). */
 static void rfidShellProgress(const char* mainTitle, const char* stepLine, const char* footerLabel,
                               const char* infoBody = nullptr) {
   rfidListenShellReset();
@@ -1248,7 +1248,7 @@ static void rfidShellProgress(const char* mainTitle, const char* stepLine, const
   rfidRedrawNavChrome();
 }
 
-/** Switch listen ‚Üí progress without wiping chrome or activity log. */
+/** Switch listen °˙ progress without wiping chrome or activity log. */
 static void rfidTransitionToProgress(const char* title, const char* stepLine, const char* footerLabel,
                                      const char* infoBody) {
   (void)infoBody;
@@ -1642,7 +1642,7 @@ static bool rfidTargetWaitReader(const char* tickMsg, unsigned long timeoutMs, u
         if (!rfidDismissTimeoutPanel("Timeout", tmsg)) {
           return false;
         }
-        rfidPrint("[*] Ready ‚Äî waiting for reader...", UI_DIM_TEXT, false);
+        rfidPrint("[*] Ready °™ waiting for reader...", UI_DIM_TEXT, false);
         break;
       }
       delay(25);
@@ -1676,7 +1676,7 @@ static bool rfidListenIso14443a(const char* title, const char* footer, uint8_t* 
         if (!rfidDismissTimeoutPanel("Timeout", tmsg)) {
           return false;
         }
-        rfidPrint("[*] Ready ‚Äî listening again...", UI_DIM_TEXT, false);
+        rfidPrint("[*] Ready °™ listening again...", UI_DIM_TEXT, false);
         break;
       }
       delay(12);
@@ -1694,7 +1694,7 @@ void sessionErase() {
   uint8_t uid[7] = {0};
   uint8_t uidLength = 0;
   if (!rfidListenIso14443a("Erase", "Cancel", uid, &uidLength, (unsigned long)RFID_TAG_LISTEN_TIMEOUT_MS,
-                           "Classic tag ‚Äî block 4 erase", kIntro)) {
+                           "Classic tag °™ block 4 erase", kIntro)) {
     rfidRestoreBus();
     return;
   }
@@ -1734,7 +1734,7 @@ void sessionErase() {
 
 void sessionDump() {
   static const char kIntro[] =
-      "Reads Classic blocks 0‚Äì63 or UL/NTAG user pages.\n\n"
+      "Reads Classic blocks 0®C63 or UL/NTAG user pages.\n\n"
       "Summary here; full HEX prints on Serial Console.\n\n"
       "Present tag on the coil.";
 
@@ -1764,7 +1764,7 @@ void sessionDump() {
   if (ct == MIFARE_CLASSIC) {
     segmentsExpected = 64;
     rfidTransitionToProgress("Dump", "Reading Classic blocks", "Cancel",
-                             "Reading MIFARE Classic blocks 0‚Äì63.\nFull HEX on Serial Console.");
+                             "Reading MIFARE Classic blocks 0®C63.\nFull HEX on Serial Console.");
     DivSerial.println(F("\n--- RFID Dump Classic ---"));
     for (uint8_t block = 0; block < 64; block++) {
       char l2[48];
@@ -1880,7 +1880,7 @@ void sessionDump() {
            "Segments read OK: %d%s\nBlocks/pages with any non-zero byte: %d\n\n"
            "%sOpen Serial Console for full HEX.",
            uidStr, cardTypeStr(ct), blocksRead,
-           partial ? " (partial ‚Äî some blocks need other keys)" : "",
+           partial ? " (partial °™ some blocks need other keys)" : "",
            blocksWithData, partial ? "Some blocks were skipped (auth/key).\n" : "");
   rfidResultAndDismiss("Dump", "Done", body);
 }
@@ -1945,7 +1945,7 @@ void sessionDecodeAccess() {
            "%02X %02X %02X %02X %02X %02X %02X %02X\n"
            "%02X %02X %02X %02X %02X %02X %02X %02X\n\n"
            "Access bytes [6..8]: %02X %02X %02X\n"
-           "Condition bits C1..C3 (nibble-style): %u %u %u ‚Üí code %u\n\n"
+           "Condition bits C1..C3 (nibble-style): %u %u %u °˙ code %u\n\n"
            "(Interpret with MFC access-bit tables for your sector.)",
            uidStr, blk[0], blk[1], blk[2], blk[3], blk[4], blk[5], blk[6], blk[7], blk[8], blk[9],
            blk[10], blk[11], blk[12], blk[13], blk[14], blk[15], a6, a7, a8, (unsigned)c1,
@@ -2132,7 +2132,7 @@ void sessionCardReader() {
 
   if (!rfidListenIso14443a("Card Reader", "Cancel", uid, &uidLength,
                            (unsigned long)RFID_TAG_LISTEN_TIMEOUT_MS,
-                           "Listening ‚Äî present ISO14443A tag", kIntro)) {
+                           "Listening °™ present ISO14443A tag", kIntro)) {
     rfidRestoreBus();
     return;
   }
@@ -2165,7 +2165,7 @@ void sessionCardReader() {
     }
     if (ok) {
       snprintf(ulSample, sizeof(ulSample),
-               "User memory sample (pages 4‚Äì7, 4 bytes each):\n"
+               "User memory sample (pages 4®C7, 4 bytes each):\n"
                "P4  %02X %02X %02X %02X\n"
                "P5  %02X %02X %02X %02X\n"
                "P6  %02X %02X %02X %02X\n"
@@ -2173,7 +2173,7 @@ void sessionCardReader() {
                pg[0][0], pg[0][1], pg[0][2], pg[0][3], pg[1][0], pg[1][1], pg[1][2], pg[1][3],
                pg[2][0], pg[2][1], pg[2][2], pg[2][3], pg[3][0], pg[3][1], pg[3][2], pg[3][3]);
     } else {
-      snprintf(ulSample, sizeof(ulSample), "Pages 4‚Äì7 could not all be read.");
+      snprintf(ulSample, sizeof(ulSample), "Pages 4®C7 could not all be read.");
     }
   }
 
@@ -2248,7 +2248,7 @@ void sessionClone() {
   rfidAttachBus();
   if (!rfidListenIso14443a("Clone", "Cancel", uid, &uidLength,
                            (unsigned long)RFID_CLONE_PHASE_TIMEOUT_MS,
-                           "Step 1/4 ‚Äî Present SOURCE tag", introBody)) {
+                           "Step 1/4 °™ Present SOURCE tag", introBody)) {
     rfidRestoreBus();
     return;
   }
@@ -2273,12 +2273,12 @@ void sessionClone() {
   bool readOk = true;
 
   if (srcType == MIFARE_CLASSIC) {
-    rfidTransitionToProgress("Clone", "Step 2/4 ‚Äî Read source", "Cancel",
-                             "Reading source Classic data blocks 0‚Äì47.");
+    rfidTransitionToProgress("Clone", "Step 2/4 °™ Read source", "Cancel",
+                             "Reading source Classic data blocks 0®C47.");
     for (uint8_t sector = 0; sector < 16 && readOk; sector++) {
       char l1[48];
       char l2[48];
-      snprintf(l1, sizeof(l1), "Classic ‚Äî reading data blocks");
+      snprintf(l1, sizeof(l1), "Classic °™ reading data blocks");
       snprintf(l2, sizeof(l2), "Sector %u / 15", (unsigned)sector);
       rfidDynamicBand(RF_DYN_TOP_PROG, l1, l2);
       char infoLine[64];
@@ -2309,12 +2309,12 @@ void sessionClone() {
     }
   } else if (srcType == MIFARE_ULTRALIGHT || srcType == NTAG) {
     uint8_t maxPages = (srcType == MIFARE_ULTRALIGHT) ? 16u : 36u;
-    rfidTransitionToProgress("Clone", "Step 2/4 ‚Äî Read source", "Cancel",
+    rfidTransitionToProgress("Clone", "Step 2/4 °™ Read source", "Cancel",
                              "Reading source Ultralight / NTAG user pages.");
     for (uint8_t page = 4; page < maxPages; page++) {
       char l2[40];
       snprintf(l2, sizeof(l2), "Page %u / %u", (unsigned)page, (unsigned)(maxPages - 1));
-      rfidDynamicBand(RF_DYN_TOP_PROG, "Ultralight / NTAG ‚Äî user pages", l2);
+      rfidDynamicBand(RF_DYN_TOP_PROG, "Ultralight / NTAG °™ user pages", l2);
       char infoLine[64];
       snprintf(infoLine, sizeof(infoLine), "Reading page %u of %u.", (unsigned)page,
                (unsigned)(maxPages - 1));
@@ -2349,10 +2349,10 @@ void sessionClone() {
   snprintf(confirmDetail, sizeof(confirmDetail), "%s  %s", uidStr, cardTypeStr(srcType));
   char confirmLog[128];
   snprintf(confirmLog, sizeof(confirmLog),
-           "[+] Source copied (%s, %s).\n[*] Remove source ‚Äî tap Clone.",
+           "[+] Source copied (%s, %s).\n[*] Remove source °™ tap Clone.",
            uidStr, cardTypeStr(srcType));
 
-  if (!rfidRunTwoBoxConfirm("Clone", "Step 3/4 ‚Äî Confirm clone", confirmDetail, confirmLog,
+  if (!rfidRunTwoBoxConfirm("Clone", "Step 3/4 °™ Confirm clone", confirmDetail, confirmLog,
                             kConfirmInfo, "Clone")) {
     return;
   }
@@ -2364,7 +2364,7 @@ void sessionClone() {
   rfidAttachBus();
   if (!rfidListenIso14443a("Clone", "Cancel", uid, &uidLength,
                            (unsigned long)RFID_CLONE_PHASE_TIMEOUT_MS,
-                           "Step 4/4 ‚Äî Present BLANK tag", kBlankInfo)) {
+                           "Step 4/4 °™ Present BLANK tag", kBlankInfo)) {
     rfidRestoreBus();
     return;
   }
@@ -2426,7 +2426,7 @@ void sessionClone() {
     (void)magic;
     (void)uidWritten;
 #endif
-    rfidTransitionToProgress("Clone", "Writing ‚Äî Classic", "Cancel",
+    rfidTransitionToProgress("Clone", "Writing °™ Classic", "Cancel",
                              "Writing copied Classic blocks to blank tag.");
     for (uint8_t sector = 0; sector < 16; sector++) {
       char l2[40];
@@ -2471,7 +2471,7 @@ void sessionClone() {
     }
   } else if (blankType == MIFARE_ULTRALIGHT || blankType == NTAG) {
     uint8_t maxPages = (blankType == MIFARE_ULTRALIGHT) ? 16u : 36u;
-    rfidTransitionToProgress("Clone", "Writing ‚Äî Ultralight / NTAG", "Cancel",
+    rfidTransitionToProgress("Clone", "Writing °™ Ultralight / NTAG", "Cancel",
                              "Writing copied pages to blank tag.");
     for (uint8_t page = 4; page < maxPages; page++) {
       char l2[40];
@@ -2547,7 +2547,7 @@ void sessionTagDisrupt() {
 
   rfidAttachBus();
   if (!rfidListenIso14443a("Tag Disrupt", "Cancel", uid, &uidLength, 12000UL,
-                           "Classic tag ‚Äî hold on coil (~12 s window)", kIntro)) {
+                           "Classic tag °™ hold on coil (~12 s window)", kIntro)) {
     rfidRestoreBus();
     return;
   }
@@ -2575,7 +2575,7 @@ void sessionTagDisrupt() {
   for (uint8_t i = 0; i < 16; i++) {
     uint8_t block = sectorTrailers[i];
     char l2[48];
-    snprintf(l2, sizeof(l2), "Trailer block %u ‚Äî sector %u", (unsigned)block, (unsigned)i);
+    snprintf(l2, sizeof(l2), "Trailer block %u °™ sector %u", (unsigned)block, (unsigned)i);
     rfidDynamicBand(RF_DYN_TOP_PROG, "Rotating trailer pattern", l2);
     char infoLine[72];
     snprintf(infoLine, sizeof(infoLine), "Writing trailer block %u (sector %u).", (unsigned)block,

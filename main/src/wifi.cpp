@@ -628,10 +628,13 @@ static bool uiDrawn = false;
 
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 3
 
   static int iconX[ICON_NUM] = {170, 210, 10};
@@ -1234,9 +1237,11 @@ static bool uiDrawn = false;
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 3
 
   static int iconX[ICON_NUM] = {10, 190, 220};
@@ -1472,6 +1477,7 @@ void beaconSpamLoop() {
 
 namespace DeauthDetect {
 
+#undef LINE_HEIGHT
 #define LINE_HEIGHT 12
 static constexpr int DEAUTH_TERM_CAPACITY = 24;
 
@@ -1481,13 +1487,16 @@ static int deauthVisibleLines() {
 
 #define MAX_NETWORKS 50
 #define MAX_CHANNELS 14
+#undef MAX_SSID_LENGTH
 #define MAX_SSID_LENGTH 8
 
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 2
 
 bool stopScan = false;
@@ -1952,9 +1961,11 @@ namespace WifiScan {
 
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 2
 
 int currentIndex = 0;
@@ -1973,7 +1984,7 @@ static volatile bool bgScanRunning = false;
 static volatile bool fgWifiScanInProgress = false;
 static uint32_t bgBootMs = 0;
 
-/** Stop an in-flight scan started by the background task only â€” never abort foreground/manual scans. */
+/** Stop an in-flight scan started by the background task only ¡ª never abort foreground/manual scans. */
 static void stopBgWifiScanIfRunning() {
   if (fgWifiScanInProgress) return;
   if (!bgScanRunning && DivWiFi.scanComplete() != WIFI_SCAN_RUNNING) return;
@@ -2033,7 +2044,7 @@ static void bgWifiScanTask(void* ) {
         }
       }
     } else {
-      // Only cancel our async background scan â€” sync feature scans also report RUNNING.
+      // Only cancel our async background scan ¡ª sync feature scans also report RUNNING.
       if (bgScanRunning) {
         stopBgWifiScanIfRunning();
       }
@@ -2124,6 +2135,7 @@ const unsigned long scanTimeout = 2000;
 unsigned long lastButtonPress = 0;
 const unsigned long debounceTime = 200;
 
+#undef MAX_SSID_LENGTH
 #define MAX_SSID_LENGTH 10
 
 // Deauther-like list geometry (bigger rows + paging + bottom tab bar).
@@ -2639,7 +2651,7 @@ void wifiscanSetup() {
   }
 
   int existing = DivWiFi.scanComplete();
-  // With auto scan off, nothing refreshes the WiFi driver cache â€” reusing it shows stale/partial lists.
+  // With auto scan off, nothing refreshes the WiFi driver cache ¡ª reusing it shows stale/partial lists.
   if (settings().autoWifiScan && existing >= 0 && bgHasResults) {
     current_page = 0;
     currentIndex = 0;
@@ -2691,6 +2703,7 @@ void wifiscanLoop() {
 namespace CaptivePortal {
 
 #define CP_LINE_HEIGHT 12
+#undef MAX_LINES
 #define MAX_LINES 23
 
 static unsigned long cportalLastBtnMs = 0;
@@ -3973,9 +3986,11 @@ static bool uiDrawn = false;
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 6
 
   static int iconX[ICON_NUM] = {90, 130, 170, 210, 50, 10};
@@ -4287,6 +4302,7 @@ void cportalLoop() {
 namespace Deauther {
 
 #define SCREEN_WIDTH  TFT_WIDTH
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
 
 static unsigned long deautherLastButtonPress = 0;
@@ -4729,9 +4745,11 @@ static bool uiDrawn = false;
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 2
 
   static int iconX[ICON_NUM] = {220, 10};
@@ -4932,6 +4950,7 @@ void deautherLoop() {
 namespace ProbeRequestFlood {
 
 #define SCREEN_WIDTH  TFT_WIDTH
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
 
 // Larger row height = easier touch selection.
@@ -5413,9 +5432,11 @@ void handleTouch() {
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 2
 
   static int iconX[ICON_NUM] = {220, 10};
@@ -5620,6 +5641,7 @@ namespace FirmwareUpdate {
 const char* host = "esp32";
 
 #define SCREEN_WIDTH TFT_WIDTH
+#undef SCREEN_HEIGHT
 #define SCREEN_HEIGHT TFT_HEIGHT
 
 #define BUTTON_WIDTH 230
@@ -6058,9 +6080,11 @@ static void fwStoreFooter(const FeatureUI::Button* src, uint8_t count) {
 void runUI() {
 #define SCREEN_WIDTH  TFT_WIDTH
 #define SCREENHEIGHT TFT_HEIGHT
+#undef STATUS_BAR_Y_OFFSET
 #define STATUS_BAR_Y_OFFSET 20
 #define STATUS_BAR_HEIGHT 16
 #define ICON_SIZE 16
+#undef ICON_NUM
 #define ICON_NUM 1
 
   static int iconX[ICON_NUM] = {10};
@@ -7014,3 +7038,4 @@ void updateLoop() {
   }
 }
 }
+
