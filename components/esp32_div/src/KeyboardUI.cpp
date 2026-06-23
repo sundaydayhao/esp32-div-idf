@@ -135,7 +135,7 @@ static DivString kbInputVisibleText(const DivString& value, bool cursorOn, int m
     tail += "|";
   }
   tft.setTextFont(1);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   while (tail.length() > 1 && (int)tft.textWidth(tail.c_str()) > maxPixelW) {
     tail.remove(0, 1);
   }
@@ -151,7 +151,7 @@ void drawInputField(const DivString& value, bool cursorOn) {
   tft.drawRect(INPUT_X - 1, INPUT_Y - 1, INPUT_W + 2, INPUT_H + 2, KB_BORDER());
   tft.setTextColor(KB_TEXT(), KB_SURF());
   tft.setTextFont(1);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setTextWrap(false);
   tft.setCursor(INPUT_X + padX, INPUT_Y + padY);
   tft.print(kbInputVisibleText(value, cursorOn, innerW));

@@ -130,7 +130,7 @@ namespace FeatureUI {
                       ButtonStyle style,
                       bool pressed = false,
                       bool disabled = false,
-                      uint8_t font = 2);
+                      uint8_t font = 1);
 
   inline void drawButton(const Button& b, bool pressed = false) {
     drawButtonRect(b.x, b.y, b.w, b.h, b.label, b.style, pressed, b.disabled);

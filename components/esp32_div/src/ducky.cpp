@@ -531,9 +531,9 @@ static bool execFile(const DivString& path) {
   const int execTop = TOOLBAR_Y + HEADER_H + HEADER_H + 1;
   tft.fillRect(0, execTop, DISPLAY_WIDTH, DISPLAY_HEIGHT - execTop, COL_BG);
   tft.setTextColor(COL_FG, COL_BG);
-  tft.drawCentreString("Executing…", DISPLAY_WIDTH/2, execTop + 4, 2);
-  tft.drawString("File:", PADDING, execTop + 24, 2);
-  tft.drawString(path, 48, execTop + 24, 2);
+  tft.drawCentreString("Executing…", DISPLAY_WIDTH/2, execTop + 4, 1);
+  tft.drawString("File:", PADDING, execTop + 24, 1);
+  tft.drawString(path, 48, execTop + 24, 1);
 
   if (bleConnected) { KbdReport idle{}; inputChr->setValue((uint8_t*)&idle,sizeof(idle)); inputChr->notify(); delay(10); }
 
@@ -554,8 +554,8 @@ static bool execFile(const DivString& path) {
     if (defaultDelay) delay(defaultDelay);
 
     if (y < yMax) {
-      DivString disp = fitText(line, DISPLAY_WIDTH - 2*PADDING, 2);
-      tft.drawString(disp, PADDING, y, 2); y += 18;
+      DivString disp = fitText(line, DISPLAY_WIDTH - 2*PADDING, 1);
+      tft.drawString(disp, PADDING, y, 1); y += 18;
     }
     yield();
   }
@@ -565,7 +565,7 @@ static bool execFile(const DivString& path) {
 
   tft.fillRoundRect(PADDING, DISPLAY_HEIGHT - 40, DISPLAY_WIDTH - 2*PADDING, 28, 6, COL_ACCENT);
   tft.setTextColor(COL_BG, COL_ACCENT);
-  tft.drawCentreString("Done!", DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 36, 2);
+  tft.drawCentreString("Done!", DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 36, 1);
 
   ui_busy = false;
   delay(500);
@@ -595,8 +595,8 @@ static void drawHeader(HeaderType type, const DivString& title = "", bool drawFo
     if (type == HeaderType::TextOnly && !title.isEmpty()) {
 
       tft.setTextColor(COL_FG, COL_BG);
-      tft.setTextFont(2);
-      tft.drawString(title, PADDING, currentY + 1, 2);
+      tft.setTextFont(1);
+      tft.drawString(title, PADDING, currentY + 1, 1);
     }
 
     if (type == HeaderType::TextWithInfo) {
@@ -638,8 +638,8 @@ static void refreshHeaderStatusIfNeeded(bool force = false) {
 
     tft.fillRect(0, TOOLBAR_Y - 1, DISPLAY_WIDTH, DISPLAY_HEIGHT - (TOOLBAR_Y - 1), COL_BG);
     tft.setTextColor(UI_WARN, COL_BG);
-    tft.setTextFont(2);
-    tft.drawCentreString(title, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 14, 2);
+    tft.setTextFont(1);
+    tft.drawCentreString(title, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 14, 1);
     tft.setTextFont(1);
     tft.setTextColor(UI_TEXT, COL_BG);
     tft.drawCentreString(subtitle, DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 + 10, 1);
@@ -782,9 +782,9 @@ static void drawListRow(int i, int startItem, int listTop, int rowStride,
   }
 
   tft.setTextColor(COL_FG, body);
-  tft.setTextFont(2);
-  DivString name = fitText(items[i].name, rw - 40, 2);
-  tft.drawString(name, rx + 12, y + 6, 2);
+  tft.setTextFont(1);
+  DivString name = fitText(items[i].name, rw - 40, 1);
+  tft.drawString(name, rx + 12, y + 6, 1);
 
   uint32_t kb = (items[i].size + 1023) / 1024;
   char sbuf[16];
@@ -828,9 +828,9 @@ static void drawListContentFull() {
     }
 
     tft.setTextColor(COL_FG, body);
-    tft.setTextFont(2);
-    DivString name = fitText(items[i].name, rw - 40, 2);
-    tft.drawString(name, rx + 12, y + 6, 2);
+    tft.setTextFont(1);
+    DivString name = fitText(items[i].name, rw - 40, 1);
+    tft.drawString(name, rx + 12, y + 6, 1);
 
     uint32_t kb = (items[i].size + 1023) / 1024;
     char sbuf[16];
@@ -915,7 +915,7 @@ static void drawListPage(bool forceReload) {
   if (!sd_mounted) {
     listLoadedOnce = false;
     tft.setTextColor(COL_FG, COL_BG);
-    tft.drawCentreString("SD not mounted", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 8, 2);
+    tft.drawCentreString("SD not mounted", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 8, 1);
   } else {
     if (forceReload || !listLoadedOnce) {
       reloadList();
@@ -949,7 +949,7 @@ static void drawDetailsPage() {
   tft.fillRect(0, baseY, DISPLAY_WIDTH, DISPLAY_HEIGHT - baseY - duckyFooterReserve(), COL_BG);
 
   if (items.empty()) {
-    tft.drawCentreString("No script selected", DISPLAY_WIDTH/2, baseY+24, 2);
+    tft.drawCentreString("No script selected", DISPLAY_WIDTH/2, baseY+24, 1);
     tft.setTextFont(1);
     tft.setTextColor(UI_TEXT, COL_BG);
     tft.drawCentreString("Use 'Refresh' to scan for scripts", DISPLAY_WIDTH/2, baseY+48, 1);
@@ -958,32 +958,32 @@ static void drawDetailsPage() {
     auto& it = items[sel];
     int y = baseY + 8;
 
-    tft.setTextFont(2);
+    tft.setTextFont(1);
 
     tft.setTextColor(UI_TEXT, COL_BG);
-    DivString displayName = fitText(it.name, DISPLAY_WIDTH - 2*PADDING, 2);
-    tft.drawString(displayName, PADDING, y, 2);
+    DivString displayName = fitText(it.name, DISPLAY_WIDTH - 2*PADDING, 1);
+    tft.drawString(displayName, PADDING, y, 1);
     y += 24;
 
     tft.drawLine(PADDING, y, DISPLAY_WIDTH - PADDING, y, UI_LINE);
     y += 8;
 
-    tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextColor(COL_FG, COL_BG);
 
-    tft.drawString("Size:", PADDING, y, 2);
-    tft.drawNumber(it.size, 100, y, 2);
-    tft.drawString("bytes", 140, y, 2);
+    tft.drawString("Size:", PADDING, y, 1);
+    tft.drawNumber(it.size, 100, y, 1);
+    tft.drawString("bytes", 140, y, 1);
     y += 28;
 
-    tft.drawString("Path:", PADDING, y, 2);
+    tft.drawString("Path:", PADDING, y, 1);
     tft.setTextFont(1);
     DivString path = fitText(it.path, DISPLAY_WIDTH - 100 - PADDING, 1);
     tft.drawString(path, 100, y + 2, 1);
     y += 28;
 
-    tft.setTextFont(2);
-    tft.drawString("Description:", PADDING, y, 2);
+    tft.setTextFont(1);
+    tft.drawString("Description:", PADDING, y, 1);
     y += 24;
 
     tft.setTextFont(1);
@@ -1031,35 +1031,35 @@ static void drawSettingsPage() {
   const int rowGap = 24;
   int y = baseY + 8;
 
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextColor(UI_TEXT, COL_BG);
-  tft.drawString("Info", PADDING, y, 2);
+  tft.drawString("Info", PADDING, y, 1);
   y += rowGap;
 
   tft.setTextColor(COL_FG, COL_BG);
-  tft.drawString("Default Delay:", PADDING, y, 2);
-  tft.drawNumber(defaultDelay, 150, y, 2);
-  tft.drawString("ms", 190, y, 2);
+  tft.drawString("Default Delay:", PADDING, y, 1);
+  tft.drawNumber(defaultDelay, 150, y, 1);
+  tft.drawString("ms", 190, y, 1);
   y += rowGap;
 
-  tft.drawString("BLE Status:", PADDING, y, 2);
+  tft.drawString("BLE Status:", PADDING, y, 1);
   tft.setTextColor(bleConnected ? UI_OK : UI_WARN, COL_BG);
-  tft.drawString(bleConnected ? "Connected" : "Disconnected", 150, y, 2);
+  tft.drawString(bleConnected ? "Connected" : "Disconnected", 150, y, 1);
   tft.setTextColor(COL_FG, COL_BG);
   y += rowGap;
 
-  tft.drawString("SD Status:", PADDING, y, 2);
+  tft.drawString("SD Status:", PADDING, y, 1);
   tft.setTextColor(sd_mounted ? UI_OK : UI_WARN, COL_BG);
-  tft.drawString(sd_mounted ? "Mounted" : "Not mounted", 150, y, 2);
+  tft.drawString(sd_mounted ? "Mounted" : "Not mounted", 150, y, 1);
   tft.setTextColor(COL_FG, COL_BG);
   y += rowGap;
 
-  tft.drawString("Scripts Found:", PADDING, y, 2);
-  tft.drawNumber((int)items.size(), 150, y, 2);
+  tft.drawString("Scripts Found:", PADDING, y, 1);
+  tft.drawNumber((int)items.size(), 150, y, 1);
   y += rowGap;
 
-  tft.drawString("Device Name:", PADDING, y, 2);
-  tft.drawString(DEV_NAME, 150, y, 2);
+  tft.drawString("Device Name:", PADDING, y, 1);
+  tft.drawString(DEV_NAME, 150, y, 1);
   y += rowGap;
 
   y += 4;
@@ -1086,9 +1086,9 @@ static void drawConfirmDelete() {
   tft.fillRoundRect(x, y, w, h, 8, UI_FG);
   tft.drawRoundRect(x, y, w, h, 8, UI_LINE);
   tft.setTextColor(UI_TEXT, UI_FG);
-  tft.drawCentreString("Delete this script?", DISPLAY_WIDTH/2, y + 10, 2);
+  tft.drawCentreString("Delete this script?", DISPLAY_WIDTH/2, y + 10, 1);
   tft.setTextColor(UI_TEXT, UI_FG);
-  tft.drawCentreString("(This cannot be undone)", DISPLAY_WIDTH/2, y + 30, 2);
+  tft.drawCentreString("(This cannot be undone)", DISPLAY_WIDTH/2, y + 30, 1);
 
   int bw = (w - 3*PADDING)/2;
   int bx1 = x + PADDING;
@@ -1164,8 +1164,8 @@ void enter() {
 
     tft.fillRect(0, TOOLBAR_Y - 1, DISPLAY_WIDTH, DISPLAY_HEIGHT - (TOOLBAR_Y - 1), COL_BG);
     tft.setTextColor(UI_WARN, COL_BG);
-    tft.setTextFont(2);
-    tft.drawCentreString("SD card not detected", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 14, 2);
+    tft.setTextFont(1);
+    tft.drawCentreString("SD card not detected", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 14, 1);
     tft.setTextFont(1);
     tft.setTextColor(UI_TEXT, COL_BG);
     tft.drawCentreString("Returning...", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 + 10, 1);
@@ -1212,8 +1212,8 @@ void enter() {
     tft.fillRect(0, TOOLBAR_Y - 1, DISPLAY_WIDTH,
                  DISPLAY_HEIGHT - (TOOLBAR_Y - 1) - duckyFooterReserve(), COL_BG);
     tft.setTextColor(UI_WARN, COL_BG);
-    tft.setTextFont(2);
-    tft.drawCentreString("SD mount failed", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 14, 2);
+    tft.setTextFont(1);
+    tft.drawCentreString("SD mount failed", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 - 14, 1);
     tft.setTextFont(1);
     tft.setTextColor(UI_TEXT, COL_BG);
     tft.drawCentreString("Returning...", DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2 + 10, 1);

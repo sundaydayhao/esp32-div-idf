@@ -1287,7 +1287,7 @@ void displayLogo(uint16_t color, int displayTime) {
     decodeObfTo(pnBuf, sizeof(pnBuf), OBF_PN, sizeof(OBF_PN), k0());
     decodeObfTo(dnBuf, sizeof(dnBuf), OBF_DN, sizeof(OBF_DN), k0());
 
-    screen.setTextSize(2);
+    screen.setTextSize(1);
     int16_t textX = static_cast<int16_t>(screenWidth / 3.5) - fullX;
     screen.drawString(pnBuf, textX, bitmapHeight + 10, 1);
 
@@ -1308,7 +1308,7 @@ void displayLogo(uint16_t color, int displayTime) {
     tft.setTextColor(color);
     tft.setTextFont(1);
 
-    tft.setTextSize(2);
+    tft.setTextSize(1);
     int16_t textX = screenWidth / 3.5;
     tft.setCursor(textX, textY);
     tftPrintObf(OBF_PN, sizeof(OBF_PN));

@@ -1055,7 +1055,7 @@ void renderPanelGx(Gfx& g) {
   const bool staleGsv =
       (lastGsvMs != 0) && (((uint32_t)(now - lastGsvMs)) > 8000);
 
-  g.setTextFont(2);
+  g.setTextFont(1);
   g.setTextSize(1);
   g.setTextDatum(TL_DATUM);
   g.setTextColor(UI_TEXT, FEATURE_BG);
@@ -1206,7 +1206,7 @@ void redrawFeaturePanel(bool statusBarForceFull) {
   tft.setTextColor(UI_WARN, FEATURE_BG);
   tft.drawString("Display buffer failed", tft.width() / 2,
                  kGfxTop + (tft.height() - kGfxTop) / 2);
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextDatum(TL_DATUM);
 }
 
@@ -2648,7 +2648,7 @@ static void wardDrawWigleCfgPage() {
   const int cardW = scrW - 2 * pad;
   tft.fillRect(0, kWardBodyY, scrW, contentBottom - kWardBodyY, FEATURE_BG);
   tft.setTextDatum(TL_DATUM);
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextColor(UI_TEXT, FEATURE_BG);
   tft.drawString("WiGLE config", pad, kWardBodyY + 2);
   tft.setTextFont(1);

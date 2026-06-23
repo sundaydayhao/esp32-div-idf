@@ -729,7 +729,7 @@ static void ptmDrawWaitCard() {
   tft.drawFastHLine(cardX + 8, cardY + kTitleH, cardW - 16, UI_LINE);
 
   tft.setTextDatum(MC_DATUM);
-  tft.setTextFont(2);
+  tft.setTextFont(1);
   tft.setTextColor(FEATURE_TEXT, UI_FG);
   tft.drawString("Please Wait", cardX + cardW / 2, cardY + 14);
 
@@ -6961,7 +6961,7 @@ void updateSetup() {
   tft.drawFastHLine(0, 19, 240, UI_LINE);
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextSize(0);
+  tft.setTextSize(1);
 
   setupTouchscreen();
 
