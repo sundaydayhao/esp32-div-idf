@@ -1,3 +1,3 @@
 #pragma once
 
-#include "../../esp-nimble-cpp/src/NimBLEDevice.h"
+#include_next <NimBLEDevice.h>
