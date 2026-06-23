@@ -25,7 +25,7 @@ static char s_notifTitleCache[64];
 static char s_notifMsgCache[400];
 static bool s_notifShowSaveCache = false;
 
-/** Wrapped line count for modal text (font 1, size 1 ¡ª must match draw path). */
+/** Wrapped line count for modal text (font 1, size 1 - must match draw path). */
 static int countWrappedNotifLines(const DivString& msgIn, int innerPixelW) {
   tft.setTextFont(1);
   tft.setTextSize(1);
@@ -620,6 +620,7 @@ void drawStatusBar(float batteryVoltage, bool forceUpdate, bool bottomSeparator)
     int barHeight = 20;
     int x = 7;
     int y = 4;
+    const int rightShift = tft.width() > 240 ? (tft.width() - 240) : 0;
 
     tft.fillRect(0, 0, tft.width(), barHeight, UI_LABLE);
 
@@ -640,7 +641,7 @@ void drawStatusBar(float batteryVoltage, bool forceUpdate, bool bottomSeparator)
     const int gap           = 3;
     const int wifiBarsWidth = 24;
 
-    const int bleIconX      = 130;
+    const int bleIconX      = 130 + rightShift;
     const int bleTextX      = bleIconX + iconW + gap;
     const int wifiBarsX     = bleTextX + 12 + gap;
     const int tempIconX     = wifiBarsX + wifiBarsWidth + gap;
