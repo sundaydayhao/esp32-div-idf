@@ -1,0 +1,24 @@
+I (9042) esp32_div: PCF8574 self-test reason=edge action=DOWN pcf_pin=P5 pressed_mask=0x20 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=1 P5=0 P6=1 P7=1
+I (9044) esp32_div: button ui action=main_down main_idx=0 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
+I (9054) esp32_div: main menu action=DOWN index 0 -> 1
+I (9058) esp32_div: draw main menu idx=1 last=-1 full=1
+I (10037) esp32_div: PCF8574 poll addr=0x20 poll=8 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=0 P6=1 P7=1
+I (10238) esp32_div: PCF8574 poll addr=0x20 poll=9 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=1
+I (10341) esp32_div: PCF8574 self-test reason=edge action=DOWN pcf_pin=P5 pressed_mask=0x20 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=1 P5=0 P6=1 P7=1
+I (10343) esp32_div: button ui action=main_down main_idx=1 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
+I (10353) esp32_div: main menu action=DOWN index 1 -> 2
+I (10357) esp32_div: draw main menu idx=2 last=-1 full=1
+I (11357) esp32_div: PCF8574 self-test reason=edge action=RIGHT pcf_pin=P4 pressed_mask=0x10 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
+I (11359) esp32_div: button ui action=main_right main_idx=2 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
+I (11368) esp32_div: main menu action=RIGHT index 2 -> 6
+I (11373) esp32_div: draw main menu idx=6 last=-1 full=1
+I (12350) esp32_div: PCF8574 poll addr=0x20 poll=11 fail=0 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
+I (12538) esp32_div: PCF8574 self-test reason=edge action=RIGHT pcf_pin=P4 pressed_mask=0x10 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
+I (12539) esp32_div: button ui action=main_right main_idx=6 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
+I (12549) esp32_div: main menu action=RIGHT index 6 -> 7
+I (12554) esp32_div: draw main menu idx=7 last=-1 full=1
+I (13524) esp32_div: PCF8574 poll addr=0x20 poll=12 fail=0 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=1
+I (13662) esp32_div: PCF8574 self-test reason=edge action=RIGHT pcf_pin=P4 pressed_mask=0x10 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=0 P5=1 P6=1 P7=1
+I (13664) esp32_div: button ui action=main_right main_idx=7 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
+I (13673) esp32_div: main menu action=RIGHT index 7 -> 0
+I (13678) esp32_div: draw main menu idx=0 last=-1 full=1

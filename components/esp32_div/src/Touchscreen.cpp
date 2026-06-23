@@ -2,18 +2,9 @@
 #include "Touchscreen.h"
 #include <algorithm>
 #include "DivDisplay.h"
-#include "driver/gpio.h"
 #include "esp_log.h"
 
 extern DivDisplay tft;
-
-static void setOutputHigh(int pin) {
-  if (pin < 0 || pin >= GPIO_NUM_MAX) {
-    return;
-  }
-  gpio_set_direction((gpio_num_t)pin, GPIO_MODE_OUTPUT);
-  gpio_set_level((gpio_num_t)pin, 1);
-}
 
 #ifndef XPT2046_IRQ
 #define XPT2046_IRQ 255
@@ -52,21 +43,9 @@ void restoreTftSpiAfterTouchIfNeeded() {
     return;
   }
 
-#if defined(XPT2046_CS)
-  if (XPT2046_CS < 255) {
-    setOutputHigh(XPT2046_CS);
-  }
-#endif
-#if defined(TFT_CS)
-  if (TFT_CS >= 0) {
-    setOutputHigh(TFT_CS);
-  }
-#endif
-#if defined(TFT_DC)
-  if (TFT_DC >= 0) {
-    setOutputHigh(TFT_DC);
-  }
-#endif
+  // TFT and XPT2046 chip selects are owned by ESP-IDF's SPI master driver.
+  // Reconfiguring those pins as GPIO after spi_bus_add_device() detaches CS
+  // from the peripheral, so later TFT transactions are ignored by the panel.
   s_tftSpiDirtyFromTouch = false;
 }
 

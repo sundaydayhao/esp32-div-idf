@@ -16,6 +16,8 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
+#include <cstdio>
+
 static void drawTouchNavBar();
 void handleButtons();
 
@@ -1001,15 +1003,48 @@ static void drawMainMenuOtherTripleIcons(int x_position, int y_position, uint16_
     tft.drawBitmap(ix + 32 + MAIN_MENU_OTHER_ICON_GAP * 2, iy, bitmap_icon_down_dots, 16, 16, iconColor);
 }
 
+static uint16_t contrastColorFor565(uint16_t color) {
+    const uint8_t r = (uint8_t)((((color >> 11) & 0x1F) * 255) / 31);
+    const uint8_t g = (uint8_t)((((color >> 5) & 0x3F) * 255) / 63);
+    const uint8_t b = (uint8_t)(((color & 0x1F) * 255) / 31);
+    const uint16_t luma = (uint16_t)(r * 3 + g * 6 + b);
+    return (luma >= 1280) ? BLACK : WHITE;
+}
+
+static bool mainMenuTouchInputAvailable() {
+#if defined(XPT2046_IRQ) && (XPT2046_IRQ < 255)
+    return true;
+#else
+    return false;
+#endif
+}
+
+static void drawMainMenuSelectionBanner() {
+    if (current_menu_index < 0 || current_menu_index >= NUM_MENU_ITEMS) {
+        return;
+    }
+
+    char label[40];
+    std::snprintf(label, sizeof(label), "Selected %d: %s", current_menu_index, menu_items[current_menu_index]);
+    tft.fillRect(0, 20, tft.width(), 10, UI_BG);
+    tft.setTextFont(1);
+    tft.setTextSize(1);
+    tft.setTextColor(UI_TEXT, UI_BG);
+    tft.setCursor(6, 21);
+    tft.print(label);
+    tft.setTextFont(2);
+}
+
 static void drawMainMenuTile(int index, bool selected, const uint16_t* iconColors) {
     const int column = index / 4;
     const int row = index % 4;
     const int x_position = menuTileX(column);
     const int y_position = menuTileY(row, MAIN_MENU_ROWS);
-    const uint16_t fill = UI_FG;
-    const uint16_t edge = selected ? UI_ICON : UI_LINE;
-    const uint16_t fg = selected ? UI_ICON : UI_TEXT;
-    const uint16_t icon = selected ? SELECTED_ICON_COLOR : iconColors[index];
+    const uint16_t fill = selected ? UI_ICON : UI_FG;
+    const uint16_t selectedFg = contrastColorFor565(fill);
+    const uint16_t edge = selected ? selectedFg : UI_LINE;
+    const uint16_t fg = selected ? selectedFg : UI_TEXT;
+    const uint16_t icon = selected ? selectedFg : iconColors[index];
 
     tft.fillRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, fill);
     tft.drawRoundRect(x_position, y_position, MENU_TILE_W, MENU_TILE_H, 5, edge);
@@ -1077,6 +1112,7 @@ const uint16_t icon_colors[NUM_MENU_ITEMS] = {
             last_menu_index = current_menu_index;
         }
     }
+    drawMainMenuSelectionBanner();
     drawStatusBar(currentBatteryVoltage, true);
 }
 
@@ -3322,6 +3358,14 @@ void handleSettingsSubmenuButtons() {
 }
 
 void handleButtons() {
+    if (is_main_menu && (feature_active || in_sub_menu)) {
+        ESP_LOGW(TAG, "main menu state corrected feature=%d in_sub=%d idx=%d",
+                 (int)feature_active, (int)in_sub_menu, current_menu_index);
+        feature_active = false;
+        feature_exit_requested = false;
+        in_sub_menu = false;
+    }
+
     if (in_sub_menu) {
         switch (current_menu_index) {
 
@@ -3338,10 +3382,12 @@ void handleButtons() {
         const bool on_main_menu = !feature_active && !in_sub_menu;
 
         if (on_main_menu && navButtonPressed(BTN_UP, "main_up")) {
+            const int oldIndex = current_menu_index;
             current_menu_index--;
             if (current_menu_index < 0) {
                 current_menu_index = NUM_MENU_ITEMS - 1;
             }
+            ESP_LOGI(TAG, "main menu action=UP index %d -> %d", oldIndex, current_menu_index);
             last_interaction_time = millis();
             redrawMainMenu();
             delay(200);
@@ -3349,10 +3395,12 @@ void handleButtons() {
         }
 
         if (on_main_menu && navButtonPressed(BTN_DOWN, "main_down")) {
+            const int oldIndex = current_menu_index;
             current_menu_index++;
             if (current_menu_index >= NUM_MENU_ITEMS) {
                 current_menu_index = 0;
             }
+            ESP_LOGI(TAG, "main menu action=DOWN index %d -> %d", oldIndex, current_menu_index);
             last_interaction_time = millis();
             redrawMainMenu();
             delay(200);
@@ -3360,6 +3408,7 @@ void handleButtons() {
         }
 
         if (on_main_menu && navButtonPressed(BTN_LEFT, "main_left")) {
+            const int oldIndex = current_menu_index;
             int row = current_menu_index % 4;
             if (current_menu_index >= 4) {
                 current_menu_index = row;
@@ -3368,6 +3417,7 @@ void handleButtons() {
             } else {
                 current_menu_index = row - 1;
             }
+            ESP_LOGI(TAG, "main menu action=LEFT index %d -> %d", oldIndex, current_menu_index);
             last_interaction_time = millis();
             redrawMainMenu();
             delay(200);
@@ -3375,6 +3425,7 @@ void handleButtons() {
         }
 
         if (on_main_menu && navButtonPressed(BTN_RIGHT, "main_right")) {
+            const int oldIndex = current_menu_index;
             int row = current_menu_index % 4;
             if (current_menu_index < 4) {
                 current_menu_index = row + 4;
@@ -3383,6 +3434,7 @@ void handleButtons() {
             } else {
                 current_menu_index = row + 5;
             }
+            ESP_LOGI(TAG, "main menu action=RIGHT index %d -> %d", oldIndex, current_menu_index);
             last_interaction_time = millis();
             redrawMainMenu();
             delay(200);
@@ -3402,6 +3454,10 @@ void handleButtons() {
         static unsigned long lastTouchPollTime = 0;
         const unsigned long touchFeedbackDelay = 100;
         const unsigned long touchPollInterval = 40;
+
+        if (!mainMenuTouchInputAvailable()) {
+            return;
+        }
 
         if (!feature_active && (millis() - lastTouchTime >= touchFeedbackDelay)) {
             if (millis() - lastTouchPollTime < touchPollInterval) {
