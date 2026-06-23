@@ -1,8 +1,17 @@
-## ESP-IDF Project
+﻿# ESP32-DIV IDF v2
 
-This tree is organized as an ESP-IDF application. The firmware entry point is
-`main/app_main`, application code lives in `main/`, board selection lives in
-`main/BoardConfig.h`, and platform services are implemented in `main/src`.
+ESP32-DIV 的 ESP-IDF 版本工程，面向 ESP32-S3 平台，提供统一的无线工具、显示界面、存储管理和设备配置能力。
+
+## 项目结构
+
+- `main/`：应用入口、功能模块和平台抽象实现
+- `components/`：触摸屏、I/O 扩展器等外设组件
+- `managed_components/`：通过 ESP-IDF Component Manager 管理的依赖
+- `hardware/`：硬件资料
+- `docs/`：设计文档和说明
+- `assets/`：图片与静态资源
+
+## 构建与烧录
 
 ```bash
 idf.py set-target esp32s3
@@ -10,263 +19,107 @@ idf.py build
 idf.py flash monitor
 ```
 
-The codebase uses ESP-IDF drivers, `esp_event`, `esp_wifi`, NVS, VFS/FATFS,
-FreeRTOS, and project-local platform abstractions. Managed dependencies are
-declared through IDF Component Manager where practical.
+## 主要能力
 
-<div align="center">
+### Wi-Fi
 
-  <img src="https://github.com/user-attachments/assets/1f70e8ba-d8be-4889-959a-700294068a3e" alt="ESP32-DIV Banner" width="100%"/>
+- 网络扫描与监测
+- 抓包与 PCAP 记录
+- Beacon 相关测试
+- Deauth 检测与测试
+- Captive Portal 页面
+- Probe 请求测试
 
-  <br/>
-  <br/>
+### Bluetooth / BLE
 
-  <p align="center">
-    <a href="https://github.com/cifertech/ESP32-DIV"><img src="https://img.shields.io/static/v1?label=cifertech&message=ESP32-DIV&color=orange&logo=github"/></a>
-    <a href="https://github.com/cifertech/ESP32-DIV"><img src="https://img.shields.io/github/stars/cifertech/ESP32-DIV?style=social"/></a>
-    <a href="https://github.com/cifertech/ESP32-DIV"><img src="https://img.shields.io/github/forks/cifertech/ESP32-DIV?style=social"/></a>
-    <img src="https://img.shields.io/github/downloads/cifertech/esp32-div/total?color=orange&label=downloads&logo=github"/>
-    <img src="https://img.shields.io/badge/ESP32-Offensive%20%2B%20Defensive-orange?logo=espressif"/>
-    <img src="https://img.shields.io/badge/license-MIT-orange"/>
-  </p>
+- BLE 扫描与嗅探
+- BLE 广播与伪装
+- BLE HID 键盘脚本
+- 蓝牙干扰测试
 
-  <p align="center">
-    <a href="https://twitter.com/techcifer"><img src="https://img.shields.io/badge/Twitter-orange?logo=x&logoColor=black"/></a>
-    <a href="https://www.instagram.com/cifertech/"><img src="https://img.shields.io/badge/Instagram-orange?logo=instagram&logoColor=black"/></a>
-    <a href="https://www.youtube.com/c/techcifer"><img src="https://img.shields.io/badge/YouTube-orange?logo=youtube&logoColor=black"/></a>
-    <a href="https://cifertech.net/"><img src="https://img.shields.io/badge/Website-orange?logo=googlechrome&logoColor=black"/></a>
-  </p>
+### 2.4GHz
 
-</div>
+- 2.4GHz 频谱扫描
+- 协议干扰与测试
 
-&nbsp;
+### Sub-GHz
 
-## 📖 Explore the ESP32-DIV Wiki
+- 信号抓取与重放
+- 干扰测试
+- 配置文件管理
 
-Complete project story, in-depth tutorials, and all the features in [Wiki](https://github.com/cifertech/ESP32-DIV/wiki)! From Wi-Fi deauthentication attacks to Sub-GHz signal replay, the Wiki covers everything you need to get started. [Click here to explore now!](https://github.com/cifertech/ESP32-DIV/wiki)
+### 红外
 
-> 💡 **Tip:** Always check the [Wiki](https://github.com/cifertech/ESP32-DIV/wiki) and existing [Issues](https://github.com/cifertech/ESP32-DIV/issues) before opening a new report. Many common problems are already documented there.
+- 红外信号采集与重放
+- 遥控器配置管理
+- SD 卡导入与收藏
 
+### RFID / NFC
 
-<div>&nbsp;</div>
+- 读卡与标签识别
+- 支持写入标签的克隆与擦写
+- 数据导出和解析
+- 受控的干扰与测试流程
 
-<!-- About the Project -->
-## :star2: About the Project
-ESP32-DIV is an open-source, multi-band wireless toolkit built on the **ESP32-S3**. It covers Wi-Fi, BLE, 2.4GHz, Sub-GHz, IR, RFID/NFC, and GPS. all from a compact handheld device with a touchscreen UI. Whether you're analyzing wireless traffic, testing signal resilience, or building your own RF tools, ESP32-DIV gives you a single platform to do it all.
+### GPS
 
+- 卫星状态查看
+- 位置记录与 Wardriving 日志
+- Wi-Fi / BLE 观察数据记录
 
-> [!WARNING]
-> This project is intended for **educational and research purposes only**. Use only on networks and devices you own or have explicit permission to test. Unauthorized use may violate local laws.
+### 设备与系统
 
+- 串口控制台
+- SD 文件管理器
+- 固件升级
+- 触摸校准
+- 系统设置
 
+## 硬件说明
 
+项目以主板 + 扩展板的方式组织，具体板型由 `main/BoardConfig.h` 和 Kconfig 选择。
 
+### 主板
 
-<!-- Features -->
-## :dart: Features
+- ESP32-S3 或 ESP32 系列主控，视板型而定
+- ILI9341 或 ST7796 / ST7796S 显示屏
+- 触摸屏控制器
+- 电池充电与电源管理
+- USB 转串口芯片
+- SD 卡槽
+- 按键、蜂鸣器、NeoPixel 等外设
 
-<details>
-<summary><strong>📡 Wi-Fi</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| Packet Monitor | Real-time waterfall graph across all 14 channels; optional PCAP logging to SD |
-| Wi-Fi Scanner | Lists nearby networks with extended details |
-| Beacon Spammer | Broadcasts fake SSIDs (custom or random) |
-| Deauth Attack | Sends deauthentication frames to disrupt client connections |
-| Deauth Detector | Monitors for incoming deauth attacks |
-| Captive Portal | AP + DNS + web server; clone networks and force sign-in pages |
-| Probe Flood | Floods probe requests to stress-test APs |
- 
-</details>
-<details>
-<summary><strong>🔵 Bluetooth</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| BLE Scanner | Discovers hidden and visible BLE devices |
-| BLE Sniffer | Tracks MAC, RSSI, packet count, and last-seen time |
-| BLE Spoofer | Broadcasts fake BLE advertisements |
-| Sour Apple | Spoof Apple BLE advertisements (e.g., AirDrop popups) |
-| BLE Jammer | Disrupts BLE and classic Bluetooth channels |
-| BLE Rubber Ducky | Acts as a BLE keyboard; executes scripts from `/ducky` on SD |
- 
-</details>
-<details>
-<summary><strong>📶 2.4GHz</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| 2.4GHz Scanner | Spectrum analyzer across 128 channels (Zigbee, custom RF, etc.) |
-| Protokill | Disrupts Zigbee, Wi-Fi, and other 2.4GHz protocols |
- 
-</details>
-<details>
-<summary><strong>📻 Sub-GHz</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| Replay Attack | Captures and replays Sub-GHz commands (e.g., garage doors, remotes) |
-| Sub-GHz Jammer | Disrupts Sub-GHz communication across various bands |
-| Saved Profiles | Stores and manages captured signal profiles |
- 
-</details>
-<details>
-<summary><strong>📺 Infrared (IR)</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| IR Replay Attack | Captures real IR presses, visualizes, replays, and saves to SD |
-| IR Saved Profiles | Browses IR captures; preserves signal and carrier frequency |
-| Universal IR Controller | Built-in profiles, SD imports, favorites, and remote-style control |
- 
-</details>
-<details>
-<summary><strong>🧲 RFID / NFC</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| Card Reader | Reads UID and tag identification |
-| Card Clone | Copies supported writable tags |
-| Dump | Reads sectors/blocks when keys are available |
-| Decode Access | Interprets access bits and ACL-style fields from dumps |
-| Erase | Wipes supported writable tags |
-| Jam Reader | Impedes another reader with RF patterns |
-| Tag Disrupt | Advanced disruption flows for authorized physical tests |
-| Disrupt Emulate | Disruption combined with emulation-style flows |
- 
-</details>
-<details>
-<summary><strong>🛰�?GPS</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| Wardriver | Logs GNSS position with Wi-Fi/BLE observations to SD |
-| Satellite Scanner | Shows satellites in view, signal strength, and fix diagnostics |
- 
-</details>
-<details>
-<summary><strong>🧰 Device & System</strong></summary>
-  
-| Tool | Description |
-|------|-------------|
-| Serial Console | Mirrors serial traffic on the TFT for field debugging |
-| SD File Manager | Browses and manages files on the SD card |
-| Update Firmware | Flashes new firmware from SD |
-| Touch Calibrate | Four-corner XPT2046 touchscreen calibration |
-| Settings | Brightness, dark/light theme, NeoPixel, background auto-scan |
- 
-</details>
+### 扩展板
 
+- NRF24 模块
+- CC1101 模块
+- 红外收发器
+- 外接天线接口
 
+## 设计说明
 
-<div>&nbsp;</div>
+- 运行入口在 `main/app.cpp`
+- 显示抽象在 `DivDisplay` 和 `DivSprite`
+- SD 卡抽象在 `DivSd` 和 `DivFile`
+- 持久化存储抽象在 `DivNvStore`
+- 界面与功能模块共享 `featureClearContent()` 和 `drawStatusBar()` 等公共接口
 
-<!-- ESP32-DIV --> 
-<table>
-  <tr>
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/52e5be67-9dc7-4b08-bd2a-0a4e4235cf9d" alt="ESP32-DIV Beta" style="width: 1920px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV v2</p>
-    </td>    
-  </tr>
-</table>
+## 存储路径
 
-<table>
-  <tr>
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/466ffd1b-9807-47ce-b221-5a6bffc1aa7d" alt="ESP32-DIV Beta" style="width: 600px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV Beta</p>
-    </td>    
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/fd8ba7d9-0409-4180-af42-a3e6e82b29b3" alt="ESP32-DIV v1" style="width: 600px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV v1</p>
-    </td>
-  </tr>
-</table>
+- `/config/settings.json`：应用设置
+- `/captive_portal/captured.csv`：门户页面相关记录
+- `/subghz/profiles_current.bin`：当前 Sub-GHz 配置
+- `/ir/*.ir`：红外配置
+- `/ducky/*.duck`：BLE Ducky 脚本
+- `/wd_*.csv`：Wardriving 日志
+- `/firmware.bin`：SD 卡固件升级文件
 
-<div>&nbsp;</div>
+## 注意事项
 
-<!-- Hardware Overview --> 
-## 🔧 Hardware Overview
+- 本项目仅用于教育、研究和授权测试
+- 请勿在未授权的网络或设备上使用相关功能
+- 使用前请确认当地法律法规
 
-ESP32DIV consists of two boards:
+## 许可证
 
-### 🧠 Main Board
-- **ESP32-S3** �?Main microcontroller with Wi-Fi and BLE
-- **ILI9341 TFT Display** �?2.8" UI display
-- **LF33** �?3.3V regulator
-- **IP5306** �?Lithium battery charging and protection
-- **CP2102** �?USB to serial for flashing
-- **PCF8574** �?I/O expander for buttons
-- **SD Card Slot** �?Stores logs and captured signals
-- **Push Buttons** �?Navigation and interaction
-- **Antenna Connector** �?External antenna support
-- **WS2812 NeoPixels** - Giving better feedback
-- **Buzzer** - It shares a GPIO with the battery voltage divider, so using it is optional.
-
-### 🛡�?Shield
-- **3x NRF24 Modules** �?2.4GHz jamming and spoofing
-- **1x CC1101 Module** �?Sub-GHz jamming and replay
-- **Multiple antennas** - Extended range
-- **IR Transceiver** - Capture & replay IR remotes
-
-<div>&nbsp;</div>
-
-<table>
-  <tr>
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/0aeca1bb-9023-43a0-9f62-f89ced53098f" alt="ESP32-DIV Beta" style="width: 600px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV v2 Main Board</p>
-    </td>    
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/bbfa2c55-02e0-4795-b003-fde06f2d64d9" alt="ESP32-DIV v1" style="width: 600px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV v2 Shield</p>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/b4e3ad5e-4f43-4c08-ae33-d713be0a3855" alt="ESP32-DIV Beta" style="width: 600px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV v1 Main Board</p>
-    </td>    
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/21f10c62-5e6c-4565-8b86-7b89e24680c3" alt="ESP32-DIV v1" style="width: 600px; border: 1px solid #ccc; border-radius: 5px;">
-      <p style="font-style: italic; font-size: 14px; margin-top: 5px;">ESP32-DIV v1 Shield</p>
-    </td>
-  </tr>
-</table>
-
-
-
-
-<!-- License --> 
-## :warning: License
- 
-Distributed under the MIT License. See LICENSE.txt for more information.
-
-
-
-
-<!-- Support & Contributions -->
-## 💬 Support & Contributions
-
-- 💬 Found a bug or have a feature request? Open an [Issue](https://github.com/cifertech/ESP32-DIV/issues)
-- �?Like the project? Star the repo!
-- 🛠 Want to contribute? Fork it and submit a pull request.
-�?
-
-
-<!-- Contact -->
-## :handshake: Contact 
-
-�?Support me on Patreon [patreon.com/cifertech](https://www.patreon.com/cifertech)
-
-CiferTech - [@twitter](https://twitter.com/techcifer) - CiferTech@gmali.com
-
-Project Link: [https://github.com/cifertech/ESP32-DIV](https://github.com/cifertech/ESP32-DIV)
-
- 
-
+本项目采用 MIT 许可证，详见 `LICENSE.txt`。
