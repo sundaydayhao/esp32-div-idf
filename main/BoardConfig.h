@@ -72,6 +72,16 @@
 #define BOARD_HAS_ESP32S3 1
 #endif
 
+#if defined(BOARD_ESP32_DIV_V4)
+#if !defined(TFT_PANEL_ST7796)
+#error "BOARD_ESP32_DIV_V4 requires TFT_PANEL_ST7796"
+#endif
+#else
+#if !defined(TFT_PANEL_ILI9341)
+#error "BOARD_CYD/V1/V2/V3 require TFT_PANEL_ILI9341"
+#endif
+#endif
+
 #if defined(BOARD_CYD)
 #define TOUCH_PROFILE_ID "CYD"
 #define TOUCH_X_MIN 200

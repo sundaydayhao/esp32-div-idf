@@ -22,19 +22,19 @@ choice ESP32_DIV_BOARD
         bool "ESP32-DIV V4"
 endchoice
 
-choice ESP32_DIV_TFT_PANEL
-    prompt "Select TFT panel"
-    default ESP32_DIV_TFT_PANEL_ST7796 if ESP32_DIV_BOARD_V4
-    default ESP32_DIV_TFT_PANEL_ILI9341
+config ESP32_DIV_TFT_PANEL_ILI9341
+    bool "ILI9341"
+    default y if ESP32_DIV_BOARD_CYD || ESP32_DIV_BOARD_V1 || ESP32_DIV_BOARD_V2 || ESP32_DIV_BOARD_V3
+    depends on ESP32_DIV_BOARD_CYD || ESP32_DIV_BOARD_V1 || ESP32_DIV_BOARD_V2 || ESP32_DIV_BOARD_V3
     help
-        Choose the display controller used by the selected board.
+        3.2-inch panels on CYD/V1/V2/V3 use ILI9341.
 
-    config ESP32_DIV_TFT_PANEL_ILI9341
-        bool "ILI9341"
-
-    config ESP32_DIV_TFT_PANEL_ST7796
-        bool "ST7796 / ST7796S"
-endchoice
+config ESP32_DIV_TFT_PANEL_ST7796
+    bool "ST7796 / ST7796S"
+    default y if ESP32_DIV_BOARD_V4
+    depends on ESP32_DIV_BOARD_V4
+    help
+        4-inch panels on V4 use ST7796/ST7796S.
 
 config ESP32_DIV_PCF8574_ENABLED
     bool "Enable PCF8574 button expander"
