@@ -570,6 +570,17 @@ void DivSprite::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t co
 }
 void DivSprite::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t, uint16_t color) { drawRect(x, y, w, h, color); }
 void DivSprite::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t, uint16_t color) { fillRect(x, y, w, h, color); }
+void DivSprite::drawBitmap(int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, uint16_t color) {
+  if (!bitmap || pixels_.empty()) return;
+  const int32_t byteWidth = (w + 7) / 8;
+  for (int32_t yy = 0; yy < h; ++yy) {
+    for (int32_t xx = 0; xx < w; ++xx) {
+      if (bitmap[yy * byteWidth + xx / 8] & (0x80 >> (xx & 7))) {
+        writePixel(x + xx, y + yy, color);
+      }
+    }
+  }
+}
 void DivSprite::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint16_t color) {
   const int32_t dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
   const int32_t dy = -std::abs(y1 - y0), sy = y0 < y1 ? 1 : -1;

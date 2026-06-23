@@ -149,6 +149,7 @@ class DivSprite {
   void drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t color);
   void drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint16_t color);
   void fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint16_t color);
+  void drawBitmap(int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, uint16_t color);
   void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint16_t color);
   void drawCircle(int32_t x0, int32_t y0, int32_t r, uint16_t color);
   void fillCircle(int32_t x0, int32_t y0, int32_t r, uint16_t color);

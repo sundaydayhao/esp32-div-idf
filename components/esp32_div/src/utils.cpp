@@ -1208,6 +1208,7 @@ void restoreSdAfterSharedSpi() {
 }
 
 void loading(int frameDelay, uint16_t color, int16_t x, int16_t y, int repeats, bool center) {
+  const int actualFrameDelay = (frameDelay > 60) ? 60 : frameDelay;
   int16_t bitmapWidth = 100;
   int16_t bitmapHeight = 120;
   int16_t logoX = x;
@@ -1234,11 +1235,25 @@ void loading(int frameDelay, uint16_t color, int16_t x, int16_t y, int repeats, 
   };
   const int numFrames = 10;
 
+  DivSprite frame(&tft);
+  const bool useSprite = frame.createSprite(bitmapWidth, bitmapHeight);
+  if (useSprite) {
+    frame.setColorDepth(16);
+  }
+
   for (int r = 0; r < repeats; r++) {
     for (int i = 0; i < numFrames; i++) {
-      tft.fillRect(logoX, logoY, bitmapWidth, bitmapHeight, TFT_BLACK);
-      tft.drawBitmap(logoX, logoY, bitmaps[i], bitmapWidth, bitmapHeight, color);
-      delay(frameDelay);
+      if (useSprite) {
+        frame.fillScreen(TFT_BLACK);
+        frame.drawBitmap(0, 0, bitmaps[i], bitmapWidth, bitmapHeight, color);
+        frame.pushSprite(logoX, logoY);
+      } else {
+        tft.startWrite();
+        tft.fillRect(logoX, logoY, bitmapWidth, bitmapHeight, TFT_BLACK);
+        tft.drawBitmap(logoX, logoY, bitmaps[i], bitmapWidth, bitmapHeight, color);
+        tft.endWrite();
+      }
+      delay(actualFrameDelay);
     }
   }
 }
@@ -1251,30 +1266,66 @@ void displayLogo(uint16_t color, int displayTime) {
   int16_t logoX = (screenWidth - bitmapWidth) / 2;
   int16_t logoY = (screenHeight - bitmapHeight) / 2 - 20;
 
-  tft.fillRect(logoX, logoY, bitmapWidth, bitmapHeight, TFT_BLACK);
-  tft.drawBitmap(logoX, logoY, bitmap_icon_cifer, bitmapWidth, bitmapHeight, color);
+  const int16_t textY = logoY + bitmapHeight + 10;
+  const int16_t textBlockH = 82;
+  const int16_t fullW = bitmapWidth;
+  const int16_t fullH = bitmapHeight + 10 + textBlockH;
+  const int16_t fullX = logoX;
+  const int16_t fullY = logoY;
 
-  tft.setTextColor(color);
-  tft.setTextFont(1);
+  DivSprite screen(&tft);
+  const bool useSprite = screen.createSprite(fullW, fullH);
+  if (useSprite) {
+    screen.setColorDepth(16);
+    screen.fillScreen(TFT_BLACK);
+    screen.drawBitmap(0, 0, bitmap_icon_cifer, bitmapWidth, bitmapHeight, color);
+    screen.setTextColor(color, TFT_BLACK);
+    screen.setTextFont(1);
 
-  tft.setTextSize(2);
-  int16_t textX = screenWidth / 3.5;
-  int16_t textY = logoY + bitmapHeight + 10;
-  tft.setCursor(textX, textY);
-  tftPrintObf(OBF_PN, sizeof(OBF_PN));
+    char pnBuf[96];
+    char dnBuf[96];
+    decodeObfTo(pnBuf, sizeof(pnBuf), OBF_PN, sizeof(OBF_PN), k0());
+    decodeObfTo(dnBuf, sizeof(dnBuf), OBF_DN, sizeof(OBF_DN), k0());
 
-  tft.setTextSize(1);
-  textX = screenWidth / 3.5;
-  textY += 20;
-  tft.setCursor(textX, textY);
-  tft.print("by ");
-  tftPrintObf(OBF_DN, sizeof(OBF_DN));
+    screen.setTextSize(2);
+    int16_t textX = static_cast<int16_t>(screenWidth / 3.5) - fullX;
+    screen.drawString(pnBuf, textX, bitmapHeight + 10, 1);
 
-  textX = screenWidth / 2.5;
-  textY += 50;
-  tft.setCursor(textX, textY);
-  // Version is intentionally NOT obfuscated.
-  tft.print(ESP32DIV_VERSION);
+    screen.setTextSize(1);
+    textX = static_cast<int16_t>(screenWidth / 3.5) - fullX;
+    screen.drawString("by ", textX, bitmapHeight + 30, 1);
+    screen.drawString(dnBuf, textX + 18, bitmapHeight + 30, 1);
+
+    textX = static_cast<int16_t>(screenWidth / 2.5) - fullX;
+    screen.drawString(ESP32DIV_VERSION, textX, bitmapHeight + 80, 1);
+    screen.pushSprite(fullX, fullY);
+  } else {
+    tft.startWrite();
+    tft.fillRect(logoX, logoY, bitmapWidth, bitmapHeight, TFT_BLACK);
+    tft.drawBitmap(logoX, logoY, bitmap_icon_cifer, bitmapWidth, bitmapHeight, color);
+    tft.endWrite();
+
+    tft.setTextColor(color);
+    tft.setTextFont(1);
+
+    tft.setTextSize(2);
+    int16_t textX = screenWidth / 3.5;
+    tft.setCursor(textX, textY);
+    tftPrintObf(OBF_PN, sizeof(OBF_PN));
+
+    tft.setTextSize(1);
+    textX = screenWidth / 3.5;
+    int16_t textY2 = textY + 20;
+    tft.setCursor(textX, textY2);
+    tft.print("by ");
+    tftPrintObf(OBF_DN, sizeof(OBF_DN));
+
+    textX = screenWidth / 2.5;
+    textY2 += 50;
+    tft.setCursor(textX, textY2);
+    // Version is intentionally NOT obfuscated.
+    tft.print(ESP32DIV_VERSION);
+  }
 
   DivSerial.println("==================================");
   serialPrintObf(OBF_PN, sizeof(OBF_PN), true);

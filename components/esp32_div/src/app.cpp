@@ -713,6 +713,23 @@ int last_submenu_index = -1;
 bool submenu_initialized = false;
 int last_menu_index = -1;
 bool menu_initialized = false;
+static inline void fastUiDelay(uint32_t ms) {
+    if (ms == 250) {
+        ms = 100;
+    } else if (ms == 200) {
+        ms = 70;
+    } else if (ms == 120) {
+        ms = 60;
+    } else if (ms == 100) {
+        ms = 50;
+    } else if (ms == 80) {
+        ms = 40;
+    }
+    ::delay(ms);
+}
+
+#define delay(ms) fastUiDelay(ms)
+
 static constexpr int Y_START = 30;
 static constexpr int Y_SPACING = 75;
 static constexpr int MENU_TILE_W = 100;
