@@ -8,17 +8,11 @@
 #define BOARD_ESP32_DIV_V1 1
 #elif defined(CONFIG_ESP32_DIV_BOARD_V2)
 #define BOARD_ESP32_DIV_V2 1
-#elif defined(CONFIG_ESP32_DIV_BOARD_V4)
-#define BOARD_ESP32_DIV_V4 1
 #else
-#define BOARD_ESP32_DIV_V3 1
+#define BOARD_ESP32_DIV_V2 1
 #endif
 
-#if defined(CONFIG_ESP32_DIV_TFT_PANEL_ST7796)
-#define TFT_PANEL_ST7796 1
-#else
 #define TFT_PANEL_ILI9341 1
-#endif
 
 #if defined(CONFIG_ESP32_DIV_PCF8574_ENABLED) && CONFIG_ESP32_DIV_PCF8574_ENABLED
 #define pcf_ADDR CONFIG_ESP32_DIV_PCF8574_ADDR
@@ -46,7 +40,7 @@
 #define TFT_ROTATION CONFIG_ESP32_DIV_TFT_ROTATION
 #endif
 
-#if !defined(BOARD_ESP32_DIV_V4) && !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
+#if !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
 #error "No board selected by Kconfig"
 #endif
 
@@ -62,24 +56,10 @@
 #define ESP32DIV_BOARD_NAME "ESP32-DIV V2"
 #define HAS_PCF8574_BUTTONS 1
 #define BOARD_HAS_ESP32S3 1
-#elif defined(BOARD_ESP32_DIV_V3)
-#define ESP32DIV_BOARD_NAME "ESP32-DIV V3"
-#define HAS_PCF8574_BUTTONS 1
-#define BOARD_HAS_ESP32S3 1
-#elif defined(BOARD_ESP32_DIV_V4)
-#define ESP32DIV_BOARD_NAME "ESP32-DIV V4"
-#define HAS_PCF8574_BUTTONS 1
-#define BOARD_HAS_ESP32S3 1
 #endif
 
-#if defined(BOARD_ESP32_DIV_V4)
-#if !defined(TFT_PANEL_ST7796)
-#error "BOARD_ESP32_DIV_V4 requires TFT_PANEL_ST7796"
-#endif
-#else
 #if !defined(TFT_PANEL_ILI9341)
-#error "BOARD_CYD/V1/V2/V3 require TFT_PANEL_ILI9341"
-#endif
+#error "Supported ESP32-DIV board profiles require TFT_PANEL_ILI9341"
 #endif
 
 #if defined(BOARD_CYD)
@@ -96,18 +76,6 @@
 #define TOUCH_Y_MAX 3800
 #elif defined(BOARD_ESP32_DIV_V2)
 #define TOUCH_PROFILE_ID "ESP32_DIV_V2"
-#define TOUCH_X_MIN 280
-#define TOUCH_X_MAX 3850
-#define TOUCH_Y_MIN 320
-#define TOUCH_Y_MAX 3750
-#elif defined(BOARD_ESP32_DIV_V3)
-#define TOUCH_PROFILE_ID "ESP32_DIV_V3"
-#define TOUCH_X_MIN 280
-#define TOUCH_X_MAX 3850
-#define TOUCH_Y_MIN 320
-#define TOUCH_Y_MAX 3750
-#elif defined(BOARD_ESP32_DIV_V4)
-#define TOUCH_PROFILE_ID "ESP32_DIV_V4"
 #define TOUCH_X_MIN 280
 #define TOUCH_X_MAX 3850
 #define TOUCH_Y_MIN 320

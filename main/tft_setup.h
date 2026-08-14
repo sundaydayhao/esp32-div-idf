@@ -10,9 +10,6 @@
 #ifdef ILI9341_2_DRIVER
 #undef ILI9341_2_DRIVER
 #endif
-#ifdef ST7796_DRIVER
-#undef ST7796_DRIVER
-#endif
 
 #ifdef TFT_MISO
 #undef TFT_MISO
@@ -74,16 +71,6 @@
 #undef SPI_READ_FREQUENCY
 #endif
 #define SPI_READ_FREQUENCY 20000000
-#elif defined(TFT_PANEL_ST7796)
-#define ST7796_DRIVER
-#ifdef SPI_FREQUENCY
-#undef SPI_FREQUENCY
-#endif
-#define SPI_FREQUENCY 27000000
-#ifdef SPI_READ_FREQUENCY
-#undef SPI_READ_FREQUENCY
-#endif
-#define SPI_READ_FREQUENCY 20000000
 #else
 #error "Unsupported TFT panel selection"
 #endif
@@ -93,11 +80,6 @@
 #define TFT_WIDTH 240
 #undef TFT_HEIGHT
 #define TFT_HEIGHT 320
-#elif defined(TFT_PANEL_ST7796)
-#undef TFT_WIDTH
-#define TFT_WIDTH 320
-#undef TFT_HEIGHT
-#define TFT_HEIGHT 480
 #endif
 
 #ifndef TFT_COL_OFFSET

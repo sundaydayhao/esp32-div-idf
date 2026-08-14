@@ -134,7 +134,7 @@ BLE 子菜单：
 
 ### 2.4 板级适配覆盖度 vs 硬件目录不一致
 
-`main/board_config.h` 定义的板型为 `BOARD_CYD`、`BOARD_ESP32_DIV_V1`~`V4`，而 `hardware/pcb/` 和 `hardware/schematic/` 目录下只有 `beta`、`v1`、`v2`、`v3`、`v4` 五套资料（其中 `beta` 对应 `BOARD_CYD`? 命名不直接对应）。建议在文档里把"板型宏 ↔ 硬件版本目录"的映射关系明确列出来，现在需要靠猜测或读代码才能对应上，对新加入的协作者不友好。
+`main/board_config.h` 当前只保留 `BOARD_CYD`、`BOARD_ESP32_DIV_V1`、`BOARD_ESP32_DIV_V2` 三类板型；硬件资料也应只维护与这些板型对应的目录，避免已移除板型继续出现在文档和构建选项中。
 
 ### 2.5 依赖管理：真实托管组件 vs 占位头文件混用
 

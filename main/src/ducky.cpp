@@ -84,11 +84,7 @@ static int duckyToastCenterY() {
 static bool sd_mounted = false;
 
 #ifndef SD_CD_RELIABLE
-#if defined(BOARD_ESP32_DIV_V3)
-#define SD_CD_RELIABLE 0
-#else
 #define SD_CD_RELIABLE 1
-#endif
 #endif
 static bool ui_inited  = false;
 static bool ui_busy    = false;

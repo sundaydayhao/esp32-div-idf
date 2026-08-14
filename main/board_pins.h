@@ -7,7 +7,7 @@
 #endif
 
 #ifndef DIV_SD_HOST
-#if defined(BOARD_ESP32_DIV_V2) || defined(BOARD_ESP32_DIV_V3) || defined(BOARD_ESP32_DIV_V4)
+#if defined(BOARD_ESP32_DIV_V2)
 #define DIV_SD_HOST SPI3_HOST
 #else
 #define DIV_SD_HOST SPI2_HOST

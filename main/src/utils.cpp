@@ -470,11 +470,7 @@ static uint32_t s_sdNextMountAttemptMs = 0;
 static constexpr uint32_t kSdMountRetryDelayMs = 10000;
 
 #ifndef SD_CD_RELIABLE
-#if defined(BOARD_ESP32_DIV_V3)
-#define SD_CD_RELIABLE 0
-#else
 #define SD_CD_RELIABLE 1
-#endif
 #endif
 
 void requestStatusBarRedraw() {

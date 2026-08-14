@@ -90,15 +90,15 @@ static const uint8_t OBF_EM[]   = {107, 97, 110, 109, 122, 124, 109, 107, 96, 72
 static const uint8_t OBF_GH[]   = {111, 97, 124, 96, 125, 106, 38, 107, 103, 101, 39, 107, 97, 110, 109, 122, 124, 109, 107, 96}; 
 static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 102, 109, 124};       
 
-/*©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Board Selection ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤*/
+/* Board Selection */
 // Default is selected in board_config.h. You can also pass a BOARD_* define
 // from your build flags to target a board without editing source.
-#if !defined(BOARD_ESP32_DIV_V4) && !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
-#define BOARD_ESP32_DIV_V3
+#if !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
+#define BOARD_ESP32_DIV_V2
 #endif
 
-#if (defined(BOARD_ESP32_DIV_V4) + defined(BOARD_ESP32_DIV_V3) + defined(BOARD_ESP32_DIV_V2) + defined(BOARD_CYD) + defined(BOARD_ESP32_DIV_V1)) > 1
-#error "Select only one board: BOARD_ESP32_DIV_V4, BOARD_ESP32_DIV_V3, BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
+#if (defined(BOARD_ESP32_DIV_V2) + defined(BOARD_CYD) + defined(BOARD_ESP32_DIV_V1)) > 1
+#error "Select only one board: BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
 #endif
 
 #if defined(BOARD_CYD)
@@ -131,31 +131,10 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef BOARD_HAS_ESP32S3
 #define BOARD_HAS_ESP32S3 1
 #endif
-#elif defined(BOARD_ESP32_DIV_V3)
-#ifndef ESP32DIV_BOARD_NAME
-#define ESP32DIV_BOARD_NAME "ESP32-DIV V3"
-#endif
-#ifndef HAS_PCF8574_BUTTONS
-#define HAS_PCF8574_BUTTONS 1
-#endif
-#ifndef BOARD_HAS_ESP32S3
-#define BOARD_HAS_ESP32S3 1
-#endif
-#elif defined(BOARD_ESP32_DIV_V4)
-#ifndef ESP32DIV_BOARD_NAME
-#define ESP32DIV_BOARD_NAME "ESP32-DIV V4"
-#endif
-#ifndef HAS_PCF8574_BUTTONS
-#define HAS_PCF8574_BUTTONS 1
-#endif
-#ifndef BOARD_HAS_ESP32S3
-#define BOARD_HAS_ESP32S3 1
-#endif
 #else
-#error "Unknown board: define BOARD_ESP32_DIV_V4, BOARD_ESP32_DIV_V3, BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
+#error "Unknown board: define BOARD_ESP32_DIV_V2, BOARD_ESP32_DIV_V1, or BOARD_CYD"
 #endif
-
-/*©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Touch calibration profiles ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤*/
+/* Touch calibration profiles */
 /* Factory defaults per board (raw XPT2046 range). Override in board_config.h.
  * User-saved NVS calibration overrides these defaults when the board id matches. */
 #if defined(BOARD_CYD)
@@ -206,38 +185,6 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef TOUCH_Y_MAX
 #define TOUCH_Y_MAX 3750
 #endif
-#elif defined(BOARD_ESP32_DIV_V3)
-#ifndef TOUCH_PROFILE_ID
-#define TOUCH_PROFILE_ID "ESP32_DIV_V3"
-#endif
-#ifndef TOUCH_X_MIN
-#define TOUCH_X_MIN 280
-#endif
-#ifndef TOUCH_X_MAX
-#define TOUCH_X_MAX 3850
-#endif
-#ifndef TOUCH_Y_MIN
-#define TOUCH_Y_MIN 320
-#endif
-#ifndef TOUCH_Y_MAX
-#define TOUCH_Y_MAX 3750
-#endif
-#elif defined(BOARD_ESP32_DIV_V4)
-#ifndef TOUCH_PROFILE_ID
-#define TOUCH_PROFILE_ID "ESP32_DIV_V4"
-#endif
-#ifndef TOUCH_X_MIN
-#define TOUCH_X_MIN 280
-#endif
-#ifndef TOUCH_X_MAX
-#define TOUCH_X_MAX 3850
-#endif
-#ifndef TOUCH_Y_MIN
-#define TOUCH_Y_MIN 320
-#endif
-#ifndef TOUCH_Y_MAX
-#define TOUCH_Y_MAX 3750
-#endif
 #endif
 
 #ifndef TOUCH_PROFILE_ID
@@ -255,7 +202,6 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #ifndef TOUCH_Y_MAX
 #define TOUCH_Y_MAX 3800
 #endif
-
 #ifndef TFT_ROTATION
 #if defined(BOARD_CYD) || defined(BOARD_ESP32_DIV_V1)
 #define TFT_ROTATION 0
@@ -288,7 +234,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define PCF8574_ADDR_MIN 0x20
 #define PCF8574_ADDR_MAX 0x27
 #ifndef PCF8574_I2C_SDA
-#if defined(BOARD_ESP32_DIV_V2) || defined(BOARD_ESP32_DIV_V3) || defined(BOARD_ESP32_DIV_V4)
+#if defined(BOARD_ESP32_DIV_V2)
 #define PCF8574_I2C_SDA 8
 #elif defined(BOARD_ESP32_DIV_V1)
 #define PCF8574_I2C_SDA 8
@@ -297,7 +243,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #endif
 #endif
 #ifndef PCF8574_I2C_SCL
-#if defined(BOARD_ESP32_DIV_V2) || defined(BOARD_ESP32_DIV_V3) || defined(BOARD_ESP32_DIV_V4)
+#if defined(BOARD_ESP32_DIV_V2)
 #define PCF8574_I2C_SCL 9
 #elif defined(BOARD_ESP32_DIV_V1)
 #define PCF8574_I2C_SCL 9
@@ -310,12 +256,6 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #define BTN_DOWN     3
 #define BTN_LEFT     4
 #define BTN_RIGHT    5
-#define BTN_SELECT   7
-#elif defined(BOARD_ESP32_DIV_V3) || defined(BOARD_ESP32_DIV_V4)
-#define BTN_UP       3
-#define BTN_DOWN     5
-#define BTN_LEFT     6
-#define BTN_RIGHT    4
 #define BTN_SELECT   7
 #else
 #define BTN_UP       7

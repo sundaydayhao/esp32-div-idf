@@ -4,13 +4,11 @@
 
 ESP32-DIV 是一个基于 ESP-IDF 的 ESP32-DIV 工程，面向 ESP32-S3 平台，也兼容部分历史板型。工程入口为 `main/app.cpp`，显示、存储、SD 卡和平台抽象分别由 `DivDisplay`、`DivNvStore`、`DivSd` 等模块提供。
 
-当前板型通过 `main/board_config.h` 和 Kconfig 进行选择，默认板型为 `BOARD_ESP32_DIV_V3`。可选板型包括：
+当前板型通过 `main/board_config.h` 和 Kconfig 进行选择，默认板型为 `BOARD_ESP32_DIV_V2`。可选板型包括：
 
 - `BOARD_CYD`
 - `BOARD_ESP32_DIV_V1`
 - `BOARD_ESP32_DIV_V2`
-- `BOARD_ESP32_DIV_V3`
-- `BOARD_ESP32_DIV_V4`
 
 ## 2. 架构分层
 
@@ -58,15 +56,14 @@ ESP32-DIV 是一个基于 ESP-IDF 的 ESP32-DIV 工程，面向 ESP32-S3 平台�
 
 板型由 `main/board_config.h` 和 Kconfig 共同决定，同一构建只能启用一个 `BOARD_*` 宏。
 
-显示面板由 `TFT_PANEL_ILI9341` 或 `TFT_PANEL_ST7796` 选择。当前工程中：
+显示面板固定为 `TFT_PANEL_ILI9341`。当前工程中：
 
-- `BOARD_ESP32_DIV_V4` 默认使用 `ST7796 / ST7796S`
-- 其余板型默认使用 `ILI9341`
+- 所有保留板型默认使用 `ILI9341`
 
 `main/tft_setup.h` 保存显示相关参数，包括：
 
 - SPI 引脚：`TFT_MISO`、`TFT_MOSI`、`TFT_SCLK`、`TFT_CS`、`TFT_DC`、`TFT_RST`、`TFT_BL`
-- 屏幕分辨率：ILI9341 为 `240x320`，ST7796 为 `320x480`
+- 屏幕分辨率：ILI9341 为 `240x320`
 - SPI 频率：默认 `27 MHz`
 - 背光逻辑：`TFT_BACKLIGHT_ON`
 - 颜色顺序、反色模式和面板驱动配置
