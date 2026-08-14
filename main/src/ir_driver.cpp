@@ -1,7 +1,7 @@
-#include "IRrecv.h"
-#include "IRsend.h"
+#include "ir_recv.h"
+#include "ir_send.h"
 
-#include "DivPlatform.h"
+#include "div_platform.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
 

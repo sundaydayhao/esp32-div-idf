@@ -4,7 +4,7 @@
 
 ESP32-DIV 是一个基于 ESP-IDF 的 ESP32-DIV 工程，面向 ESP32-S3 平台，也兼容部分历史板型。工程入口为 `main/app.cpp`，显示、存储、SD 卡和平台抽象分别由 `DivDisplay`、`DivNvStore`、`DivSd` 等模块提供。
 
-当前板型通过 `main/BoardConfig.h` 和 Kconfig 进行选择，默认板型为 `BOARD_ESP32_DIV_V3`。可选板型包括：
+当前板型通过 `main/board_config.h` 和 Kconfig 进行选择，默认板型为 `BOARD_ESP32_DIV_V3`。可选板型包括：
 
 - `BOARD_CYD`
 - `BOARD_ESP32_DIV_V1`
@@ -19,7 +19,7 @@ ESP32-DIV 是一个基于 ESP-IDF 的 ESP32-DIV 工程，面向 ESP32-S3 平台�
 | 入口层 | `main/` | 初始化 ESP-IDF 运行环境并进入应用主循环 |
 | 应用层 | `main/` | 菜单、UI、Wi-Fi、BLE、Sub-GHz、IR、RFID/NFC、GPS、设置和文件管理 |
 | 平台层 | `main/include/` 与 `main/src/` | 显示、串口、SPI、SD/VFS、Wi-Fi、NVS、TFT、系统计时和 GPIO 封装 |
-| 板级层 | `main/BoardConfig.h`、`main/BoardPins.h`、`main/tft_setup.h` | 板型、屏幕、引脚和默认参数 |
+| 板级层 | `main/board_config.h`、`main/board_pins.h`、`main/tft_setup.h` | 板型、屏幕、引脚和默认参数 |
 | 外设组件 | `components/` | 触摸屏、PCF8574、第三方兼容组件 |
 | 托管组件 | `managed_components/` | 通过 IDF Component Manager 下载的依赖 |
 
@@ -56,7 +56,7 @@ ESP32-DIV 是一个基于 ESP-IDF 的 ESP32-DIV 工程，面向 ESP32-S3 平台�
 
 ## 4. 板级与显示
 
-板型由 `main/BoardConfig.h` 和 Kconfig 共同决定，同一构建只能启用一个 `BOARD_*` 宏。
+板型由 `main/board_config.h` 和 Kconfig 共同决定，同一构建只能启用一个 `BOARD_*` 宏。
 
 显示面板由 `TFT_PANEL_ILI9341` 或 `TFT_PANEL_ST7796` 选择。当前工程中：
 
@@ -92,7 +92,7 @@ SD 文件访问通过 `DivSd` 和 `DivFile` 映射到 VFS/FATFS。持久化键�
 
 | 模块 | 源文件 | 主要能力 |
 | --- | --- | --- |
-| 主菜单和导航 | `main/src/app.cpp`、`main/src/utils.cpp`、`main/src/Touchscreen.cpp`、`main/src/KeyboardUI.cpp` | 启动、菜单、状态栏、触摸导航、键盘输入和通知弹窗 |
+| 主菜单和导航 | `main/src/app.cpp`、`main/src/utils.cpp`、`main/src/touchscreen.cpp`、`main/src/keyboard_ui.cpp` | 启动、菜单、状态栏、触摸导航、键盘输入和通知弹窗 |
 | Wi-Fi | `main/src/wifi.cpp` | 扫描、监控、PCAP、Beacon、Deauth、Portal、Probe、固件上传 |
 | BLE / 2.4GHz | `main/src/bluetooth.cpp`、`main/src/ducky.cpp` | BLE 扫描、广播、HID、嗅探和 2.4GHz 相关功能 |
 | Sub-GHz | `main/src/subghz.cpp` | CC1101 接收、重放、干扰与 profile 管理 |
@@ -126,7 +126,7 @@ Web 更新通过 `esp_http_server` 提供上传接口，上传完成后使用同
 ## 10. 维护规则
 
 1. 新代码只能依赖 ESP-IDF、托管组件或项目内 `Div*` 平台接口。
-2. 板级引脚只允许在 `BoardConfig.h`、`BoardPins.h`、`tft_setup.h` 和 `shared.h` 中维护。
+2. 板级引脚只允许在 `board_config.h`、`board_pins.h`、`tft_setup.h` 和 `shared.h` 中维护。
 3. 文件系统路径必须遵守本文第 5 节的约定，新增路径时同步更新文档。
 4. 功能模块不得长期独占共享射频或 SPI 资源，退出时必须恢复总线状态。
 5. 构建验证以 `idf.py build` 为准，默认目标为 ESP32-S3。

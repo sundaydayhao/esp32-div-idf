@@ -1,5 +1,5 @@
-#include "KeyboardUI.h"
-#include "Touchscreen.h"
+#include "keyboard_ui.h"
+#include "touchscreen.h"
 #include "utils.h"
 
 

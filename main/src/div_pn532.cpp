@@ -1,6 +1,6 @@
-#include "DivPn532.h"
+#include "div_pn532.h"
 
-#include "DivPlatform.h"
+#include "div_platform.h"
 
 #include <algorithm>
 #include <cstring>

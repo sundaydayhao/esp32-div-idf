@@ -1,6 +1,6 @@
-#include "KeyboardUI.h"
-#include "SettingsStore.h"
-#include "Touchscreen.h"
+#include "keyboard_ui.h"
+#include "settings_store.h"
+#include "touchscreen.h"
 #include "config.h"
 #include <cmath>
 #include <inttypes.h>

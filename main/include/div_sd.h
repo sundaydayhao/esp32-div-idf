@@ -5,7 +5,7 @@
 #include <dirent.h>
 #include <string>
 
-#include "DivString.h"
+#include "div_string.h"
 
 #define FILE_READ "r"
 #define FILE_WRITE "w"

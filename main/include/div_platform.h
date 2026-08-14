@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include "DivString.h"
+#include "div_string.h"
 #include "driver/gpio.h"
 #include "esp_rom_sys.h"
 #include "esp_random.h"

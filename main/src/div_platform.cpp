@@ -1,4 +1,4 @@
-#include "DivPlatform.h"
+#include "div_platform.h"
 
 #include "driver/temperature_sensor.h"
 #include "esp_err.h"

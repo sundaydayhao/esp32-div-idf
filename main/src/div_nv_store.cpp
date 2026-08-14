@@ -1,4 +1,4 @@
-#include "DivNvStore.h"
+#include "div_nv_store.h"
 
 #include <algorithm>
 #include <cstring>

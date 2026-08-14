@@ -1,7 +1,7 @@
 #ifndef KEYBOARD_UI_H
 #define KEYBOARD_UI_H
 
-#include "DivString.h"
+#include "div_string.h"
 
 /** Rows in the standard on-screen layout (set cfg.rows = nullptr to use it). */
 #define OS_KEYBOARD_ROW_COUNT 4

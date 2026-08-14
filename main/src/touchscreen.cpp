@@ -1,7 +1,7 @@
-#include "SettingsStore.h"
-#include "Touchscreen.h"
+#include "settings_store.h"
+#include "touchscreen.h"
 #include <algorithm>
-#include "DivDisplay.h"
+#include "div_display.h"
 #include "esp_log.h"
 
 extern DivDisplay tft;

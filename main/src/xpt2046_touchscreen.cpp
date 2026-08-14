@@ -1,8 +1,8 @@
-#include "XPT2046_Touchscreen.h"
+#include "xpt2046_touchscreen.h"
 
 #include <string.h>
 
-#include "BoardPins.h"
+#include "board_pins.h"
 #include "shared.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"

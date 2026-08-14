@@ -1,4 +1,4 @@
-#include "DivCc1101.h"
+#include "div_cc1101.h"
 
 #include <algorithm>
 #include <cstring>

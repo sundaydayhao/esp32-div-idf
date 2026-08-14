@@ -1,5 +1,5 @@
 #include "shared.h"
-#include "SettingsStore.h"
+#include "settings_store.h"
 
 
 UiPalette UI = { BG_Dark, FG_Dark, ICON_Dark, TEXT_Dark, 0x3166, LINE_Dark, L_Dark, 0xFBE4, GREEN };

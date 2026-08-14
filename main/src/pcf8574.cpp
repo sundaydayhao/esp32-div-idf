@@ -1,4 +1,4 @@
-#include "PCF8574.h"
+#include "pcf8574.h"
 
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"

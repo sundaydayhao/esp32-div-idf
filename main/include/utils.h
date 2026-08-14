@@ -1,13 +1,13 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "DivSd.h"
-#include "DivSpi.h"
-#include "DivDisplay.h"
-#include "DivWiFi.h"
-#include <XPT2046_Touchscreen.h>
-#include "SettingsStore.h"
-#include "Touchscreen.h"
+#include "div_sd.h"
+#include "div_spi.h"
+#include "div_display.h"
+#include "div_wifi.h"
+#include <xpt2046_touchscreen.h>
+#include "settings_store.h"
+#include "touchscreen.h"
 #include "shared.h"
 
 extern DivDisplay tft;

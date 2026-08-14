@@ -1,6 +1,6 @@
-#include "RF24.h"
+#include "rf24.h"
 
-#include "DivPlatform.h"
+#include "div_platform.h"
 #include "shared.h"
 
 #include <algorithm>

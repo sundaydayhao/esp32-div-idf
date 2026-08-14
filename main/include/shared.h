@@ -1,7 +1,7 @@
 #ifndef SHARED_H
 #define SHARED_H
 #include <stdint.h>
-#include "BoardConfig.h"
+#include "board_config.h"
 #include "tft_setup.h"
 
 #ifndef PROGMEM
@@ -91,7 +91,7 @@ static const uint8_t OBF_GH[]   = {111, 97, 124, 96, 125, 106, 38, 107, 103, 101
 static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 102, 109, 124};       
 
 /*©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Board Selection ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤*/
-// Default is selected in BoardConfig.h. You can also pass a BOARD_* define
+// Default is selected in board_config.h. You can also pass a BOARD_* define
 // from your build flags to target a board without editing source.
 #if !defined(BOARD_ESP32_DIV_V4) && !defined(BOARD_ESP32_DIV_V3) && !defined(BOARD_ESP32_DIV_V2) && !defined(BOARD_CYD) && !defined(BOARD_ESP32_DIV_V1)
 #define BOARD_ESP32_DIV_V3
@@ -156,7 +156,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #endif
 
 /*©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Touch calibration profiles ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤*/
-/* Factory defaults per board (raw XPT2046 range). Override in BoardConfig.h.
+/* Factory defaults per board (raw XPT2046 range). Override in board_config.h.
  * User-saved NVS calibration overrides these defaults when the board id matches. */
 #if defined(BOARD_CYD)
 #ifndef TOUCH_PROFILE_ID
@@ -277,7 +277,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #endif
 
 /*©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ I/O & Pins ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤*/
-// PCF8574 I2C address: only enabled when BoardConfig.h defines pcf_ADDR.
+// PCF8574 I2C address: only enabled when board_config.h defines pcf_ADDR.
 #ifndef pcf_ADDR
 #define PCF8574_ENABLED 0
 #define PCF8574_I2C_ADDR  0x20

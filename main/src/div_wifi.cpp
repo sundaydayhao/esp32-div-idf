@@ -1,4 +1,4 @@
-#include "DivWiFi.h"
+#include "div_wifi.h"
 
 #include <cstdarg>
 #include <cstdio>

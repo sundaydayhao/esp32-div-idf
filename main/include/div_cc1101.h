@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "DivPlatform.h"
+#include "div_platform.h"
 
 #define CC1101_IOCFG2       0x00
 #define CC1101_IOCFG1       0x01

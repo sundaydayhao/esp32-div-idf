@@ -1,4 +1,4 @@
-#include "DivSpi.h"
+#include "div_spi.h"
 
 #include "esp_rom_sys.h"
 

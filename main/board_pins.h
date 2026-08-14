@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BoardConfig.h"
+#include "board_config.h"
 
 #ifndef DIV_TFT_HOST
 #define DIV_TFT_HOST SPI2_HOST

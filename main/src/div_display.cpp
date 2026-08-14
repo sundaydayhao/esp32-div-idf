@@ -1,4 +1,4 @@
-#include "DivDisplay.h"
+#include "div_display.h"
 
 #include <algorithm>
 #include <cmath>
@@ -7,7 +7,7 @@
 #include <cstring>
 #include <vector>
 
-#include "BoardPins.h"
+#include "board_pins.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_err.h"

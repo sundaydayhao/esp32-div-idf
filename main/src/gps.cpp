@@ -1,26 +1,26 @@
-#include "DivSerial.h"
-#include "DivDisplay.h"
+#include "div_serial.h"
+#include "div_display.h"
 #include <math.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <DivString.h>
-#include "DivString.h"
+#include <div_string.h>
+#include "div_string.h"
 
-#include "DivWiFi.h"
-#include "DivWiFi.h"
+#include "div_wifi.h"
+#include "div_wifi.h"
 #include "mbedtls/base64.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "BleCompat.h"
+#include "ble_compat.h"
 
 #include "gps.h"
 #include "icon.h"
-#include "KeyboardUI.h"
+#include "keyboard_ui.h"
 #include "shared.h"
-#include "Touchscreen.h"
+#include "touchscreen.h"
 #include "utils.h"
 
 #ifndef GPS_UART_NUM
@@ -3418,6 +3418,36 @@ static void wardStopForegroundScanTask() {
   }
 }
 
+static DivFile wardOpenLogFile(char* outPath, size_t outPathLen) {
+  if (!outPath || outPathLen == 0) {
+    return DivFile();
+  }
+
+  outPath[0] = '\0';
+  snprintf(outPath, outPathLen, "/wardriver/wd_%lu.csv", (unsigned long)millis());
+  DivFile logf = DivSd.open(outPath, FILE_WRITE);
+  if (logf) {
+    return logf;
+  }
+
+  DivSerial.printf("[Wardriver] SD open failed for %s; remounting and retrying\n", outPath);
+  DivSd.end();
+  delay(40);
+  sdSpiInit();
+  isSDCardAvailable();
+
+  logf = DivSd.open(outPath, FILE_WRITE);
+  if (logf) {
+    return logf;
+  }
+
+  snprintf(outPath, outPathLen, "/wd_%lu.csv", (unsigned long)millis());
+  logf = DivSd.open(outPath, FILE_WRITE);
+  if (logf) {
+    DivSerial.printf("[Wardriver] using root fallback log path %s\n", outPath);
+  }
+  return logf;
+}
 static void wardBgTask(void* /*param*/) {
   lineLen = 0;
   rowCount = 0;
@@ -3440,10 +3470,8 @@ static void wardBgTask(void* /*param*/) {
   delay(80);
 
   char path[48];
-  snprintf(path, sizeof(path), "/wd_%lu.csv", (unsigned long)millis());
+  DivFile logf = wardOpenLogFile(path, sizeof(path));
   strncpy(s_bgPath, path, sizeof(s_bgPath));
-
-  DivFile logf = DivSd.open(path, FILE_WRITE);
   if (!logf) {
     s_bgPath[0] = '\0';
     gpsSerial.end();
@@ -3653,8 +3681,7 @@ void session() {
     DivWiFi.disconnect();
     delay(80);
 
-    snprintf(path, sizeof(path), "/wd_%lu.csv", (unsigned long)millis());
-    logf = DivSd.open(path, FILE_WRITE);
+    logf = wardOpenLogFile(path, sizeof(path));
     if (!logf) {
       if (wardWaitStartupFailureDismiss("Wardriver", "Could not create log file on SD.")) {
         s_wardRetrySession = true;

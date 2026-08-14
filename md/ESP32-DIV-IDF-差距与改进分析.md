@@ -99,12 +99,12 @@ BLE 子菜单：
 
 | 头文件 | 行数 | 实际内容 |
 | --- | --- | --- |
-| `RF24.h` | 23 行 | 所有方法体都是 `{}`，`begin()` 直接 `return true` |
-| `nRF24L01.h` | 2 行 | 只有 `#pragma once`，空文件 |
-| `DivCc1101.h` | 25 行 | 所有方法体都是 `{}`，`getRssi()` 恒定返回 `-127` |
-| `DivPn532.h` | 27 行 | 所有方法体都是 `{}` 或 `return false` |
-| `IRrecv.h` | 12 行 | `decode()` 恒定 `return false` |
-| `IRsend.h` | 11 行 | `sendRaw()`/`send()` 是空实现（`send` 恒 `return true`） |
+| `rf24.h` | 23 行 | 所有方法体都是 `{}`，`begin()` 直接 `return true` |
+| `nrf24l01.h` | 2 行 | 只有 `#pragma once`，空文件 |
+| `div_cc1101.h` | 25 行 | 所有方法体都是 `{}`，`getRssi()` 恒定返回 `-127` |
+| `div_pn532.h` | 27 行 | 所有方法体都是 `{}` 或 `return false` |
+| `ir_recv.h` | 12 行 | `decode()` 恒定 `return false` |
+| `ir_send.h` | 11 行 | `sendRaw()`/`send()` 是空实现（`send` 恒 `return true`） |
 
 而调用方代码（`subghz.cpp` 54 处调用 `DivCc1101Radio.*`、`bluetooth.cpp` 里的 `RF24 radio1/2/3`、`rfid.cpp` 里的 `s_nfc.*`、`ir.cpp` 里的 `IRrecv`/`IRsend`）看起来和原版几乎一致，**业务逻辑齐全，但底层驱动全部返回假数据或空操作**。
 
@@ -124,7 +124,7 @@ BLE 子菜单：
 
 - 因为在不同 `namespace` 内定义，不会产生 ODR 冲突，编译没问题；但维护成本高 —— 改一个通用按钮的绘制逻辑，需要同步改 3~4 处。
 - `wifi.cpp` 单文件 7000 多行、`bluetooth.cpp` 4000 多行，每个功能的 UI 绘制、状态机、事件处理全部塞进同一个 `namespace` 块里，文件粒度过大，不利于后续做"插件化功能框架"（`功能扩展与商业化建议.md` 里也提到了这个方向）。
-- 改进方向：把 `drawButton`/`drawTabBar` 一类真正通用、无状态的 UI 组件下沉到 `FeatureUI`（`KeyboardUI.h` 已有类似抽象），让各功能 namespace 只保留业务逻辑，不再各自重新实现绘制原语。这与 `main/README.md` 里"新 UI 控件应尽量复用 `FeatureUI`、`KeyboardUI`"的设计说明是一致的方向，但现状还没有做到。
+- 改进方向：把 `drawButton`/`drawTabBar` 一类真正通用、无状态的 UI 组件下沉到 `FeatureUI`（`keyboard_ui.h` 已有类似抽象），让各功能 namespace 只保留业务逻辑，不再各自重新实现绘制原语。这与 `main/README.md` 里"新 UI 控件应尽量复用 `FeatureUI`、`KeyboardUI`"的设计说明是一致的方向，但现状还没有做到。
 
 ### 2.3 文件编码/注释质量问题
 
@@ -134,7 +134,7 @@ BLE 子菜单：
 
 ### 2.4 板级适配覆盖度 vs 硬件目录不一致
 
-`main/BoardConfig.h` 定义的板型为 `BOARD_CYD`、`BOARD_ESP32_DIV_V1`~`V4`，而 `hardware/pcb/` 和 `hardware/schematic/` 目录下只有 `beta`、`v1`、`v2`、`v3`、`v4` 五套资料（其中 `beta` 对应 `BOARD_CYD`? 命名不直接对应）。建议在文档里把"板型宏 ↔ 硬件版本目录"的映射关系明确列出来，现在需要靠猜测或读代码才能对应上，对新加入的协作者不友好。
+`main/board_config.h` 定义的板型为 `BOARD_CYD`、`BOARD_ESP32_DIV_V1`~`V4`，而 `hardware/pcb/` 和 `hardware/schematic/` 目录下只有 `beta`、`v1`、`v2`、`v3`、`v4` 五套资料（其中 `beta` 对应 `BOARD_CYD`? 命名不直接对应）。建议在文档里把"板型宏 ↔ 硬件版本目录"的映射关系明确列出来，现在需要靠猜测或读代码才能对应上，对新加入的协作者不友好。
 
 ### 2.5 依赖管理：真实托管组件 vs 占位头文件混用
 

@@ -1,4 +1,4 @@
-#include "DivSd.h"
+#include "div_sd.h"
 
 #include <cstdarg>
 #include <cstring>
@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "BoardPins.h"
+#include "board_pins.h"
 #include "driver/sdspi_host.h"
 #include "driver/spi_common.h"
 #include "esp_err.h"
@@ -73,10 +73,15 @@ DivFile::~DivFile() {
 
 DivFile DivFile::openFile(const std::string& mappedPath, const std::string& displayName, const char* mode) {
   DivFile out;
+  errno = 0;
   out.file_ = std::fopen(mappedPath.c_str(), mode ? mode : FILE_READ);
   if (out.file_) {
     out.path_ = mappedPath;
     out.name_ = displayName;
+  } else {
+    const int e = errno;
+    ESP_LOGW(kTag, "open failed path=%s mode=%s errno=%d (%s)", mappedPath.c_str(),
+             mode ? mode : FILE_READ, e, std::strerror(e));
   }
   return out;
 }

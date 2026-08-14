@@ -1,8 +1,8 @@
 #pragma once
 
-#include "DivString.h"
+#include "div_string.h"
 #include <cstdio>
-#include "IRremoteESP8266.h"
+#include "ir_remote_esp8266.h"
 
 inline DivString uint64ToString(uint64_t value, uint8_t base = 10) {
   char buf[32];

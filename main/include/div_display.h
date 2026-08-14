@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <string>
 
-#include "DivPlatform.h"
-#include "BoardConfig.h"
+#include "div_platform.h"
+#include "board_config.h"
 #include "tft_setup.h"
 
 #define TFT_BLACK       0x0000

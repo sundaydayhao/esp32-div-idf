@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "DivPlatform.h"
+#include "div_platform.h"
 
 #define SPI_MODE0 DIV_SPI_MODE0
 

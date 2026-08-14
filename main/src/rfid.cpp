@@ -1,13 +1,13 @@
 #include "rfid.h"
 
-#include <DivPn532.h>
-#include "DivSerial.h"
-#include "DivSpi.h"
+#include <div_pn532.h>
+#include "div_serial.h"
+#include "div_spi.h"
 #include <cstdio>
 #include <cstring>
 
-#include "SettingsStore.h"
-#include "Touchscreen.h"
+#include "settings_store.h"
+#include "touchscreen.h"
 #include "icon.h"
 #include "utils.h"
 #include "shared.h"

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "DivString.h"
+#include "div_string.h"
 #include "esp_wifi.h"
 #include "esp_tls.h"
 

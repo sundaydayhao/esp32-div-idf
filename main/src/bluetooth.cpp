@@ -1,5 +1,5 @@
-#include "SettingsStore.h"
-#include "Touchscreen.h"
+#include "settings_store.h"
+#include "touchscreen.h"
 #include "config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

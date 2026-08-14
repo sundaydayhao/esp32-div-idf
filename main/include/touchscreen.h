@@ -1,8 +1,8 @@
 #ifndef TOUCHSCREEN_H
 #define TOUCHSCREEN_H
 
-#include "XPT2046_Touchscreen.h"
-#include "SettingsStore.h"
+#include "xpt2046_touchscreen.h"
+#include "settings_store.h"
 #include "shared.h"
 
 extern XPT2046_Touchscreen ts;

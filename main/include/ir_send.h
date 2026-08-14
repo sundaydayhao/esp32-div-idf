@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IRremoteESP8266.h"
+#include "ir_remote_esp8266.h"
 
 class IRsend {
  public:

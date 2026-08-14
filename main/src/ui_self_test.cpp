@@ -1,4 +1,4 @@
-#include "UiSelfTest.h"
+#include "ui_self_test.h"
 
 #include "config.h"
 #include "ducky.h"
@@ -6,7 +6,7 @@
 #include "ir.h"
 #include "rfid.h"
 #include "shared.h"
-#include "Touchscreen.h"
+#include "touchscreen.h"
 #include "utils.h"
 
 #include "esp_log.h"

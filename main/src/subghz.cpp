@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
-#include "KeyboardUI.h"
-#include "Touchscreen.h"
+#include "keyboard_ui.h"
+#include "touchscreen.h"
 #include "config.h"
 #include "icon.h"
 #include "signal_dsp.h"

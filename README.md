@@ -77,7 +77,7 @@ idf.py flash monitor
 
 ## 硬件说明
 
-项目以主板 + 扩展板的方式组织，具体板型由 `main/BoardConfig.h` 和 Kconfig 选择。
+项目以主板 + 扩展板的方式组织，具体板型由 `main/board_config.h` 和 Kconfig 选择。
 
 ### 主板
 

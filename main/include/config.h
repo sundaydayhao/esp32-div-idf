@@ -2,12 +2,12 @@
 // config.h �� merged from bleconfig.h, wificonfig.h, subconfig.h
 
 /* �������������������������� Common includes �������������������������� */
-#include "DivDisplay.h"
-#include "DivNvStore.h"
-#include "DivSerial.h"
-#include <nRF24L01.h>
-#include <RF24.h>
-#include <RCSwitch.h>
+#include "div_display.h"
+#include "div_nv_store.h"
+#include "div_serial.h"
+#include <nrf24l01.h>
+#include <rf24.h>
+#include <rc_switch.h>
 #include <esp_wifi.h>
 #include <esp_wifi_types.h>
 #include <esp_system.h>
@@ -18,8 +18,8 @@
 
 // Use NimBLE for all BLE functionality, via the BleCompat shim which
 // exposes BLEDevice/BLEScan/etc as aliases to NimBLE types.
-#include "BleCompat.h"
-#include "XPT2046_Touchscreen.h"
+#include "ble_compat.h"
+#include "xpt2046_touchscreen.h"
 
 #if defined(SOC_BT_CLASSIC_SUPPORTED) && SOC_BT_CLASSIC_SUPPORTED
 #include "esp_bt.h"
@@ -27,8 +27,8 @@
 #include "esp_gap_bt_api.h"
 #endif
 
-#include "DivCc1101.h"
-#include "PCF8574.h"
+#include "div_cc1101.h"
+#include "pcf8574.h"
 #include "utils.h"
 #include "shared.h"
 

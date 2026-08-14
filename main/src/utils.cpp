@@ -1,9 +1,9 @@
-#include "DivSd.h"
-#include "DivSpi.h"
+#include "div_sd.h"
+#include "div_spi.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
-#include "Touchscreen.h"
+#include "touchscreen.h"
 #include "config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BoardConfig.h"
+#include "board_config.h"
 
 #define USER_SETUP_LOADED
 

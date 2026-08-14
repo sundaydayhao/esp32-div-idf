@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "DivString.h"
+#include "div_string.h"
 #include "driver/uart.h"
 
 #define SERIAL_8N1 0
