@@ -10,6 +10,7 @@
 #include "gps.h"
 #include "rfid.h"
 #include "shared.h"
+#include "UiSelfTest.h"
 #include "utils.h"
 
 #include "driver/ledc.h"
@@ -61,7 +62,6 @@ static void initBacklightPwm() {
       .hpoint = 0,
       .sleep_mode = LEDC_SLEEP_MODE_NO_ALIVE_NO_PD,
       .flags = {.output_invert = 0},
-      .deconfigure = false,
   };
   ESP_ERROR_CHECK(ledc_channel_config(&channelConfig));
   s_backlightPwmReady = true;
@@ -3558,10 +3558,99 @@ void esp32_div_app_init() {
   ESP_LOGI(TAG, "ready");
 }
 
+namespace AppUiTestHooks {
+
+void resetToMenu() {
+  clearInjectedTouchForTest();
+  feature_exit_requested = false;
+  feature_active = false;
+  in_sub_menu = false;
+  is_main_menu = true;
+  other_layer = OTHER_LAYER_HOME;
+  setTouchButtonInputEnabled(false);
+  setTouchNavLabels(nullptr, nullptr, nullptr, nullptr, nullptr);
+  resetTouchNavHeldState();
+  menu_initialized = false;
+  submenu_initialized = false;
+  other_menu_grid_initialized = false;
+  displayMenu();
+  delay(80);
+}
+
+void tapMain(int mainIdx) {
+  current_menu_index = mainIdx;
+  displayMenu();
+  const int column = mainIdx / 4;
+  const int row = mainIdx % 4;
+  const int x = menuTileX(column) + MENU_TILE_W / 2;
+  const int y = menuTileY(row, MAIN_MENU_ROWS) + MENU_TILE_H / 2;
+  ESP_LOGI(TOUCH_TAG, "ui-test tap main[%d]=%s at %d,%d",
+           mainIdx, menu_items[mainIdx], x, y);
+  injectTouchScreenXYForTest(x, y, 1);
+  delay(60);
+  clearInjectedTouchForTest();
+}
+
+void tapSubmenu(const char* groupName, int subIdx) {
+  current_submenu_index = subIdx;
+  submenu_initialized = false;
+  displaySubmenu();
+  const char* label =
+      (active_submenu_items && subIdx >= 0 && subIdx < active_submenu_size)
+          ? active_submenu_items[subIdx]
+          : "?";
+  int yPos = 30 + subIdx * 30;
+  if (subIdx == active_submenu_size - 1) {
+    yPos += 10;
+  }
+  ESP_LOGI(TOUCH_TAG, "ui-test tap %s[%d]=%s at %d,%d",
+           groupName ? groupName : "submenu", subIdx, label, 60, yPos + 12);
+  injectTouchScreenXYForTest(60, yPos + 12, 1);
+  delay(60);
+  clearInjectedTouchForTest();
+}
+
+void openTopSubmenu(int mainIdx) {
+  tapMain(mainIdx);
+  updateActiveSubmenu();
+  current_submenu_index = 0;
+  in_sub_menu = true;
+  is_main_menu = false;
+  submenu_initialized = false;
+  displaySubmenu();
+}
+
+void openOtherLayer(uint8_t layer, int homeIdx, const char* name) {
+  tapMain(2);
+  other_layer = OTHER_LAYER_HOME;
+  current_menu_index = 2;
+  current_submenu_index = homeIdx;
+  updateActiveSubmenu();
+  in_sub_menu = true;
+  submenu_initialized = false;
+  displaySubmenu();
+  const int gridRows = (other_NUM_SUBMENU_ITEMS + OTHER_GRID_COLS - 1) / OTHER_GRID_COLS;
+  const int column = homeIdx % OTHER_GRID_COLS;
+  const int row = homeIdx / OTHER_GRID_COLS;
+  ESP_LOGI(TOUCH_TAG, "ui-test tap More/%s at %d,%d",
+           name ? name : "layer",
+           menuTileX(column) + MENU_TILE_W / 2,
+           menuTileY(row, gridRows) + MENU_TILE_H / 2);
+  delay(60);
+  other_layer = layer;
+  current_submenu_index = 0;
+  updateActiveSubmenu();
+  submenu_initialized = false;
+  displaySubmenu();
+}
+
+}  // namespace AppUiTestHooks
+
 void esp32_div_app_run_once() {
   applyThemeToPalette(settings().theme);
   pollPcf8574ScanMode();
   pollPcf8574SelfTest();
+  UiSelfTest::pollAutoRun();
   handleButtons();
   updateStatusBar();
 }

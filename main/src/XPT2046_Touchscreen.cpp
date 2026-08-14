@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "BoardPins.h"
 #include "shared.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
@@ -50,10 +51,13 @@ void XPT2046_Touchscreen::configurePins() {
   bus.quadhd_io_num = -1;
   bus.max_transfer_sz = 8;
 
-  esp_err_t err = spi_bus_initialize(XPT2046_HOST, &bus, SPI_DMA_CH_AUTO);
-  if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
-    ESP_LOGW(TAG, "SPI bus init failed: %s", esp_err_to_name(err));
-    return;
+  esp_err_t err = ESP_OK;
+  if (XPT2046_HOST != DIV_TFT_HOST) {
+    err = spi_bus_initialize(XPT2046_HOST, &bus, SPI_DMA_CH_AUTO);
+    if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+      ESP_LOGW(TAG, "SPI bus init failed: %s", esp_err_to_name(err));
+      return;
+    }
   }
 
   spi_device_interface_config_t dev = {};

@@ -20,6 +20,13 @@ static bool s_tftSpiDirtyFromTouch = false;
 static constexpr uint8_t kTouchSampleCount = 5;
 static constexpr uint8_t kTouchMinValidSamples = 3;
 static constexpr int16_t kTouchMaxStableSpreadRaw = 700;
+static int16_t s_injectedRawX = 0;
+static int16_t s_injectedRawY = 0;
+static uint16_t s_injectedRawZ = 0;
+static uint8_t s_injectedRawReads = 0;
+static int s_injectedScreenX = 0;
+static int s_injectedScreenY = 0;
+static uint8_t s_injectedScreenReads = 0;
 
 #ifndef TOUCH_ROTATION
 #if defined(BOARD_ESP32_DIV_V2)
@@ -68,6 +75,16 @@ static bool touchPointLooksValid(const TS_Point& p, uint16_t zThresh) {
 }
 
 static bool touchSampleOk(uint16_t zThresh, int16_t& rawX, int16_t& rawY) {
+  if (s_injectedRawReads > 0) {
+    if (s_injectedRawZ < zThresh) {
+      return false;
+    }
+    --s_injectedRawReads;
+    rawX = s_injectedRawX;
+    rawY = s_injectedRawY;
+    return true;
+  }
+
   if (!s_touchInitialized) {
     return false;
   }
@@ -140,6 +157,9 @@ void setupTouchscreen() {
 }
 
 bool isTouchDown(uint16_t zThresh) {
+  if (s_injectedScreenReads > 0) {
+    return true;
+  }
   int16_t x = 0;
   int16_t y = 0;
   return touchSampleOk(zThresh, x, y);
@@ -195,6 +215,13 @@ static void mapTouchToScreen(int16_t rawX, int16_t rawY, int& x, int& y) {
 }
 
 bool readTouchXY(int& x, int& y) {
+  if (s_injectedScreenReads > 0) {
+    --s_injectedScreenReads;
+    x = s_injectedScreenX;
+    y = s_injectedScreenY;
+    return true;
+  }
+
   int16_t rawX = 0;
   int16_t rawY = 0;
   if (!touchSampleOk(200, rawX, rawY)) {
@@ -205,6 +232,13 @@ bool readTouchXY(int& x, int& y) {
 }
 
 bool readTouchXYDismiss(int& x, int& y) {
+  if (s_injectedScreenReads > 0) {
+    --s_injectedScreenReads;
+    x = s_injectedScreenX;
+    y = s_injectedScreenY;
+    return true;
+  }
+
   int16_t rawX = 0;
   int16_t rawY = 0;
   if (!touchSampleOk(120, rawX, rawY)) {
@@ -212,4 +246,22 @@ bool readTouchXYDismiss(int& x, int& y) {
   }
   mapTouchToScreen(rawX, rawY, x, y);
   return true;
+}
+
+void injectTouchRawXYForTest(int16_t x, int16_t y, uint16_t z, uint8_t reads) {
+  s_injectedRawX = x;
+  s_injectedRawY = y;
+  s_injectedRawZ = z;
+  s_injectedRawReads = reads;
+}
+
+void injectTouchScreenXYForTest(int x, int y, uint8_t reads) {
+  s_injectedScreenX = x;
+  s_injectedScreenY = y;
+  s_injectedScreenReads = reads;
+}
+
+void clearInjectedTouchForTest() {
+  s_injectedRawReads = 0;
+  s_injectedScreenReads = 0;
 }

@@ -56,7 +56,7 @@ dependencies:
   idf:
     source:
       type: idf
-    version: 6.0.1
+    version: 5.5.5
 direct_dependencies:
 - espressif/cjson
 - espressif/esp-dsp
@@ -64,4 +64,4 @@ direct_dependencies:
 - h2zero/esp-nimble-cpp
 manifest_hash: 132f941061675febdcb1632f380395c4fa7b6d33675825f123ea1e3336695a57
 target: esp32s3
-version: 3.0.0
+version: 2.0.0

@@ -82,6 +82,14 @@ static int duckyToastCenterY() {
 }
 
 static bool sd_mounted = false;
+
+#ifndef SD_CD_RELIABLE
+#if defined(BOARD_ESP32_DIV_V3)
+#define SD_CD_RELIABLE 0
+#else
+#define SD_CD_RELIABLE 1
+#endif
+#endif
 static bool ui_inited  = false;
 static bool ui_busy    = false;
 static bool needsRedraw = false;
@@ -653,7 +661,7 @@ static void refreshHeaderStatusIfNeeded(bool force = false) {
   const uint32_t now = millis();
   if (force || (now - lastStatusPollMs) > 500) {
     lastStatusPollMs = now;
-#ifdef SD_CD
+#if defined(SD_CD) && SD_CD_RELIABLE
     pinMode(SD_CD, INPUT_PULLUP);
     bool cardPresent = !digitalRead(SD_CD);
 #else
@@ -1158,7 +1166,7 @@ static void startBleKeyboard(const char* devName) {
 
 void enter() {
 
-#ifdef SD_CD
+#if defined(SD_CD) && SD_CD_RELIABLE
   pinMode(SD_CD, INPUT_PULLUP);
   if (digitalRead(SD_CD)) {
 

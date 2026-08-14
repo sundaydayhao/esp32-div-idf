@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdarg>
+#include <cstddef>
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #include "DivPlatform.h"
 #include "BoardConfig.h"
@@ -137,6 +137,7 @@ class DivDisplay {
 class DivSprite {
  public:
   explicit DivSprite(DivDisplay* parent);
+  ~DivSprite();
   bool createSprite(int16_t w, int16_t h);
   void deleteSprite();
   void setColorDepth(uint8_t bpp) { colorDepth_ = bpp; }
@@ -172,7 +173,8 @@ class DivSprite {
   void drawGlyph(char c, int32_t x, int32_t y, uint8_t scale, uint16_t fg, uint16_t bg);
 
   DivDisplay* parent_;
-  std::vector<uint16_t> pixels_;
+  uint16_t* pixels_ = nullptr;
+  size_t pixelCount_ = 0;
   int16_t width_ = 0;
   int16_t height_ = 0;
   uint8_t colorDepth_ = 16;

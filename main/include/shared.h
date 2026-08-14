@@ -453,7 +453,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 
 /* PN532 RFID/NFC (SPI).
  * CYD has few spare GPIOs; these are suggested external wiring defaults.
- * Override any pin below if your wiring differs. Requires Adafruit PN532 library. */
+ * Override any pin below if your wiring differs. Uses the project-native DivPn532 SPI driver. */
 #ifndef PN532_SCK
 #if defined(BOARD_CYD)
 #define PN532_SCK  18
@@ -582,7 +582,7 @@ static const uint8_t OBF_WB[]   = {75, 97, 110, 109, 122, 92, 109, 107, 96, 38, 
 #endif
 #endif
 
-// CC1101 GDO mapping (used by ELECHOUSE_cc1101.setGDO).
+// CC1101 GDO mapping (used by DivCc1101Radio.setGDO).
 // Default follows the legacy wiring used in the SubGHz code: setGDO(TX, RX).
 #ifndef CC1101_GDO0
 #define CC1101_GDO0 SUBGHZ_TX_PIN

@@ -4,9 +4,13 @@
 
 class IRrecv {
  public:
-  explicit IRrecv(uint16_t) {}
-  void enableIRIn() {}
-  void disableIRIn() {}
-  bool decode(decode_results*) { return false; }
-  void resume() {}
+  explicit IRrecv(uint16_t recvpin);
+  void enableIRIn();
+  void disableIRIn();
+  bool decode(decode_results* results);
+  void resume();
+
+ private:
+  uint16_t recvpin_;
+  bool enabled_ = false;
 };

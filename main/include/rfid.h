@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-/** PN532-based RFID/NFC (ported from NullTag-style flows). Install "Adafruit PN532". */
+/** PN532-based RFID/NFC sessions backed by the project-native DivPn532 SPI driver. */
 namespace RfidNfc {
 
 /** Probe PN532 on SPI (shared bus). On failure, remounts SD; on success, hands SPI to SD pins until session exit. */

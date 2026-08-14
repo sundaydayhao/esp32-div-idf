@@ -1,42 +1,36 @@
-I (3233) esp32_div: BLE init done
-I (3233) esp32_div: background tasks
-I (3234) esp32_div: background tasks done
-I (3234) esp32_div: draw menu
-I (3237) esp32_div: draw main menu idx=0 last=-1 full=1
-I (3880) esp32_div: menu drawn
-E (3880) spi_common: spi_bus_initialize(895): SPI bus already initialized.
-I (3881) xpt2046: begin cs=18 clk=36 mosi=35 miso=37 irq=255
-I (3884) esp32_div: touch ready
-I (3887) esp32_div: ready
-I (5612) esp32_div: PCF8574 self-test reason=edge action=SELECT pcf_pin=P7 pressed_mask=0x80 addr=0x20 P0=1 P1=1 P2=1 P3=1 P4=1 P5=1 P6=1 P7=0
-I (5614) esp32_div: button ui action=main_select main_idx=0 sub_idx=0 main=1 in_sub=0 feature=0 other_layer=0
-I (5734) esp32_div_touch_hit: launch main menu idx=0 main=1 feature=0 in_sub=0
-I (9764) esp32_div_touch: raw touch x=1831 y=1670 z=1326 samples=5 irq=1
-I (10555) pp: pp rom version: e7ae62f
-I (10556) net80211: net80211 rom version: e7ae62f
-I (10557) wifi:wifi driver task: 3fcd41e0, prio:23, stack:6656, core=0
-I (10567) wifi:wifi firmware version: b37c951
-I (10568) wifi:wifi certification version: v7.0
-I (10568) wifi:config NVS flash: enabled
-I (10570) wifi:config nano formatting: disabled
-I (10574) wifi:Init data frame dynamic rx buffer num: 32
-I (10580) wifi:Init static rx mgmt buffer num: 5
-I (10584) wifi:Init management short buffer num: 32
-I (10588) wifi:Init dynamic tx buffer num: 32
-I (10592) wifi:Init static tx FG buffer num: 2
-I (10597) wifi:Init static rx buffer size: 1600
-I (10601) wifi:Init static rx buffer num: 10
-I (10605) wifi:Init dynamic rx buffer num: 32
-I (10610) wifi_init: rx ba win: 6
-I (10612) wifi_init: accept mbox: 6
-I (10615) wifi_init: tcpip mbox: 32
-I (10618) wifi_init: udp mbox: 6
-I (10621) wifi_init: tcp mbox: 6
-I (10624) wifi_init: tcp tx win: 5760
-I (10628) wifi_init: tcp rx win: 5760
-I (10631) wifi_init: tcp mss: 1440
-I (10634) wifi_init: WiFi IRAM OP enabled
-I (10638) wifi_init: WiFi RX IRAM OP enabled
-I (10644) wifi:mode : sta (e8:f6:0a:a1:04:54)
-I (10646) wifi:enable tsf
-I (26038) esp32_div_touch: raw touch x=3678 y=3503 z=1105 samples=5 irq=1
+I (8438) esp32_div_touch: raw touch x=1561 y=2843 z=420 samples=5 irq=1
+
+abort() was called at PC 0x42112dfa on core 0
+--- 0x42112dfa: __wrap___cxa_allocate_exception at C:/esp/v5.5.5/esp-idf/components/cxx/cxx_exception_stubs.cpp:184
+
+
+Backtrace: 0x40384289:0x3fcc3d00 0x40384251:0x3fcc3d20 0x4038d78d:0x3fcc3d40 0x42112dfa:0x3fcc3db0 0x421121c9:0x3fcc3dd0 0x4204d899:0x3fcc3df0 0x4204d8ae:0x3fcc3e10 0x4204d9f9:0x3fcc3e30 0x4204da3e:0x3fcc3e50 0x4204dae3:0x3fcc3e80 0x420207b3:0x3fcc3eb0 0x420222a0:0x3fcc3ee0 0x420126fb:0x3fcc3f00 0x420131a1:0x3fcc3f20 0x42013239:0x3fcc3f50 0x420135fa:0x3fcc3fa0 0x4200e3e9:0x3fcc3fc0 0x4212fddf:0x3fcc3fe0 0x40385015:0x3fcc4010
+--- 0x40384289: panic_abort at C:/esp/v5.5.5/esp-idf/components/esp_system/panic.c:477
+--- 0x40384251: esp_system_abort at C:/esp/v5.5.5/esp-idf/components/esp_system/port/esp_system_chip.c:87
+--- 0x4038d78d: abort at C:/esp/v5.5.5/esp-idf/components/newlib/src/abort.c:38
+--- 0x42112dfa: __wrap___cxa_allocate_exception at C:/esp/v5.5.5/esp-idf/components/cxx/cxx_exception_stubs.cpp:184
+--- 0x421121c9: operator new(unsigned int) at /builds/idf/crosstool-NG/.build/xtensa-esp-elf/src/gcc/libstdc++-v3/libsupc++/new_op.cc:54
+--- 0x4204d899: std::__new_allocator<unsigned short>::allocate(unsigned int, void const*) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/new_allocator.h:151
+--- 0x4204d8ae: std::allocator<unsigned short>::allocate(unsigned int) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/allocator.h:196
+--- (inlined by) std::allocator_traits<std::allocator<unsigned short> >::allocate(std::allocator<unsigned short>&, unsigned int) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/alloc_traits.h:478
+--- (inlined by)
+
+
+
+ELF file SHA256: f38abe6df
+std::_Vector_base<unsigned short, std::allocator<unsigned short> >::_M_allocate(unsigned int) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/stl_vector.h:380
+--- (inlined by) std::_Vector_base<unsigned short, std::allocator<unsigned short> >::_M_create_storage(unsigned int) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/stl_vector.h:398
+--- 0x4204d9f9: std::_Vector_base<unsigned short, std::allocator<unsigned short> >::_Vector_base(unsigned int, std::allocator<unsigned short> const&) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/stl_vector.h:334
+--- (inlined by) std::vector<unsigned short, std::allocator<unsigned short> >::vector(unsigned int, unsigned short const&, std::allocator<unsigned short> const&) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/stl_vector.h:571
+--- 0x4204da3e: std::vector<unsigned short, std::allocator<unsigned short> >::_M_fill_assign(unsigned int, unsigned short const&) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/vector.tcc:278
+--- 0x4204dae3: std::vector<unsigned short, std::allocator<unsigned short> >::assign(unsigned int, unsigned short const&) at C:/Espressif/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/xtensa-esp-elf/include/c++/14.2.0/bits/stl_vector.h:809
+--- (inlined by) DivSprite::createSprite(short, short) at C:/projects/esp32-div-idf/main/src/DivDisplay.cpp:536
+--- 0x420207b3: ensureScanPanelSprite(int, int) at C:/projects/esp32-div-idf/main/src/gps.cpp:63
+--- 0x420222a0: GpsSatelliteScanner::session() at C:/projects/esp32-div-idf/main/src/gps.cpp:1272
+--- 0x420126fb: otherGpsPlaceholderAction(int) at C:/projects/esp32-div-idf/main/src/app.cpp:2771
+--- 0x420131a1: handleOtherSubmenuButtons() at C:/projects/esp32-div-idf/main/src/app.cpp:3236
+--- 0x42013239: handleButtons() at C:/projects/esp32-div-idf/main/src/app.cpp:3366
+--- 0x420135fa: esp32_div_app_run_once() at C:/projects/esp32-div-idf/main/src/app.cpp:3564
+--- 0x4200e3e9: app_main at C:/projects/esp32-div-idf/main/main.cpp:40
+--- 0x4212fddf: main_task at C:/esp/v5.5.5/esp-idf/components/freertos/app_startup.c:215
+--- 0x40385015: vPortTaskWrapper at C:/esp/v5.5.5/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:143

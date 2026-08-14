@@ -469,6 +469,14 @@ static bool s_sdMounted = false;
 static uint32_t s_sdNextMountAttemptMs = 0;
 static constexpr uint32_t kSdMountRetryDelayMs = 10000;
 
+#ifndef SD_CD_RELIABLE
+#if defined(BOARD_ESP32_DIV_V3)
+#define SD_CD_RELIABLE 0
+#else
+#define SD_CD_RELIABLE 1
+#endif
+#endif
+
 void requestStatusBarRedraw() {
   statusBarDirty = true;
 }
@@ -511,12 +519,12 @@ float readInternalTemperature() {
 
 void updateSdCardStatus() {
   bool cardDetected = true;
-#ifdef SD_CD
+#if defined(SD_CD) && SD_CD_RELIABLE
   pinMode(SD_CD, INPUT_PULLUP);
   cardDetected = !digitalRead(SD_CD);
 #endif
 
-  if (!cardDetected) {
+  if (!cardDetected && SD_CD_RELIABLE) {
     s_sdMounted = false;
     s_sdNextMountAttemptMs = 0;
   }
@@ -1086,6 +1094,7 @@ void initSDCard() {
   sdSpiInit();
 
   updateSdCardStatus();
+  isSDCardAvailable();
 }
 
 /** GPIO CS that last mounted SD (-1 = unknown). Tried first to avoid long DivSd.begin on wrong CS. */
@@ -1098,15 +1107,9 @@ static bool sdPinIsOkForSdMount(uint8_t pin) {
   }
 #endif
 #if defined(SD_CS_PIN)
-#if defined(CC1101_CS)
-  if (SD_CS_PIN != CC1101_CS && pin == SD_CS_PIN) {
-    return true;
-  }
-#else
   if (pin == SD_CS_PIN) {
     return true;
   }
-#endif
 #endif
   return false;
 }
@@ -1136,13 +1139,7 @@ static bool sdTryBeginOrder() {
   sdAddPinUnique(tryPins, &nTry, SD_CS);
 #endif
 #if defined(SD_CS_PIN)
-#if defined(CC1101_CS)
-  if (SD_CS_PIN != CC1101_CS) {
-    sdAddPinUnique(tryPins, &nTry, SD_CS_PIN);
-  }
-#else
   sdAddPinUnique(tryPins, &nTry, SD_CS_PIN);
-#endif
 #endif
   for (int i = 0; i < nTry; i++) {
     if (sdMountChipSelect(tryPins[i])) {
@@ -1156,7 +1153,7 @@ static bool sdTryBeginOrder() {
 
 bool isSDCardAvailable() {
   updateSdCardStatus();
-  if (!sdCardPresent) return false;
+  if (!sdCardPresent && SD_CD_RELIABLE) return false;
 
   if (s_sdMounted) {
 
@@ -1182,7 +1179,10 @@ bool isSDCardAvailable() {
 
   if (sdTryBeginOrder()) {
     s_sdMounted = true;
+    sdCardPresent = true;
+    lastSdCardState = true;
     s_sdNextMountAttemptMs = 0;
+    requestStatusBarRedraw();
     return true;
   }
   s_sdMounted = false;

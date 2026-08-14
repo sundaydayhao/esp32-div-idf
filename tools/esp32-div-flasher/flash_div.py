@@ -515,10 +515,6 @@ def _pick_app_bin(bins: list[Path], reserved: set[Path]) -> Optional[Path]:
     if preferred:
         return max(preferred, key=_mtime)
 
-    legacy_ino = [p for p in rest if p.name.lower().endswith(".ino.bin")]
-    if legacy_ino:
-        return max(legacy_ino, key=_mtime)
-
     candidates = []
     for p in rest:
         n = p.name.lower()
@@ -1016,8 +1012,6 @@ def github_list_firmware_assets(assets: list[dict[str, Any]]) -> list[tuple[str,
             score += 140
         if "esp32-div" in low or "esp32_div" in low:
             score += 80
-        if ".ino.bin" in low:
-            score += 20
         scored.append((score, sz, name, url))
     if not scored:
         return []

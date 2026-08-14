@@ -1,7 +1,7 @@
 #pragma once
-// config.h ¡ª merged from bleconfig.h, wificonfig.h, subconfig.h
+// config.h ï¿½ï¿½ merged from bleconfig.h, wificonfig.h, subconfig.h
 
-/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Common includes ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Common includes ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 #include "DivDisplay.h"
 #include "DivNvStore.h"
 #include "DivSerial.h"
@@ -27,16 +27,16 @@
 #include "esp_gap_bt_api.h"
 #endif
 
-#include "ELECHOUSE_CC1101_SRC_DRV.h"
+#include "DivCc1101.h"
 #include "PCF8574.h"
 #include "utils.h"
 #include "shared.h"
 
-/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ Common externs ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Common externs ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 extern DivDisplay tft;
 extern PCF8574 pcf;
 
-/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ BLE namespaces ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ BLE namespaces ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 namespace BleJammer {
   void blejamSetup();
   void blejamLoop();
@@ -75,7 +75,7 @@ namespace BleSniffer {
   void exit();
 }
 
-/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ SubGHz namespaces ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SubGHz namespaces ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 namespace replayat {
   void ReplayAttackSetup();
   void ReplayAttackLoop();
@@ -89,7 +89,7 @@ namespace subjammer {
   void subjammerLoop();
 }
 
-/* ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ WiFi namespaces ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤ */
+/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ WiFi namespaces ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 namespace PacketMonitor {
   void ptmSetup();
   void ptmLoop();

@@ -84,4 +84,17 @@ config ESP32_DIV_TFT_ROTATION
     help
         Rotation applied to both TFT and touch input.
 
+config ESP32_DIV_UI_SELF_TEST
+    bool "Build UI self-test harness"
+    default n
+    help
+        Build the isolated UI traversal harness used for hardware debug.
+
+config ESP32_DIV_UI_SELF_TEST_AUTO_RUN
+    bool "Auto-run UI self-test after boot"
+    depends on ESP32_DIV_UI_SELF_TEST
+    default n
+    help
+        Start the UI traversal harness once, four seconds after boot.
+
 endmenu

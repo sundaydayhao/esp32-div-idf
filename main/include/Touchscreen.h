@@ -42,4 +42,8 @@ bool readTouchXY(int& x, int& y);
 /** Lower pressure threshold ¡ª use for "tap anywhere to dismiss" so light taps register. */
 bool readTouchXYDismiss(int& x, int& y);
 
+void injectTouchRawXYForTest(int16_t x, int16_t y, uint16_t z = 900, uint8_t reads = 6);
+void injectTouchScreenXYForTest(int x, int y, uint8_t reads = 3);
+void clearInjectedTouchForTest();
+
 #endif

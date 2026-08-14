@@ -710,9 +710,9 @@ static uint32_t replayDecodeMinDwellMs() {
 
 static void tuneToIndex(uint16_t idx, bool persist = true) {
   currentFrequencyIndex = idx % freqCount();
-  ELECHOUSE_cc1101.setSidle();
-  ELECHOUSE_cc1101.setMHZ(subghz_frequency_list[currentFrequencyIndex] / 1000000.0);
-  ELECHOUSE_cc1101.SetRx();
+  DivCc1101Radio.setSidle();
+  DivCc1101Radio.setMHZ(subghz_frequency_list[currentFrequencyIndex] / 1000000.0);
+  DivCc1101Radio.SetRx();
   if (persist) {
     DivNvStore.put(ADDR_FREQ, currentFrequencyIndex);
     DivNvStore.commit();
@@ -771,7 +771,7 @@ static bool replayAutoScanReadyForDecode(uint32_t now) {
   if (now < scanSettledAtMs) {
     return false;
   }
-  return ELECHOUSE_cc1101.getRssi() > replayRssiDecodeThreshold();
+  return DivCc1101Radio.getRssi() > replayRssiDecodeThreshold();
 }
 
 static void replaySampleRssiForScan(uint32_t now) {
@@ -782,7 +782,7 @@ static void replaySampleRssiForScan(uint32_t now) {
     return;
   }
 
-  const int rssi = ELECHOUSE_cc1101.getRssi();
+  const int rssi = DivCc1101Radio.getRssi();
   const int detectThreshold = replayRssiDetectThreshold();
   const uint8_t detectHits = replayFreqIsLowBand(currentFrequencyIndex) ? RSSI_DETECT_HITS_LOW
                                                                         : RSSI_DETECT_HITS;
@@ -951,7 +951,7 @@ void updateDisplay() {
     replayDrawStaticChrome();
 
     const uint8_t modeState = replayModeState();
-    const int16_t rssi = ELECHOUSE_cc1101.getRssi();
+    const int16_t rssi = DivCc1101Radio.getRssi();
     char freqBuf[16];
     char modeBuf[8];
     char bitBuf[8];
@@ -1002,9 +1002,9 @@ void updateDisplay() {
     s_replayDisp.valid = true;
 
     if (!autoScanEnabled) {
-      ELECHOUSE_cc1101.setSidle();
-      ELECHOUSE_cc1101.setMHZ(subghz_frequency_list[currentFrequencyIndex] / 1000000.0);
-      ELECHOUSE_cc1101.SetRx();
+      DivCc1101Radio.setSidle();
+      DivCc1101Radio.setMHZ(subghz_frequency_list[currentFrequencyIndex] / 1000000.0);
+      DivCc1101Radio.SetRx();
     }
 }
 
@@ -1042,7 +1042,7 @@ void sendSignal() {
     mySwitch.disableReceive();
     delay(100);
     mySwitch.enableTransmit(REPLAY_TX_PIN);
-    ELECHOUSE_cc1101.SetTx();
+    DivCc1101Radio.SetTx();
 
     tft.fillRect(0, 40, 240, kReplayStatusLineY - 40, TFT_BLACK);
 
@@ -1059,7 +1059,7 @@ void sendSignal() {
     tft.setCursor(10, 30 + yshift);
     tft.print("Done!");
 
-    ELECHOUSE_cc1101.SetRx();
+    DivCc1101Radio.SetRx();
     mySwitch.disableTransmit();
     delay(100);
     mySwitch.enableReceive(REPLAY_RX_PIN);
@@ -1081,7 +1081,7 @@ void do_sampling() {
   float ewmaRSSI = -50;
 
 for (int i = 0; i < samplesSUB; i++) {
-    int rssi = ELECHOUSE_cc1101.getRssi();
+    int rssi = DivCc1101Radio.getRssi();
     rssi += 100;
 
     ewmaRSSI = (ALPHA * rssi) + ((1 - ALPHA) * ewmaRSSI);
@@ -1359,15 +1359,15 @@ void ReplayAttackSetup() {
   setTouchButtonInputEnabled(true);
   subghzSetReplayNavLabels();
 
-  ELECHOUSE_cc1101.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
+  DivCc1101Radio.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
 
-  ELECHOUSE_cc1101.Init();
-  ELECHOUSE_cc1101.setModulation(2);
-  ELECHOUSE_cc1101.setRxBW(500.0);
+  DivCc1101Radio.Init();
+  DivCc1101Radio.setModulation(2);
+  DivCc1101Radio.setRxBW(500.0);
 
-  ELECHOUSE_cc1101.setGDO(CC1101_GDO0, CC1101_GDO2);
+  DivCc1101Radio.setGDO(CC1101_GDO0, CC1101_GDO2);
 
-  ELECHOUSE_cc1101.SetRx();
+  DivCc1101Radio.SetRx();
 
   mySwitch.enableReceive(REPLAY_RX_PIN);
   mySwitch.enableTransmit(REPLAY_TX_PIN);
@@ -1604,7 +1604,7 @@ void ReplayAttackLoop() {
 
             DivNvStore.put(ADDR_FREQ, currentFrequencyIndex);
             DivNvStore.commit();
-            replayShowDetectNotice("DECODE", ELECHOUSE_cc1101.getRssi());
+            replayShowDetectNotice("DECODE", DivCc1101Radio.getRssi());
           }
         }
     }
@@ -2034,13 +2034,13 @@ void transmitProfile(int index) {
     if (!selectedValid) return;
     Profile profileToSend = selectedProfile;
 
-    ELECHOUSE_cc1101.setSidle();
-    ELECHOUSE_cc1101.setMHZ(profileToSend.frequency / 1000000.0);
+    DivCc1101Radio.setSidle();
+    DivCc1101Radio.setMHZ(profileToSend.frequency / 1000000.0);
 
     mySwitch.disableReceive();
     delay(100);
     mySwitch.enableTransmit(SUBGHZ_TX_PIN);
-    ELECHOUSE_cc1101.SetTx();
+    DivCc1101Radio.SetTx();
 
     profileClearContentArea(TFT_BLACK);
     tft.setCursor(10, 30 + yshift);
@@ -2060,7 +2060,7 @@ void transmitProfile(int index) {
     tft.setCursor(10, 30 + yshift);
     tft.print("Done!");
 
-    ELECHOUSE_cc1101.SetRx();
+    DivCc1101Radio.SetRx();
     mySwitch.disableTransmit();
     delay(100);
     mySwitch.enableReceive(SUBGHZ_RX_PIN);
@@ -2246,7 +2246,7 @@ void saveSetup() {
     setTouchButtonInputEnabled(true);
     subghzSetProfileNavLabels();
 
-    ELECHOUSE_cc1101.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
+    DivCc1101Radio.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
 
     DivNvStore.begin(NVSTORE_SIZE);
     loadProfileCount();
@@ -2270,9 +2270,9 @@ void saveSetup() {
     subghzRedrawNavChrome();
     uiDrawn = false;
 
-    ELECHOUSE_cc1101.Init();
-    ELECHOUSE_cc1101.setGDO(CC1101_GDO0, CC1101_GDO2);
-    ELECHOUSE_cc1101.SetRx();
+    DivCc1101Radio.Init();
+    DivCc1101Radio.setGDO(CC1101_GDO0, CC1101_GDO2);
+    DivCc1101Radio.SetRx();
 
     mySwitch.enableReceive(SUBGHZ_RX_PIN);
     mySwitch.enableTransmit(SUBGHZ_TX_PIN);
@@ -2402,11 +2402,11 @@ static void subjammerToggleJam() {
   jammingRunning = !jammingRunning;
   if (jammingRunning) {
     DivSerial.println("Jamming started");
-    ELECHOUSE_cc1101.setMHZ(targetFrequency);
-    ELECHOUSE_cc1101.SetTx();
+    DivCc1101Radio.setMHZ(targetFrequency);
+    DivCc1101Radio.SetTx();
   } else {
     DivSerial.println("Jamming stopped");
-    ELECHOUSE_cc1101.setSidle();
+    DivCc1101Radio.setSidle();
     gpioOutputWrite(TX_PIN, false);
   }
   updateDisplay();
@@ -2419,7 +2419,7 @@ static void subjammerFreqNext() {
   }
   currentFrequencyIndex = (currentFrequencyIndex + 1) % numFrequencies;
   targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
-  ELECHOUSE_cc1101.setMHZ(targetFrequency);
+  DivCc1101Radio.setMHZ(targetFrequency);
   updateDisplay();
   lastDebounceTime = millis();
 }
@@ -2430,17 +2430,17 @@ static void subjammerFreqPrev() {
   }
   currentFrequencyIndex = (currentFrequencyIndex - 1 + numFrequencies) % numFrequencies;
   targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
-  ELECHOUSE_cc1101.setMHZ(targetFrequency);
+  DivCc1101Radio.setMHZ(targetFrequency);
   updateDisplay();
   lastDebounceTime = millis();
 }
 
 static void subjammerApplyFrequency() {
-  ELECHOUSE_cc1101.setMHZ(targetFrequency);
+  DivCc1101Radio.setMHZ(targetFrequency);
   if (jammingRunning) {
-    ELECHOUSE_cc1101.SetTx();
+    DivCc1101Radio.SetTx();
   } else {
-    ELECHOUSE_cc1101.setSidle();
+    DivCc1101Radio.setSidle();
     gpioOutputWrite(TX_PIN, false);
   }
 }
@@ -2671,11 +2671,11 @@ void runUI() {
                   jammingRunning = !jammingRunning;
                     if (jammingRunning) {
                         DivSerial.println("Jamming started");
-                        ELECHOUSE_cc1101.setMHZ(targetFrequency);
-                        ELECHOUSE_cc1101.SetTx();
+                        DivCc1101Radio.setMHZ(targetFrequency);
+                        DivCc1101Radio.SetTx();
                     } else {
                         DivSerial.println("Jamming stopped");
-                        ELECHOUSE_cc1101.setSidle();
+                        DivCc1101Radio.setSidle();
                         gpioOutputWrite(TX_PIN, false);
                     }
                     updateDisplay();
@@ -2705,7 +2705,7 @@ void runUI() {
                 case 3:
                   currentFrequencyIndex = (currentFrequencyIndex - 1 + numFrequencies) % numFrequencies;
                   targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
-                  ELECHOUSE_cc1101.setMHZ(targetFrequency);
+                  DivCc1101Radio.setMHZ(targetFrequency);
                   DivSerial.print("Switched to: ");
                   DivSerial.print(targetFrequency);
                   DivSerial.println(" MHz");
@@ -2715,7 +2715,7 @@ void runUI() {
                  case 4:
                   currentFrequencyIndex = (currentFrequencyIndex + 1) % numFrequencies;
                   targetFrequency = subghz_frequency_list[currentFrequencyIndex] / 1000000.0;
-                  ELECHOUSE_cc1101.setMHZ(targetFrequency);
+                  DivCc1101Radio.setMHZ(targetFrequency);
                   DivSerial.print("Switched to: ");
                   DivSerial.print(targetFrequency);
                   DivSerial.println(" MHz");
@@ -2771,14 +2771,14 @@ void subjammerSetup() {
     drawStatusBar(readBatteryVoltage(), true);
     subghzRedrawNavChrome();
 
-    ELECHOUSE_cc1101.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
+    DivCc1101Radio.setSpiPin(CC1101_SCK, CC1101_MISO, CC1101_MOSI, CC1101_CS);
 
-    ELECHOUSE_cc1101.Init();
-    ELECHOUSE_cc1101.setModulation(0);
-    ELECHOUSE_cc1101.setRxBW(500.0);
-    ELECHOUSE_cc1101.setPA(12);
-    ELECHOUSE_cc1101.setMHZ(targetFrequency);
-    ELECHOUSE_cc1101.SetTx();
+    DivCc1101Radio.Init();
+    DivCc1101Radio.setModulation(0);
+    DivCc1101Radio.setRxBW(500.0);
+    DivCc1101Radio.setPA(12);
+    DivCc1101Radio.setMHZ(targetFrequency);
+    DivCc1101Radio.SetTx();
 
     randomSeed(esp_random() ^ micros());
 
@@ -2851,19 +2851,19 @@ void subjammerLoop() {
     subjammerAutoSweepIfDue();
 
     if (jammingRunning) {
-        ELECHOUSE_cc1101.SetTx();
+        DivCc1101Radio.SetTx();
 
         if (continuousMode) {
-            ELECHOUSE_cc1101.SpiWriteReg(CC1101_TXFIFO, 0xFF);
-            ELECHOUSE_cc1101.SpiStrobe(CC1101_STX);
+            DivCc1101Radio.SpiWriteReg(CC1101_TXFIFO, 0xFF);
+            DivCc1101Radio.SpiStrobe(CC1101_STX);
             gpioOutputWrite(TX_PIN, true);
         } else {
             for (int i = 0; i < 10; i++) {
                 uint32_t noise = random(16777216);
-                ELECHOUSE_cc1101.SpiWriteReg(CC1101_TXFIFO, noise >> 16);
-                ELECHOUSE_cc1101.SpiWriteReg(CC1101_TXFIFO, (noise >> 8) & 0xFF);
-                ELECHOUSE_cc1101.SpiWriteReg(CC1101_TXFIFO, noise & 0xFF);
-                ELECHOUSE_cc1101.SpiStrobe(CC1101_STX);
+                DivCc1101Radio.SpiWriteReg(CC1101_TXFIFO, noise >> 16);
+                DivCc1101Radio.SpiWriteReg(CC1101_TXFIFO, (noise >> 8) & 0xFF);
+                DivCc1101Radio.SpiWriteReg(CC1101_TXFIFO, noise & 0xFF);
+                DivCc1101Radio.SpiStrobe(CC1101_STX);
                 delayMicroseconds(50);
               }
           }

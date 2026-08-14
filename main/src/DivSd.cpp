@@ -355,7 +355,7 @@ DivFile DivSdClass::open(const char* path, const char* mode) {
 bool DivSdClass::mount(int cs) {
   sdmmc_host_t host = SDSPI_HOST_DEFAULT();
   host.slot = DIV_SD_HOST;
-  host.max_freq_khz = SDMMC_FREQ_DEFAULT;
+  host.max_freq_khz = 4000;
 
   spi_bus_config_t busCfg = {};
   busCfg.mosi_io_num = DIV_SD_MOSI;

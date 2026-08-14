@@ -5,11 +5,13 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 #include "BoardPins.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_err.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_rom_sys.h"
 
@@ -529,40 +531,74 @@ void DivDisplay::pushPixels(int32_t x, int32_t y, int32_t w, int32_t h, const ui
 
 DivSprite::DivSprite(DivDisplay* parent) : parent_(parent) {}
 
+DivSprite::~DivSprite() {
+  deleteSprite();
+}
+
 bool DivSprite::createSprite(int16_t w, int16_t h) {
   if (w <= 0 || h <= 0) return false;
+  const size_t count = static_cast<size_t>(w) * static_cast<size_t>(h);
+  if (count > (SIZE_MAX / sizeof(uint16_t))) {
+    ESP_LOGW(kTag, "sprite size overflow: %dx%d", (int)w, (int)h);
+    return false;
+  }
+  const size_t bytes = count * sizeof(uint16_t);
+  const size_t largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+  if (largest < bytes) {
+    ESP_LOGW(kTag, "sprite alloc skipped: %dx%d needs %u bytes, largest block %u",
+             (int)w, (int)h, (unsigned)bytes, (unsigned)largest);
+    return false;
+  }
+
+  uint16_t* next = static_cast<uint16_t*>(heap_caps_malloc(bytes, MALLOC_CAP_8BIT));
+  if (!next) {
+    ESP_LOGW(kTag, "sprite alloc failed: %dx%d needs %u bytes, largest block %u",
+             (int)w, (int)h, (unsigned)bytes, (unsigned)largest);
+    return false;
+  }
+
+  deleteSprite();
   width_ = w;
   height_ = h;
-  pixels_.assign(static_cast<size_t>(w) * h, TFT_BLACK);
+  pixels_ = next;
+  pixelCount_ = count;
+  std::fill_n(pixels_, pixelCount_, TFT_BLACK);
   return true;
 }
 
 void DivSprite::deleteSprite() {
-  pixels_.clear();
+  if (pixels_) {
+    heap_caps_free(pixels_);
+    pixels_ = nullptr;
+  }
+  pixelCount_ = 0;
   width_ = height_ = 0;
 }
 
 void DivSprite::pushSprite(int32_t x, int32_t y) {
-  if (parent_ && !pixels_.empty()) parent_->pushPixels(x, y, width_, height_, pixels_.data());
+  if (parent_ && pixels_) parent_->pushPixels(x, y, width_, height_, pixels_);
 }
 
 void DivSprite::writePixel(int32_t x, int32_t y, uint16_t color) {
-  if (x < 0 || y < 0 || x >= width_ || y >= height_ || pixels_.empty()) return;
+  if (x < 0 || y < 0 || x >= width_ || y >= height_ || !pixels_) return;
   pixels_[static_cast<size_t>(y) * width_ + x] = color;
 }
 
 void DivSprite::writeFillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t color) {
-  if (w <= 0 || h <= 0) return;
+  if (w <= 0 || h <= 0 || !pixels_) return;
   if (x < 0) { w += x; x = 0; }
   if (y < 0) { h += y; y = 0; }
   if (x + w > width_) w = width_ - x;
   if (y + h > height_) h = height_ - y;
+  if (w <= 0 || h <= 0) return;
   for (int32_t yy = 0; yy < h; ++yy) {
     std::fill_n(&pixels_[static_cast<size_t>(y + yy) * width_ + x], w, color);
   }
 }
 
-void DivSprite::fillScreen(uint16_t color) { std::fill(pixels_.begin(), pixels_.end(), color); }
+void DivSprite::fillScreen(uint16_t color) {
+  if (pixels_) std::fill_n(pixels_, pixelCount_, color);
+}
 void DivSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t color) { writeFillRect(x, y, w, h, color); }
 void DivSprite::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t color) {
   drawLine(x, y, x + w - 1, y, color); drawLine(x, y + h - 1, x + w - 1, y + h - 1, color);
@@ -571,7 +607,7 @@ void DivSprite::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t co
 void DivSprite::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t, uint16_t color) { drawRect(x, y, w, h, color); }
 void DivSprite::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t, uint16_t color) { fillRect(x, y, w, h, color); }
 void DivSprite::drawBitmap(int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, uint16_t color) {
-  if (!bitmap || pixels_.empty()) return;
+  if (!bitmap || !pixels_) return;
   const int32_t byteWidth = (w + 7) / 8;
   for (int32_t yy = 0; yy < h; ++yy) {
     for (int32_t xx = 0; xx < w; ++xx) {
