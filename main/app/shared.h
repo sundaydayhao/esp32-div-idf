@@ -1,0 +1,282 @@
+#include "c_util.h"
+#ifndef SHARED_H
+#define SHARED_H
+#include "board_config.h"
+#include "board_pins.h"
+#include "c_util.h"
+/* v1 ESP32 has less internal DRAM for static buffers; v2/S3 keeps full sizes.
+ */
+#if BOARD_HAS_ESP32S3
+#define ESP32DIV_FFT_SAMPLES 256
+#define ESP32DIV_FFT_PALETTE_SIZE 128
+#define ESP32DIV_PKT_GRAPH_WIDTH 240
+#define ESP32DIV_JD_WAVE_WIDTH 220
+#define ESP32DIV_JD_RSSI_SAMPLES 128
+#define ESP32DIV_BLE_SCANNER_BARS 128
+#define ESP32DIV_BLE_SCANNER_CHANS 128
+#define ESP32DIV_ESB_RP_CAPTURES 8
+#define ESP32DIV_ESB_RP_SEL_LINES 8
+#define ESP32DIV_ESB_RP_LOG_LINES 10
+#define ESP32DIV_MAX_WIFI_NETWORKS 50
+#define ESP32DIV_PCAP_POOL_SIZE 10
+#define ESP32DIV_PCAP_SNAP_LEN 2324
+#define ESP32DIV_RFID_SRC_PAGES 256
+#else
+#define ESP32DIV_FFT_SAMPLES 256
+#define ESP32DIV_FFT_PALETTE_SIZE 128
+#define ESP32DIV_PKT_GRAPH_WIDTH 240
+#define ESP32DIV_JD_WAVE_WIDTH 220
+#define ESP32DIV_JD_RSSI_SAMPLES 64
+#define ESP32DIV_BLE_SCANNER_BARS 64
+#define ESP32DIV_BLE_SCANNER_CHANS 64
+#define ESP32DIV_ESB_RP_CAPTURES 4
+#define ESP32DIV_ESB_RP_SEL_LINES 4
+#define ESP32DIV_ESB_RP_LOG_LINES 6
+#define ESP32DIV_MAX_WIFI_NETWORKS 28
+#define ESP32DIV_PCAP_POOL_SIZE 3
+#define ESP32DIV_PCAP_SNAP_LEN 512
+#define ESP32DIV_RFID_SRC_PAGES 128
+#endif
+
+enum {
+  GRAY = 0x8410,
+  BLUE = 0x001F,
+  RED = 0xF800,
+  GREEN = 0x07E0,
+  BLACK = 0x0000,
+  WHITE = 0xFFFF,
+  LIGHT_GRAY = 0xC618,
+  DARK_GRAY = 0x4208
+};
+
+uint16_t uiUniversalColor(void);
+#define ORANGE uiUniversalColor()
+
+#define TFT_DARKBLUE 0x3166
+#define TFT_LIGHTBLUE 0x051F
+#define TFTWHITE 0xFFFF
+#define TFT_GRAY 0x8410
+
+#define BG_Dark 0x20e4
+#define BG_Light 0xf7de
+#define FG_Dark 0x3166
+#define FG_Light 0xe73c
+#define LINE_Dark 0x8410
+#define LINE_Light 0x8410
+#define ICON_Dark 0xFBE4
+#define ICON_Light 0xFBE4
+#define TEXT_Dark 0xFFFF
+#define TEXT_Light 0x0000
+#define UI_ACCENT 0x3166
+
+#define L_Dark 0x4208
+#define L_Light 0xC618
+
+// Default background for feature screens (separate from main menu background).
+// Currently black, but you can change this one define to restyle all features.
+#ifndef FEATURE_BG
+#define FEATURE_BG BLACK
+#endif
+
+#define SELECTED_ICON_COLOR UI_ICON
+
+#ifndef UI_BG
+#define UI_BG UI.bg
+#endif
+#ifndef UI_FG
+#define UI_FG UI.fg
+#endif
+#ifndef UI_ICON
+#define UI_ICON UI.icon
+#endif
+#ifndef UI_TEXT
+#define UI_TEXT UI.text
+#endif
+#ifndef UI_LINE
+#define UI_LINE UI.line
+#endif
+#ifndef UI_LABLE
+#define UI_LABLE UI.lable
+#endif
+#ifndef UI_ACCENT
+#define UI_ACCENT UI.accent
+#endif
+#ifndef UI_WARN
+#define UI_WARN UI.warn
+#endif
+#ifndef UI_OK
+#define UI_OK GREEN
+#endif
+
+#ifndef ESP32DIV_NAME
+#define ESP32DIV_NAME "ESP32-DIV"
+#endif
+#ifndef ESP32DIV_VERSION
+#define ESP32DIV_VERSION "2.0.0"
+#endif
+
+static inline uint8_t k0(void) { return (uint8_t)('h' - '`'); }
+
+static const uint8_t OBF_PN[] = {77, 91, 88, 59, 58, 37, 76, 65, 94};
+static const uint8_t OBF_DN[] = {75, 97, 110, 109, 122, 92, 109, 107, 96};
+static const uint8_t OBF_EM[] = {107, 97,  110, 109, 122, 124, 109, 107, 96, 72,
+                                 111, 101, 105, 97,  100, 38,  107, 103, 101};
+static const uint8_t OBF_GH[] = {111, 97,  124, 96,  125, 106, 38,
+                                 107, 103, 101, 39,  107, 97,  110,
+                                 109, 122, 124, 109, 107, 96};
+static const uint8_t OBF_WB[] = {75,  97, 110, 109, 122, 92, 109,
+                                 107, 96, 38,  102, 109, 124};
+
+#ifndef TFT_WIDTH
+#define TFT_WIDTH 240
+#endif
+#ifndef TFT_HEIGHT
+#define TFT_HEIGHT 320
+#endif
+#ifndef DISPLAY_WIDTH
+#define DISPLAY_WIDTH TFT_WIDTH
+#endif
+#ifndef DISPLAY_HEIGHT
+#define DISPLAY_HEIGHT TFT_HEIGHT
+#endif
+#ifndef STATUS_BAR_Y_OFFSET
+#undef STATUS_BAR_Y_OFFSET
+#define STATUS_BAR_Y_OFFSET 0
+#endif
+
+#ifndef DEBOUNCE_MS
+#define DEBOUNCE_MS 40
+#endif
+#ifndef LONG_PRESS_MS
+#define LONG_PRESS_MS 800
+#endif
+#ifndef REPEAT_SCROLL_MS
+#define REPEAT_SCROLL_MS 120
+#endif
+
+#ifndef BKL_LEVEL_MIN
+#define BKL_LEVEL_MIN 10
+#endif
+#ifndef BKL_LEVEL_MED
+#define BKL_LEVEL_MED 128
+#endif
+#ifndef BKL_LEVEL_MAX
+#define BKL_LEVEL_MAX 255
+#endif
+
+#ifndef FS_MOUNT_OK_MSG
+#define FS_MOUNT_OK_MSG "SD OK"
+#endif
+#ifndef FS_MOUNT_FAIL_MSG
+#define FS_MOUNT_FAIL_MSG "SD Fail"
+#endif
+#ifndef LOG_DIR
+#define LOG_DIR "/logs"
+#endif
+#ifndef CAPTURE_DIR
+#define CAPTURE_DIR "/captures"
+#endif
+
+#ifndef BATTERY_ADC_PIN
+#define BATTERY_ADC_PIN -1
+#endif
+#ifndef BATTERY_VDIV_R1
+#define BATTERY_VDIV_R1 200000.0f
+#endif
+#ifndef BATTERY_VDIV_R2
+#define BATTERY_VDIV_R2 100000.0f
+#endif
+#ifndef BATTERY_LOW_VOLT
+#define BATTERY_LOW_VOLT 3.40f
+#endif
+
+#ifndef WIFI_SCAN_ACTIVE_MS
+#define WIFI_SCAN_ACTIVE_MS 500
+#endif
+#ifndef WIFI_SCAN_PASSIVE_MS
+#define WIFI_SCAN_PASSIVE_MS 0
+#endif
+
+#ifndef BLE_ADV_INTERVAL_MS
+#define BLE_ADV_INTERVAL_MS 100
+#endif
+#ifndef BLE_JAMMER_SWEEP_MS
+#define BLE_JAMMER_SWEEP_MS 80
+#endif
+
+#ifndef SUBGHZ_SAMPLE_RATE
+#define SUBGHZ_SAMPLE_RATE 38000
+#endif
+#ifndef SUBGHZ_DEFAULT_FREQ
+#define SUBGHZ_DEFAULT_FREQ 433920000UL
+#endif
+#ifndef NRF24_DATA_RATE
+#define NRF24_DATA_RATE 2
+#endif
+#ifndef NRF24_PA_LEVEL
+#define NRF24_PA_LEVEL 3
+#endif
+#ifndef CC1101_DEFAULT_MOD
+#define CC1101_DEFAULT_MOD 2
+#endif
+
+#ifndef FEATURE_WIFI_TOOLS
+#define FEATURE_WIFI_TOOLS 1
+#endif
+#ifndef FEATURE_BLE_TOOLS
+#define FEATURE_BLE_TOOLS 1
+#endif
+#ifndef FEATURE_BLE_DUCKY
+#define FEATURE_BLE_DUCKY BOARD_HAS_ESP32S3
+#endif
+#ifndef FEATURE_SUBGHZ_TOOLS
+#define FEATURE_SUBGHZ_TOOLS 1
+#endif
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#endif
+#ifndef UNUSED
+#define UNUSED(x) (void)(x)
+#endif
+
+typedef uint8_t Theme;
+enum { Theme_Dark = 0, Theme_Light = 1 };
+
+#ifndef NEOPIXEL_BRIGHT_MAX
+#define NEOPIXEL_BRIGHT_MAX 64
+#endif
+#ifndef SETTINGS_NVS_NAMESPACE
+#define SETTINGS_NVS_NAMESPACE "app_settings"
+#endif
+
+void displaySubmenu(void);
+
+typedef struct UiPalette {
+  uint16_t bg, fg, icon, text, accent, line, lable, warn, ok;
+} UiPalette;
+#define UiPalette_INITIALIZER {0}
+;
+extern UiPalette UI;
+void applyThemeToPalette(Theme t);
+uint16_t uiUniversalColor(void);
+
+// Dim label text color (used for *text* only).
+// Keep UI_LABLE unchanged because it's also used for fills (e.g., status bar
+// bg).
+static inline uint16_t uiDimTextColor(void) {
+  // In Dark theme, UI_LABLE (L_Dark) is intentionally very dark; brighten text
+  // a bit.
+  return (UI.bg == BG_Dark) ? GRAY : UI_LABLE;
+}
+#ifndef UI_DIM_TEXT
+#define UI_DIM_TEXT uiDimTextColor()
+#endif
+
+extern bool in_sub_menu;
+extern bool feature_active;
+extern bool submenu_initialized;
+extern bool is_main_menu;
+extern bool feature_exit_requested;
+
+#endif

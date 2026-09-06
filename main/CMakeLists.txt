@@ -1,60 +1,34 @@
 idf_component_register(
     SRCS
-        "src/pcf8574.cpp"
-        "src/div_pn532.cpp"
-        "src/rf24.cpp"
-        "src/div_display.cpp"
-        "src/div_nv_store.cpp"
-        "src/div_platform.cpp"
-        "src/div_sd.cpp"
-        "src/div_serial.cpp"
-        "src/div_spi.cpp"
-        "src/div_wifi.cpp"
-        "src/div_cc1101.cpp"
-        "src/app.cpp"
-        "src/bluetooth.cpp"
-        "src/ducky.cpp"
-        "src/gps.cpp"
-        "src/ir_driver.cpp"
-        "src/ir.cpp"
-        "src/keyboard_ui.cpp"
-        "src/rfid.cpp"
-        "src/settings_store.cpp"
-        "src/signal_dsp.cpp"
-        "src/subghz.cpp"
-        "src/theme.cpp"
-        "src/touchscreen.cpp"
-        "src/ui_self_test.cpp"
-        "src/utils.cpp"
-        "src/wifi.cpp"
-        "src/xpt2046_touchscreen.cpp"
-        "main.cpp"
-    INCLUDE_DIRS
-        "."
-        "include"
-    REQUIRES
-        bt
-        cjson
-        nvs_flash
-        esp_event
-        esp_system
-        esp_timer
-        esp_wifi
-        esp_netif
-        esp_http_server
-        esp_driver_gpio
-        esp_driver_i2c
-        mdns
-        app_update
-        esp_driver_ledc
-        espressif__esp-dsp
-        esp_driver_spi
-        esp_driver_sdspi
-        esp_driver_tsens
-        esp_driver_uart
-        esp-tls
-        fatfs
-        sdmmc
+        "features/terminal.c"
+        "features/settings_page.c"
+        "features/file_manager.c"
+        "features/touch_calibration.c"
+        "app/app.c"
+        "app/feature_text.c"
+        "app/settings_store.c"
+        "features/bluetooth.c"
+        "features/ducky.c"
+        "features/gps.c"
+        "features/ir.c"
+        "features/rfid.c"
+        "features/subghz.c"
+        "features/wifi.c"
+        "main.c"
+        "ui/keyboard_ui.c"
+        "ui/theme.c"
+        "ui/touch_ui.c"
+        "ui/ui_self_test.c"
+        "ui/ui_utils.c"
+    PRIV_INCLUDE_DIRS "app" "features" "ui" "ui/assets"
+    PRIV_REQUIRES
+        div_common div_board div_peripherals div_display div_services div_gnss div_signal
+        bt cjson nvs_flash esp_event esp_system esp_timer esp_wifi esp_netif
+        esp_http_client esp_http_server esp_driver_gpio esp_adc esp_lcd
+        esp_driver_rmt esp_driver_i2c mdns bootloader_support app_update
+        esp_driver_ledc esp_driver_spi esp_driver_sdspi esp_driver_tsens
+        esp_driver_uart esp-tls fatfs sdmmc
 )
 
-target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-missing-field-initializers)
+set_target_properties(${COMPONENT_LIB} PROPERTIES C_STANDARD 17 C_STANDARD_REQUIRED YES)
+target_compile_options(${COMPONENT_LIB} PRIVATE -std=gnu17 -fstack-usage -Wno-missing-field-initializers)

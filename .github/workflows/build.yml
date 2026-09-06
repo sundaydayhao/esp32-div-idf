@@ -1,0 +1,36 @@
+name: ESP-IDF firmware
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board: [v2, v1, cyd]
+    container: espressif/idf:v6.0.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and validate
+        shell: bash
+        run: |
+          . /opt/esp/idf/export.sh
+          python tools/check_c_project.py
+          cc -std=gnu17 -Wall -Wextra -Werror -Icomponents/div_common/include -Icomponents/div_services/include tests/test_c_core.c -o /tmp/esp32-div-c-checks
+          /tmp/esp32-div-c-checks
+          cc -std=gnu17 -Wall -Wextra -Werror -Icomponents/div_common/include -Icomponents/div_gnss/include tests/test_gnss.c components/div_gnss/src/gnss_parser.c -lm -o /tmp/esp32-div-gnss-checks
+          /tmp/esp32-div-gnss-checks
+          python -m unittest discover -s tests -p 'test_*.py' -v
+          python tools/firmware.py build --board ${{ matrix.board }}
+          python tools/check_c_project.py --build build-${{ matrix.board }}
+          python tools/firmware.py verify --board ${{ matrix.board }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esp32-div-${{ matrix.board }}
+          path: |
+            dist/${{ matrix.board }}/
+            dist/esp32-div-${{ matrix.board }}-*.zip
+          if-no-files-found: error
