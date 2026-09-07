@@ -1,24 +1,28 @@
 # ESP32-DIV
 
-基于 ESP-IDF 的 C 语言手持无线工具工程。支持官方 ESP32-DIV V2、V1，以及 CYD ESP32-2432S028R。应用版本 **2.0.0**，构建基线 **ESP-IDF 6.0.2**。`main/` 与 `components/` 的全部自有源码使用 **C17**；`managed_components/` 中的第三方库保留上游实现，可以包含 C++。
+基于 ESP-IDF 的 C 语言手持无线工具工程。支持官方 ESP32-DIV V2、V1，以及 CYD ESP32-2432S028R。应用版本 **2.0.0**，使用 **ESP-IDF v5.5.x**，构建验证基线为 **v5.5.5**。`main/` 与 `components/` 的全部自有源码使用 **C17**；`managed_components/` 中的第三方库保留上游实现，可以包含 C++。
 
 ## 构建与烧录
 
-Windows 已安装 ESP-IDF 时，在工程根目录执行：
+默认板型为 **官方 V2（ESP32-S3 / 16 MB Flash）**。CMake、构建/烧录脚本及网页烧录入口默认选择 V2；VS Code 工作区也配置为 IDF 5.5.5 和 `build-v2`。
+
+Windows 已安装 ESP-IDF 时，在 Windows PowerShell 5.1 中进入工程根目录执行：
 
 ```powershell
-.\tools\build.ps1 -Board all -IdfPath C:\esp\v6.0.2\esp-idf
+.\tools\build.ps1 -IdfPath C:\esp\v5.5.5\esp-idf
 ```
 
-也可以在已激活的 ESP-IDF 终端中执行，支持 Windows / Linux / macOS：
+`-IdfPath` 指向包含 `export.ps1` 的 SDK 目录；构建脚本也支持 `-IdfProfile` 指向安装器生成的 PowerShell 激活脚本。CMake 和组件依赖声明均限定 IDF 5.5 系列。切换 SDK 时应使用新的构建目录或先归档原构建目录，重新生成 SDK 配置。
+
+也可以在已激活的 ESP-IDF 5.5 终端中执行，支持 Windows / Linux / macOS：
 
 ```sh
-python tools/firmware.py build --board v2
-python tools/firmware.py verify --board v2
-python tools/firmware.py flash --board v2 --port COM7
+python tools/firmware.py build
+python tools/firmware.py verify
+python tools/firmware.py flash --port COM7
 ```
 
-将 `v2` 换成 `v1` 或 `cyd` 选择硬件。Linux 串口例如 `/dev/ttyUSB0`。烧录前自动校验固件包，必须显式指定串口；串口日志波特率为 115200。
+需要其他板型时显式传入 `--board v1` / `--board cyd`，PowerShell 构建脚本对应 `-Board v1` / `-Board cyd`；构建全部板型使用 `--board all` / `-Board all`。Linux 串口例如 `/dev/ttyUSB0`。烧录前自动校验固件包，必须显式指定串口；串口日志波特率为 115200。
 
 | 板型 | 芯片 / Flash | 构建目录 | 完整烧录包 |
 | --- | --- | --- | --- |
@@ -27,6 +31,8 @@ python tools/firmware.py flash --board v2 --port COM7
 | CYD 2432S028R | ESP32 / 4 MB，电阻触摸 | `build-cyd` | `dist/esp32-div-cyd-2.0.0.zip` |
 
 V2 默认不依赖 PSRAM。每个板型分别保存 SDK 配置、分区表、应用标识及产物。V1 和 CYD 虽使用同一芯片，也不能互刷。
+
+V1 / CYD 默认启用 `CONFIG_FREERTOS_PLACE_FUNCTIONS_INTO_FLASH`，将 IDF 指定的非中断 FreeRTOS 函数放入 Flash，以满足 ESP32 的 IRAM 容量限制。中断函数仍保留在 IRAM；Wi-Fi 和 RMT 的 IRAM 配置保持启用。
 
 使用 IDF 原生工具调试或修改配置：
 
@@ -82,11 +88,13 @@ partitions*.csv           16 MB / 4 MB 双 OTA 分区布局
 
 [功能及约束](docs/FEATURES.md) 说明各项运行条件。无线发送遵循 IDF 驱动支持范围，统计以驱动返回结果为准。
 
-显示、触摸、灯带、DSP、JSON、mDNS 使用第三方组件；BLE 使用 IDF NimBLE 的 C API，网络、TLS、FATFS、NVS 和 OTA 使用 IDF 自带组件。PCF8574、NRF24、CC1101、PN532 通过原生 I2C / SPI 与板级总线仲裁接入。依赖来源见 [THIRD_PARTY.md](THIRD_PARTY.md)。
+显示、触摸、灯带、DSP、mDNS 使用第三方组件；BLE 使用 IDF NimBLE 的 C API，cJSON 使用 IDF 5.5 内置的 `json` 组件，网络、TLS、FATFS、NVS 和 OTA 使用 IDF 自带组件。PCF8574、NRF24、CC1101、PN532 通过原生 I2C / SPI 与板级总线仲裁接入。依赖来源见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
 ## 固件与升级
 
 `dist/<board>/` 包含 Bootloader、分区表、OTA 初始数据、应用镜像、合并镜像、ESP Web Tools manifest、SHA-256 校验表、构建信息及独立烧录脚本。构建工具同时生成 ZIP 包。
+
+独立烧录脚本支持 esptool 4.12 和 5.x，自动选择对应的命令与参数格式；可直接使用 IDF 5.5 的 Python 环境，或在独立 Python 环境中安装包内的 `requirements.txt`。
 
 - 首次烧录：使用完整包，或从 **0x0** 烧录 `esp32-div-<board>-merged.bin`。
 - SD / HTTP OTA：只使用 **`esp32_div_<board>.bin`** 应用镜像，不上传合并镜像。

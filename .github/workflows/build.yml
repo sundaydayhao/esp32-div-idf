@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         board: [v2, v1, cyd]
-    container: espressif/idf:v6.0.2
+    container: espressif/idf:v5.5.5
     steps:
       - uses: actions/checkout@v4
       - name: Build and validate

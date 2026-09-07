@@ -23,7 +23,7 @@ idf_component_register(
     PRIV_INCLUDE_DIRS "app" "features" "ui" "ui/assets"
     PRIV_REQUIRES
         div_common div_board div_peripherals div_display div_services div_gnss div_signal
-        bt cjson nvs_flash esp_event esp_system esp_timer esp_wifi esp_netif
+        bt json nvs_flash esp_event esp_system esp_timer esp_wifi esp_netif
         esp_http_client esp_http_server esp_driver_gpio esp_adc esp_lcd
         esp_driver_rmt esp_driver_i2c mdns bootloader_support app_update
         esp_driver_ledc esp_driver_spi esp_driver_sdspi esp_driver_tsens

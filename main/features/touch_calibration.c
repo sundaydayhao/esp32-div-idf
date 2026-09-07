@@ -3,6 +3,7 @@
 #include "icon.h"
 #include "storage_file.h"
 #include "system_features.h"
+#include "esp_log.h"
 #include "touch_ui.h"
 #include "ui_utils.h"
 

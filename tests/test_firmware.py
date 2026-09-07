@@ -27,7 +27,7 @@ def make_image(chip=9, board="v2"):
     descriptor[16:22] = b"2.0.0\0"
     project = f"esp32_div_{board}".encode() + b"\0"
     descriptor[48:48 + len(project)] = project
-    descriptor[112:119] = b"v6.0.2\0"
+    descriptor[112:119] = b"v5.5.5\0"
     image = header + struct.pack("<II", 0x3FC88000, len(descriptor)) + descriptor
     checksum = 0xEF
     for byte in descriptor:
@@ -71,7 +71,26 @@ class FirmwareTests(unittest.TestCase):
     def test_valid_build(self):
         info = firmware.validate_layout("v2", self.directory, self.args)
         self.assertEqual(info["project"], "esp32_div_v2")
-        self.assertEqual(info["idf"], "v6.0.2")
+        self.assertEqual(info["idf"], "v5.5.5")
+
+    def test_esptool_v4_flash_arguments(self):
+        command = firmware.flash_command("v2", self.args, "COM7", 460800, 4)
+        self.assertIn("write_flash", command)
+        self.assertIn("--flash_mode", command)
+        self.assertNotIn("--flash-mode", command)
+        self.assertEqual(command[-8:], ["0x0", "bootloader.bin", "0x8000", "partitions.bin",
+                                       "0xe000", "ota_data_initial.bin", "0x10000", "app.bin"])
+
+    def test_esptool_v5_flash_arguments(self):
+        self.args["write_flash_args"] = ["--flash_mode", "dio", "--flash_size", "16MB", "--flash_freq", "40m"]
+        command = firmware.flash_command("v2", self.args, "COM7", 460800, 5)
+        self.assertIn("write-flash", command)
+        self.assertIn("--flash-mode", command)
+        self.assertNotIn("--flash_mode", command)
+
+    def test_unsupported_esptool_version(self):
+        with self.assertRaisesRegex(ValueError, "Unsupported esptool"):
+            firmware.flash_command("v2", self.args, "COM7", 460800, 3)
 
     def test_chip_mismatch(self):
         (self.directory / "app.bin").write_bytes(make_image(chip=0))

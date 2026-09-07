@@ -4,14 +4,14 @@
 
 | 组件 | 本次解析版本 | 用途 | 许可证 / 来源 |
 | --- | --- | --- | --- |
-| ESP-IDF | 6.0.2 | FreeRTOS、驱动、Wi-Fi、NimBLE C API、lwIP、TLS、HTTP、FATFS、NVS、OTA | Apache-2.0 及其各子组件许可证；[Espressif](https://github.com/espressif/esp-idf) |
+| ESP-IDF | 5.5.5 | FreeRTOS、驱动、Wi-Fi、NimBLE C API、lwIP、TLS、HTTP、FATFS、NVS、OTA | Apache-2.0 及其各子组件许可证；[Espressif](https://github.com/espressif/esp-idf/tree/v5.5.5) |
 | espressif/esp_lcd_ili9341 | 2.0.2 | ILI9341 面板 | Apache-2.0；[esp-bsp](https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_ili9341) |
 | atanisoft/esp_lcd_touch_xpt2046 | 1.0.6 | XPT2046 采样和坐标解码 | MIT；[atanisoft](https://github.com/atanisoft/esp_lcd_touch_xpt2046) |
 | espressif/esp_lcd_touch | 1.2.1 | 触摸框架，传递依赖 | Apache-2.0；[esp-bsp](https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch/esp_lcd_touch) |
 | espressif/led_strip | 3.0.3 | WS2812 RMT 输出 | Apache-2.0；[idf-extra-components](https://github.com/espressif/idf-extra-components/tree/master/led_strip) |
 | h2zero/esp-nimble-cpp | 2.5.0 | 保留已锁定的上游依赖；自有 BLE 服务直接使用 IDF NimBLE C API | Apache-2.0；[h2zero](https://github.com/h2zero/esp-nimble-cpp) |
 | espressif/esp-dsp | 1.8.2 | FFT 和信号计算 | Apache-2.0；[esp-dsp](https://github.com/espressif/esp-dsp) |
-| espressif/cjson | 1.7.19~2 | JSON 解析和保存 | MIT；[cJSON](https://github.com/DaveGamble/cJSON) |
+| cJSON（IDF 内置 `json`） | 1.7.19 | JSON 解析和保存，由 IDF 5.5 提供 | MIT；[ESP-IDF json](https://github.com/espressif/esp-idf/tree/v5.5.5/components/json) |
 | espressif/mdns | 1.11.2 | 本地域名发现 | Apache-2.0；[mDNS](https://github.com/espressif/esp-protocols/tree/master/components/mdns) |
 | espressif/cmake_utilities | 0.5.3 | 面板组件构建依赖 | Apache-2.0；[idf-extra-components](https://github.com/espressif/idf-extra-components/tree/master/cmake_utilities) |
 

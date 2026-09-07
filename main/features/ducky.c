@@ -853,9 +853,10 @@ static bool Ducky_execLine(text_t raw, uint32_t* interDelay, text_t* err) {
       (strcmp((ucmd).data, "PGDN") == 0) ||
       (strcmp((ucmd).data, "PAGEDOWN") == 0) ||
       (strlen((ucmd).data) == 2 && (ucmd).data[0] == 'F' &&
-       isdigit((ucmd).data[1])) ||
+       isdigit((unsigned char)(ucmd).data[1])) ||
       (strlen((ucmd).data) == 3 && (ucmd).data[0] == 'F' &&
-       isdigit((ucmd).data[1]) && isdigit((ucmd).data[2]))) {
+       isdigit((unsigned char)(ucmd).data[1]) &&
+       isdigit((unsigned char)(ucmd).data[2]))) {
     uint8_t usage = 0, m = 0;
     if (!Ducky_resolveKeyWord(ucmd, &(usage), &(m))) {
       (*err) = text_join_cstr("Unknown key: ", (ucmd).data);

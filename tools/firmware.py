@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from importlib.metadata import version as package_version
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,7 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+ESPTOOL_REQUIREMENT = "esptool>=4.12,<6"
 BOARDS = {
     "v2": {"chip": "esp32s3", "chip_id": 9, "flash": 16 * 1024 * 1024, "family": "ESP32-S3"},
     "v1": {"chip": "esp32", "chip_id": 0, "flash": 4 * 1024 * 1024, "family": "ESP32"},
@@ -156,7 +158,7 @@ def package(board: str, build: Path, destination: Path) -> Path:
     })
     write_json(destination / "build-info.json", {"board": board, **info})
     shutil.copy2(Path(__file__), destination / "flash_tool.py")
-    (destination / "requirements.txt").write_text("esptool>=5.1,<6\n", encoding="utf-8")
+    (destination / "requirements.txt").write_text(ESPTOOL_REQUIREMENT + "\n", encoding="utf-8")
     (destination / "FLASH.txt").write_text(
         f"ESP32-DIV {board.upper()} {info['version']} / {BOARDS[board]['chip']}\n\n"
         "Install Python 3.10+ and run these commands in this extracted directory:\n"
@@ -225,6 +227,25 @@ def build_board(board: str) -> Path:
     return build
 
 
+def flash_command(board: str, args: dict, port: str, baud: int,
+                  esptool_major: int | None = None) -> list[str]:
+    """Use the command spelling of the installed esptool without changing images."""
+    major = esptool_major if esptool_major is not None else int(package_version("esptool").split(".")[0])
+    if major not in (4, 5):
+        raise ValueError(f"Unsupported esptool version {major}; install {ESPTOOL_REQUIREMENT}")
+    command = "write_flash" if major == 4 else "write-flash"
+    spellings = {"--flash-mode", "--flash-size", "--flash-freq"}
+    write_args = []
+    for argument in args["write_flash_args"]:
+        normalized = argument.replace("_", "-") if argument.startswith("--") else argument
+        if normalized in spellings:
+            argument = "--" + normalized[2:].replace("-", "_") if major == 4 else normalized
+        write_args.append(argument)
+    images = [item for pair in args["flash_files"].items() for item in pair]
+    return [sys.executable, "-m", "esptool", "--chip", BOARDS[board]["chip"],
+            "--port", port, "--baud", str(baud), command, *write_args, *images]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("build", "package", "verify", "flash"))
@@ -247,10 +268,8 @@ def main():
                 if not options.port:
                     parser.error("--port is required; no device is selected automatically")
                 args = read_json(directory / "flasher_args.json")
-                images = [item for pair in args["flash_files"].items() for item in pair]
-                subprocess.run([sys.executable, "-m", "esptool", "--chip", BOARDS[board]["chip"],
-                                "--port", options.port, "--baud", str(options.baud), "write-flash",
-                                *args["write_flash_args"], *images], cwd=directory, check=True)
+                subprocess.run(flash_command(board, args, options.port, options.baud),
+                               cwd=directory, check=True)
 
 
 if __name__ == "__main__":
